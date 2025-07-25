@@ -101,6 +101,14 @@ The application is designed for easy migration from in-memory storage to Postgre
 
 ## Recent Changes
 
+- **MAJOR ENHANCEMENT: Incoterm-Based Cost Calculations** - July 25, 2025
+  - Implemented comprehensive Incoterm cost adjustments affecting carrier pricing
+  - Significant cost differences: FOB (R118k), CIF (R69k - saves R49k), EXW (R123k), DDP (R68k - saves R50k)
+  - Added detailed Incoterm explanations displayed prominently in cost breakdowns
+  - Sea freight costs now adjust based on buyer vs seller responsibility
+  - Handling fees vary by Incoterm responsibility level (EXW highest, DDP lowest)
+  - System now properly reflects real-world Incoterm cost impacts per international trade standards
+
 - **CRITICAL FIX: Sea Freight Pricing Update** - July 25, 2025
   - Corrected sea freight rates to match current market conditions
   - Shanghai to Durban: R35,000 → R48,500 (+38% increase) - now aligns with $2,750 USD spot rate
