@@ -28,6 +28,10 @@ export const destinations = pgTable("destinations", {
   fromDurban: real("trucking_cost_from_durban").notNull(),
   fromCapeTown: real("trucking_cost_from_cape_town").notNull(),
   fromPortElizabeth: real("trucking_cost_from_port_elizabeth").notNull(),
+  fromRichardsBay: real("trucking_cost_from_richards_bay").notNull(),
+  fromEastLondon: real("trucking_cost_from_east_london").notNull(),
+  fromMosselBay: real("trucking_cost_from_mossel_bay").notNull(),
+  fromSaldanhaBay: real("trucking_cost_from_saldanha_bay").notNull(),
 });
 
 export const cargoTypes = pgTable("cargo_types", {
@@ -53,6 +57,7 @@ export const shippingQuotes = pgTable("shipping_quotes", {
   originPort: text("origin_port").notNull(),
   destinationPort: text("destination_port").notNull(),
   finalDestination: text("final_destination").notNull(),
+  deliveryAddress: text("delivery_address").notNull(),
   containerType: text("container_type").notNull(),
   cargoType: text("cargo_type").notNull(),
   incoterm: text("incoterm").notNull(),
@@ -76,6 +81,7 @@ export const quoteRequestSchema = z.object({
   originPort: z.string().min(1, "Origin port is required"),
   destinationPort: z.string().min(1, "Destination port is required"),
   finalDestination: z.string().min(1, "Final destination is required"),
+  deliveryAddress: z.string().min(1, "Delivery address is required"),
   containerType: z.enum(["20ft", "40ft", "40ft-hc"], {
     required_error: "Container type is required",
   }),

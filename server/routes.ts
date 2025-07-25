@@ -115,6 +115,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         case "ZAPEZ":
           truckingCost = destination.fromPortElizabeth;
           break;
+        case "ZARBD":
+          truckingCost = destination.fromRichardsBay;
+          break;
+        case "ZAELS":
+          truckingCost = destination.fromEastLondon;
+          break;
+        case "ZAMOB":
+          truckingCost = destination.fromMosselBay;
+          break;
+        case "ZASDB":
+          truckingCost = destination.fromSaldanhaBay;
+          break;
       }
 
       // Calculate customs duties
@@ -133,6 +145,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         originPort: originPort.name,
         destinationPort: destinationPort.name,
         finalDestination: validatedData.finalDestination,
+        deliveryAddress: validatedData.deliveryAddress,
         containerType: validatedData.containerType,
         cargoType: validatedData.cargoType,
         incoterm: validatedData.incoterm,

@@ -181,28 +181,48 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="finalDestination" className="flex items-center">
-              Final Destination in South Africa
-              <div className="tooltip-trigger relative inline-block ml-1">
-                <span className="material-icons text-gray-400 text-sm cursor-help">help_outline</span>
-                <div className="tooltip absolute bottom-6 left-0 bg-gray-900 text-white text-xs p-2 rounded opacity-0 invisible whitespace-nowrap z-10">
-                  Where should we deliver your cargo? This affects trucking costs.
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <Label htmlFor="finalDestination" className="flex items-center">
+                Final Destination City
+                <div className="tooltip-trigger relative inline-block ml-1">
+                  <span className="material-icons text-gray-400 text-sm cursor-help">help_outline</span>
+                  <div className="tooltip absolute bottom-6 left-0 bg-gray-900 text-white text-xs p-2 rounded opacity-0 invisible whitespace-nowrap z-10">
+                    Select the city for trucking cost calculation
+                  </div>
                 </div>
-              </div>
-            </Label>
-            <Select onValueChange={(value) => form.setValue("finalDestination", value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select final destination" />
-              </SelectTrigger>
-              <SelectContent>
-                {(destinations as Destination[]).map((dest) => (
-                  <SelectItem key={dest.id} value={dest.name}>
-                    {dest.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              </Label>
+              <Select onValueChange={(value) => form.setValue("finalDestination", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select destination city" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(destinations as Destination[]).map((dest) => (
+                    <SelectItem key={dest.id} value={dest.name}>
+                      {dest.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="deliveryAddress" className="flex items-center">
+                Delivery Address
+                <div className="tooltip-trigger relative inline-block ml-1">
+                  <span className="material-icons text-gray-400 text-sm cursor-help">help_outline</span>
+                  <div className="tooltip absolute bottom-6 left-0 bg-gray-900 text-white text-xs p-2 rounded opacity-0 invisible whitespace-nowrap z-10">
+                    Enter the specific delivery address for your cargo
+                  </div>
+                </div>
+              </Label>
+              <Input
+                id="deliveryAddress"
+                placeholder="123 Business Street, Industrial Area, City"
+                {...form.register("deliveryAddress")}
+                className="h-10"
+              />
+            </div>
           </div>
 
           <div>

@@ -59,30 +59,74 @@ export class MemStorage implements IStorage {
       { id: "8", name: "Singapore", code: "SGSIN", country: "Singapore", type: "origin" },
       { id: "9", name: "Durban", code: "ZADUR", country: "South Africa", type: "destination" },
       { id: "10", name: "Cape Town", code: "ZACPT", country: "South Africa", type: "destination" },
-      { id: "11", name: "Port Elizabeth", code: "ZAPEZ", country: "South Africa", type: "destination" },
+      { id: "11", name: "Port Elizabeth (Gqeberha)", code: "ZAPEZ", country: "South Africa", type: "destination" },
+      { id: "12", name: "Richards Bay", code: "ZARBD", country: "South Africa", type: "destination" },
+      { id: "13", name: "East London", code: "ZAELS", country: "South Africa", type: "destination" },
+      { id: "14", name: "Mossel Bay", code: "ZAMOB", country: "South Africa", type: "destination" },
+      { id: "15", name: "Saldanha Bay", code: "ZASDB", country: "South Africa", type: "destination" },
     ];
 
     portsData.forEach(port => this.ports.set(port.id, port));
 
-    // Initialize routes with realistic costs in ZAR
+    // Initialize routes with realistic costs in ZAR - covering all SA ports
     const routesData: Route[] = [
+      // Shanghai to all SA ports
       { id: "1", originPortId: "1", destinationPortId: "9", seaFreightCost20ft: 35000, seaFreightCost40ft: 45000, seaFreightCost40ftHC: 47000, transitDays: 20 },
       { id: "2", originPortId: "1", destinationPortId: "10", seaFreightCost20ft: 38000, seaFreightCost40ft: 48000, seaFreightCost40ftHC: 50000, transitDays: 22 },
-      { id: "3", originPortId: "4", destinationPortId: "10", seaFreightCost20ft: 32000, seaFreightCost40ft: 42000, seaFreightCost40ftHC: 44000, transitDays: 16 },
-      { id: "4", originPortId: "5", destinationPortId: "9", seaFreightCost20ft: 34000, seaFreightCost40ft: 44000, seaFreightCost40ftHC: 46000, transitDays: 18 },
-      { id: "5", originPortId: "8", destinationPortId: "9", seaFreightCost20ft: 28000, seaFreightCost40ft: 38000, seaFreightCost40ftHC: 40000, transitDays: 12 },
+      { id: "3", originPortId: "1", destinationPortId: "11", seaFreightCost20ft: 36000, seaFreightCost40ft: 46000, seaFreightCost40ftHC: 48000, transitDays: 21 },
+      { id: "4", originPortId: "1", destinationPortId: "12", seaFreightCost20ft: 34000, seaFreightCost40ft: 44000, seaFreightCost40ftHC: 46000, transitDays: 19 },
+      
+      // Hamburg to all SA ports
+      { id: "5", originPortId: "4", destinationPortId: "9", seaFreightCost20ft: 33000, seaFreightCost40ft: 43000, seaFreightCost40ftHC: 45000, transitDays: 17 },
+      { id: "6", originPortId: "4", destinationPortId: "10", seaFreightCost20ft: 32000, seaFreightCost40ft: 42000, seaFreightCost40ftHC: 44000, transitDays: 16 },
+      { id: "7", originPortId: "4", destinationPortId: "11", seaFreightCost20ft: 34000, seaFreightCost40ft: 44000, seaFreightCost40ftHC: 46000, transitDays: 18 },
+      
+      // Rotterdam to all SA ports
+      { id: "8", originPortId: "5", destinationPortId: "9", seaFreightCost20ft: 34000, seaFreightCost40ft: 44000, seaFreightCost40ftHC: 46000, transitDays: 18 },
+      { id: "9", originPortId: "5", destinationPortId: "10", seaFreightCost20ft: 33000, seaFreightCost40ft: 43000, seaFreightCost40ftHC: 45000, transitDays: 17 },
+      { id: "10", originPortId: "5", destinationPortId: "11", seaFreightCost20ft: 35000, seaFreightCost40ft: 45000, seaFreightCost40ftHC: 47000, transitDays: 19 },
+      
+      // Singapore to all SA ports
+      { id: "11", originPortId: "8", destinationPortId: "9", seaFreightCost20ft: 28000, seaFreightCost40ft: 38000, seaFreightCost40ftHC: 40000, transitDays: 12 },
+      { id: "12", originPortId: "8", destinationPortId: "10", seaFreightCost20ft: 30000, seaFreightCost40ft: 40000, seaFreightCost40ftHC: 42000, transitDays: 14 },
+      { id: "13", originPortId: "8", destinationPortId: "11", seaFreightCost20ft: 29000, seaFreightCost40ft: 39000, seaFreightCost40ftHC: 41000, transitDays: 13 },
+      { id: "14", originPortId: "8", destinationPortId: "12", seaFreightCost20ft: 27000, seaFreightCost40ft: 37000, seaFreightCost40ftHC: 39000, transitDays: 11 },
     ];
 
     routesData.forEach(route => this.routes.set(`${route.originPortId}-${route.destinationPortId}`, route));
 
-    // Initialize destinations
+    // Initialize destinations with trucking costs from all SA ports
     const destinationsData: Destination[] = [
-      { id: "1", name: "Johannesburg, Gauteng", province: "Gauteng", fromDurban: 8500, fromCapeTown: 15000, fromPortElizabeth: 12000 },
-      { id: "2", name: "Pretoria, Gauteng", province: "Gauteng", fromDurban: 9000, fromCapeTown: 15500, fromPortElizabeth: 12500 },
-      { id: "3", name: "Cape Town, Western Cape", province: "Western Cape", fromDurban: 14000, fromCapeTown: 1000, fromPortElizabeth: 7500 },
-      { id: "4", name: "Durban, KwaZulu-Natal", province: "KwaZulu-Natal", fromDurban: 1000, fromCapeTown: 14000, fromPortElizabeth: 6000 },
-      { id: "5", name: "Bloemfontein, Free State", province: "Free State", fromDurban: 6500, fromCapeTown: 11000, fromPortElizabeth: 8500 },
-      { id: "6", name: "Polokwane, Limpopo", province: "Limpopo", fromDurban: 11000, fromCapeTown: 18000, fromPortElizabeth: 15000 },
+      { 
+        id: "1", name: "Johannesburg, Gauteng", province: "Gauteng", 
+        fromDurban: 8500, fromCapeTown: 15000, fromPortElizabeth: 12000,
+        fromRichardsBay: 7800, fromEastLondon: 10500, fromMosselBay: 13000, fromSaldanhaBay: 16500
+      },
+      { 
+        id: "2", name: "Pretoria, Gauteng", province: "Gauteng", 
+        fromDurban: 9000, fromCapeTown: 15500, fromPortElizabeth: 12500,
+        fromRichardsBay: 8300, fromEastLondon: 11000, fromMosselBay: 13500, fromSaldanhaBay: 17000
+      },
+      { 
+        id: "3", name: "Cape Town, Western Cape", province: "Western Cape", 
+        fromDurban: 14000, fromCapeTown: 1000, fromPortElizabeth: 7500,
+        fromRichardsBay: 15000, fromEastLondon: 8500, fromMosselBay: 4500, fromSaldanhaBay: 2500
+      },
+      { 
+        id: "4", name: "Durban, KwaZulu-Natal", province: "KwaZulu-Natal", 
+        fromDurban: 1000, fromCapeTown: 14000, fromPortElizabeth: 6000,
+        fromRichardsBay: 3500, fromEastLondon: 5500, fromMosselBay: 12000, fromSaldanhaBay: 16000
+      },
+      { 
+        id: "5", name: "Bloemfontein, Free State", province: "Free State", 
+        fromDurban: 6500, fromCapeTown: 11000, fromPortElizabeth: 8500,
+        fromRichardsBay: 7500, fromEastLondon: 7000, fromMosselBay: 9500, fromSaldanhaBay: 13000
+      },
+      { 
+        id: "6", name: "Polokwane, Limpopo", province: "Limpopo", 
+        fromDurban: 11000, fromCapeTown: 18000, fromPortElizabeth: 15000,
+        fromRichardsBay: 9500, fromEastLondon: 13500, fromMosselBay: 16500, fromSaldanhaBay: 20000
+      },
     ];
 
     destinationsData.forEach(dest => this.destinations.set(dest.name, dest));
