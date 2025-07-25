@@ -1,4 +1,4 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Zap, TrendingDown, TrendingUp, Clock } from "lucide-react";
@@ -221,7 +221,7 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
                               </div>
                             )}
                             <div className="mt-2 space-y-1">
-                              {quoteResult.customsInfo.calculationMethod.notes.map((note, index) => (
+                              {quoteResult.customsInfo.calculationMethod.notes.map((note: string, index: number) => (
                                 <div key={index} className="text-xs text-gray-500 flex items-start">
                                   <span className="text-gray-400 mr-1">•</span>
                                   <span>{note}</span>
