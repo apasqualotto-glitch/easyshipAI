@@ -101,6 +101,13 @@ The application is designed for easy migration from in-memory storage to Postgre
 
 ## Recent Changes
 
+- **CRITICAL FIX: SARS Compliance - FOB Valuation Method** - July 25, 2025
+  - Discovered and corrected major compliance issue: SARS uses FOB (Free on Board) valuation method, NOT CIF
+  - Updated all customs calculations to use FOB basis per WTO Customs Valuation Agreement
+  - FOB excludes international shipping and insurance costs from customs value calculation
+  - Enhanced cost breakdown to clearly show FOB values and proper SARS methodology
+  - System now fully compliant with official SARS customs valuation rules
+
 - **Live USD to ZAR Currency Conversion System** - July 25, 2025
   - Implemented real-time exchange rate fetching from multiple API sources (exchangerate-api.com, exchangerate.host)
   - Added automatic USD to ZAR conversion for all SARS customs calculations
