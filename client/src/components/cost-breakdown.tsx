@@ -272,6 +272,41 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
               >
                 Email Quote
               </Button>
+              <Button 
+                className="w-full bg-green-600 hover:bg-green-700 text-white"
+                onClick={() => {
+                  // Store quote data in localStorage for booking page access
+                  if (quoteResult?.id) {
+                    const quoteInfo = {
+                      id: quoteResult.id,
+                      originPort: quoteResult.originPort,
+                      destinationPort: quoteResult.destinationPort,
+                      finalDestination: quoteResult.finalDestination,
+                      containerType: quoteResult.containerType,
+                      cargoType: quoteResult.cargoType,
+                      weight: quoteResult.weight,
+                      value: quoteResult.value,
+                      incoterm: quoteResult.incoterm,
+                      totalCost: quoteResult.totalCost,
+                      partialShipmentDetails: quoteResult.partialShipmentDetails,
+                      seaFreightCost: quoteResult.seaFreightCost,
+                      truckingCost: quoteResult.truckingCost,
+                      customsDuties: quoteResult.customsDuties,
+                      vat: quoteResult.vat,
+                      handlingFees: quoteResult.handlingFees
+                    };
+                    localStorage.setItem(`quote-${quoteResult.id}`, JSON.stringify(quoteInfo));
+                    window.open(`/booking?quote=${quoteResult.id}`, '_blank');
+                  } else {
+                    alert('Please generate a quote first to proceed with booking.');
+                  }
+                }}
+              >
+                <div className="flex items-center space-x-2">
+                  <span className="material-icons text-sm">local_shipping</span>
+                  <span>Book My Shipment</span>
+                </div>
+              </Button>
             </div>
           ) : (
             <div className="mt-6 text-center">
