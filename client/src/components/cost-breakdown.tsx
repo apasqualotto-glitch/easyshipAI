@@ -19,6 +19,11 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
       <Card className="shadow-material sticky top-8">
         <CardContent className="p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Cost Breakdown</h3>
+          {quoteResult && quoteResult.id && (
+            <div className="mb-4 p-2 bg-green-100 text-green-800 rounded text-sm">
+              ✅ Quote generated! Booking section available below.
+            </div>
+          )}
           
           <div className="space-y-4">
             <div className="flex justify-between items-center py-2 border-b border-gray-100">
@@ -294,8 +299,8 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
       </Card>
       
       {/* Booking Section */}
-      {quoteResult && (
-        <Card className="bg-primary-50 shadow-material">
+      {quoteResult && quoteResult.id && (
+        <Card className="bg-blue-50 shadow-lg border-2 border-blue-200">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <span className="material-icons text-primary">local_shipping</span>
@@ -328,12 +333,15 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
               <div className="text-center">
                 <a 
                   href={`/booking?quote=${quoteResult.id}`}
-                  className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors inline-block"
+                  className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors inline-block font-semibold text-lg shadow-lg"
                 >
-                  Start Booking Process
+                  🚢 Start Booking Process
                 </a>
                 <p className="text-xs text-gray-500 mt-2">
                   Direct API integration with carrier booking systems
+                </p>
+                <p className="text-xs text-blue-600 mt-1">
+                  Quote ID: {quoteResult.id}
                 </p>
               </div>
             </div>
