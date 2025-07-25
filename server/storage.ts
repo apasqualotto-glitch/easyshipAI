@@ -141,6 +141,7 @@ export class MemStorage implements IStorage {
       { id: "6", name: "Food Products", dutyRate: 0.05, additionalFees: 2000 },
       { id: "7", name: "Chemicals", dutyRate: 0.08, additionalFees: 5000 },
       { id: "8", name: "Furniture", dutyRate: 0.20, additionalFees: 2500 },
+      { id: "9", name: "Other", dutyRate: 0.15, additionalFees: 2000 },
     ];
 
     cargoTypesData.forEach(cargo => this.cargoTypes.set(cargo.name, cargo));
