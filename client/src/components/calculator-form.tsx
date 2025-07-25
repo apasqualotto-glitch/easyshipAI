@@ -111,6 +111,7 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
   }, [watchedValues, onQuoteUpdate]);
 
   const searchCustomsTariffs = async (searchTerm: string) => {
+    console.log("Searching for:", searchTerm);
     if (!searchTerm.trim()) return;
     
     try {
@@ -124,10 +125,26 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
       
       if (response.ok) {
         const results = await response.json();
+        console.log("Search results:", results);
         setCustomsTariffs(results);
+        
+        if (results.length === 0) {
+          toast({
+            title: "No results found",
+            description: `No customs data found for "${searchTerm}". Try different keywords.`,
+            variant: "destructive",
+          });
+        }
+      } else {
+        console.error("Search response not ok:", response.status);
       }
     } catch (error) {
       console.error("Customs search failed:", error);
+      toast({
+        title: "Search failed",
+        description: "Unable to search customs database. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
