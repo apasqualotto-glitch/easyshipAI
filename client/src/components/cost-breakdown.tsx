@@ -300,48 +300,56 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
       
       {/* Booking Section */}
       {quoteResult && quoteResult.id && (
-        <Card className="bg-blue-50 shadow-lg border-2 border-blue-200">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <span className="material-icons text-primary">local_shipping</span>
-              Book This Shipment
+        <Card className="bg-gradient-to-r from-blue-50 to-green-50 shadow-lg border-2 border-blue-200">
+          <CardHeader className="text-center">
+            <CardTitle className="flex items-center justify-center gap-2 text-xl">
+              🚢 Book This Shipment
             </CardTitle>
-            <CardDescription>
-              Create a booking with your preferred shipping carrier
+            <CardDescription className="text-base">
+              Ready to book? Choose your preferred carrier or compare rates first
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-4 border rounded-lg bg-white">
-                  <div className="font-medium text-blue-600">Maersk Line</div>
-                  <div className="text-sm text-gray-600">World's largest carrier</div>
-                  <div className="text-xs text-gray-500 mt-1">API Ready • Global Coverage</div>
+            <div className="space-y-6">
+              <div className="text-center space-y-4">
+                <div className="bg-white p-4 rounded-lg border border-blue-200">
+                  <div className="text-sm text-gray-600 mb-2">Quote Details</div>
+                  <div className="grid grid-cols-2 gap-4 text-xs">
+                    <div>
+                      <span className="text-gray-500">Total Cost:</span>
+                      <span className="font-semibold ml-2">{formatCurrency(quoteResult.totalCost)}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Transit:</span>
+                      <span className="font-semibold ml-2">{quoteResult.transitDays} days</span>
+                    </div>
+                  </div>
+                  <div className="text-xs text-blue-600 mt-2">
+                    Quote ID: {quoteResult.id}
+                  </div>
                 </div>
-                <div className="p-4 border rounded-lg bg-white">
-                  <div className="font-medium text-red-600">MSC</div>
-                  <div className="text-sm text-gray-600">Global shipping leader</div>
-                  <div className="text-xs text-gray-500 mt-1">API Ready • DCSA Compliant</div>
+
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <a 
+                    href={`/booking?quote=${quoteResult.id}`}
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold text-center flex-1"
+                  >
+                    🚢 Start Booking Process
+                  </a>
+                  <Button 
+                    variant="outline" 
+                    className="px-6 py-3 border-blue-300 text-blue-700 hover:bg-blue-50"
+                    onClick={() => {
+                      const compareTab = document.querySelector('[data-state="inactive"][value="compare"]') as HTMLElement;
+                      if (compareTab) compareTab.click();
+                    }}
+                  >
+                    📊 Compare Carriers First
+                  </Button>
                 </div>
-                <div className="p-4 border rounded-lg bg-white opacity-50">
-                  <div className="font-medium text-gray-600">CMA CGM</div>
-                  <div className="text-sm text-gray-600">Coming soon</div>
-                  <div className="text-xs text-gray-500 mt-1">API Integration In Progress</div>
-                </div>
-              </div>
-              
-              <div className="text-center">
-                <a 
-                  href={`/booking?quote=${quoteResult.id}`}
-                  className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors inline-block font-semibold text-lg shadow-lg"
-                >
-                  🚢 Start Booking Process
-                </a>
-                <p className="text-xs text-gray-500 mt-2">
-                  Direct API integration with carrier booking systems
-                </p>
-                <p className="text-xs text-blue-600 mt-1">
-                  Quote ID: {quoteResult.id}
+                
+                <p className="text-xs text-gray-500">
+                  Direct API integration with major carrier booking systems
                 </p>
               </div>
             </div>

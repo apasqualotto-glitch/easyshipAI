@@ -87,6 +87,7 @@ export default function Calculator() {
                   baseCost={quoteResult?.totalCost || 0}
                   containerType={quoteData?.containerType || ""}
                   route={carrierComparison?.route || ""}
+                  quoteId={quoteResult?.id}
                 />
               </TabsContent>
               <TabsContent value="customs">

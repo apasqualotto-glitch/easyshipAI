@@ -23,9 +23,10 @@ interface CarrierComparisonProps {
   baseCost: number;
   containerType: string;
   route: string;
+  quoteId?: string;
 }
 
-export default function CarrierComparison({ rates, baseCost, containerType, route }: CarrierComparisonProps) {
+export default function CarrierComparison({ rates, baseCost, containerType, route, quoteId }: CarrierComparisonProps) {
   const formatCurrency = (amount: number) => {
     return `R ${amount.toLocaleString()}`;
   };
@@ -178,17 +179,28 @@ export default function CarrierComparison({ rates, baseCost, containerType, rout
               </div>
 
               <div className="mt-3 pt-3 border-t border-gray-200">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-3">
                   <div className="text-sm text-gray-600">
                     Sea freight: {formatCurrency(rate.rate)} | Total with costs: {formatCurrency(rate.totalCost)}
                   </div>
+                </div>
+                <div className="flex gap-2">
                   <Button 
                     size="sm" 
                     variant={index === 0 ? "default" : "outline"}
-                    className={index === 0 ? "bg-green-600 hover:bg-green-700" : ""}
+                    className={`flex-1 ${index === 0 ? "bg-green-600 hover:bg-green-700" : ""}`}
                   >
-                    {index === 0 ? "Select Best Rate" : "Select Rate"}
+                    {index === 0 ? "✓ Best Rate" : "Select Rate"}
                   </Button>
+                  {quoteId && (
+                    <Button 
+                      size="sm" 
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-4"
+                      onClick={() => window.location.href = `/booking?quote=${quoteId}&carrier=${encodeURIComponent(rate.carrier)}&service=${encodeURIComponent(rate.service)}&rate=${rate.totalCost}`}
+                    >
+                      🚢 Book Now
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
