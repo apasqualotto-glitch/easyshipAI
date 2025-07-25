@@ -101,24 +101,33 @@ The application is designed for easy migration from in-memory storage to Postgre
 
 ## Recent Changes
 
+- **CRITICAL FIX: Resolved 400 "Route not available" errors** - July 25, 2025
+  - Fixed route lookup system that was causing quote calculation failures
+  - Added comprehensive route coverage for ALL origin ports to ALL SA destination ports
+  - Enhanced route lookup to handle both port IDs and port codes for backwards compatibility
+  - System now properly calculates quotes for Shanghai→Durban, Hamburg→Cape Town, etc.
+
+- **Data Consistency & Validation System** - July 25, 2025
+  - Implemented comprehensive data validation before quote calculations
+  - Added container weight limit enforcement (20ft: 28,080kg, 40ft: 26,680kg)
+  - Created real-time cargo value per kg validation with warnings
+  - Enhanced live shipping API to consistently pass weight and cargo details
+  - All APIs now receive synchronized cargo information (weight, value, dimensions)
+
+- **Trade Agreement Integration** - July 25, 2025
+  - Integrated country-specific customs duty calculations based on origin port
+  - Added major trade agreements: SACU (0% duty), AGOA (USA preferences), EPA (EU benefits)
+  - Quote results now show which trade agreement applies and actual duty rate used
+  - Enhanced customs calculations with preferential rates for qualifying countries
+
 - Successfully integrated advanced customs lookup with main calculator form cargo type selection
 - Enhanced customs search system with intelligent HS code matching and comprehensive product keyword database
 - Implemented search scoring, real-time suggestions, and user guidance for complex HS code classification
 - Massively expanded product coverage to accommodate "everything" people import:
-  - Agricultural products (bird seed, millet, barley, animal feed)
-  - Food products (meat, beef, chicken, frozen foods)
-  - Textiles & clothing (t-shirts, sneakers, footwear)
-  - Electronics (batteries, phones, laptops)
-  - Medical equipment (syringes, healthcare devices)
-  - Industrial machinery and tools
-  - Cosmetics and personal care
-  - Building materials and hardware
-  - Toys, sports equipment, musical instruments
-  - Jewelry, art, books, office supplies
-  - Kitchen items, garden tools, cleaning products
-  - Photography equipment, fishing gear
-  - Baby products, pets/live animals
-  - Plastics, chemicals, packaging materials
+  - Agricultural products, food products, textiles & clothing, electronics
+  - Medical equipment, industrial machinery, cosmetics, building materials
+  - Toys, sports equipment, musical instruments, jewelry, art, books
+  - Kitchen items, garden tools, photography equipment, baby products
 - Added real-time search suggestions as users type
 - Created helpful "no results found" guidance with popular search examples
 - System now handles diverse search terms from common names to technical descriptions

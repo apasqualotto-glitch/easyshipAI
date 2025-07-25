@@ -105,31 +105,57 @@ export class MemStorage implements IStorage {
 
     portsData.forEach(port => this.ports.set(port.id, port));
 
-    // Initialize routes with realistic costs in ZAR - covering all SA ports
+    // Initialize comprehensive routes with realistic costs in ZAR - covering ALL origin ports to ALL SA destination ports
     // Note: These are estimate baselines. Live rates from carriers (Maersk API) will be converted from USD to ZAR using real-time exchange rates
-    const routesData: Route[] = [
-      // Shanghai to all SA ports
-      { id: "1", originPortId: "1", destinationPortId: "9", seaFreightCost20ft: 35000, seaFreightCost40ft: 45000, seaFreightCost40ftHC: 47000, transitDays: 20 },
-      { id: "2", originPortId: "1", destinationPortId: "10", seaFreightCost20ft: 38000, seaFreightCost40ft: 48000, seaFreightCost40ftHC: 50000, transitDays: 22 },
-      { id: "3", originPortId: "1", destinationPortId: "11", seaFreightCost20ft: 36000, seaFreightCost40ft: 46000, seaFreightCost40ftHC: 48000, transitDays: 21 },
-      { id: "4", originPortId: "1", destinationPortId: "12", seaFreightCost20ft: 34000, seaFreightCost40ft: 44000, seaFreightCost40ftHC: 46000, transitDays: 19 },
+    const routesData: Route[] = [];
+    
+    // Define SA destination port IDs
+    const saDestinationPorts = ["9", "10", "11", "12", "13", "14", "15"]; // Durban, Cape Town, PE, Richards Bay, East London, Mossel Bay, Saldanha
+    
+    // Define origin ports with base costs for each destination port
+    const originPortRoutes = [
+      // China ports
+      { portId: "1", baseCosts: { "9": 35000, "10": 38000, "11": 36000, "12": 34000, "13": 37000, "14": 39000, "15": 40000 }, transitDays: 20 }, // Shanghai
+      { portId: "2", baseCosts: { "9": 34000, "10": 37000, "11": 35000, "12": 33000, "13": 36000, "14": 38000, "15": 39000 }, transitDays: 22 }, // Ningbo
+      { portId: "3", baseCosts: { "9": 36000, "10": 39000, "11": 37000, "12": 35000, "13": 38000, "14": 40000, "15": 41000 }, transitDays: 24 }, // Tianjin
+      { portId: "16", baseCosts: { "9": 33000, "10": 36000, "11": 34000, "12": 32000, "13": 35000, "14": 37000, "15": 38000 }, transitDays: 19 }, // Shenzhen
+      { portId: "17", baseCosts: { "9": 34500, "10": 37500, "11": 35500, "12": 33500, "13": 36500, "14": 38500, "15": 39500 }, transitDays: 21 }, // Qingdao
       
-      // Hamburg to all SA ports
-      { id: "5", originPortId: "4", destinationPortId: "9", seaFreightCost20ft: 33000, seaFreightCost40ft: 43000, seaFreightCost40ftHC: 45000, transitDays: 17 },
-      { id: "6", originPortId: "4", destinationPortId: "10", seaFreightCost20ft: 32000, seaFreightCost40ft: 42000, seaFreightCost40ftHC: 44000, transitDays: 16 },
-      { id: "7", originPortId: "4", destinationPortId: "11", seaFreightCost20ft: 34000, seaFreightCost40ft: 44000, seaFreightCost40ftHC: 46000, transitDays: 18 },
+      // Europe ports
+      { portId: "4", baseCosts: { "9": 33000, "10": 32000, "11": 34000, "12": 35000, "13": 35000, "14": 37000, "15": 31000 }, transitDays: 17 }, // Hamburg
+      { portId: "5", baseCosts: { "9": 34000, "10": 33000, "11": 35000, "12": 36000, "13": 36000, "14": 38000, "15": 32000 }, transitDays: 18 }, // Rotterdam
+      { portId: "6", baseCosts: { "9": 35000, "10": 34000, "11": 36000, "12": 37000, "13": 37000, "14": 39000, "15": 33000 }, transitDays: 19 }, // Felixstowe
+      { portId: "20", baseCosts: { "9": 33500, "10": 32500, "11": 34500, "12": 35500, "13": 35500, "14": 37500, "15": 31500 }, transitDays: 18 }, // Antwerp
       
-      // Rotterdam to all SA ports
-      { id: "8", originPortId: "5", destinationPortId: "9", seaFreightCost20ft: 34000, seaFreightCost40ft: 44000, seaFreightCost40ftHC: 46000, transitDays: 18 },
-      { id: "9", originPortId: "5", destinationPortId: "10", seaFreightCost20ft: 33000, seaFreightCost40ft: 43000, seaFreightCost40ftHC: 45000, transitDays: 17 },
-      { id: "10", originPortId: "5", destinationPortId: "11", seaFreightCost20ft: 35000, seaFreightCost40ft: 45000, seaFreightCost40ftHC: 47000, transitDays: 19 },
+      // Asia Pacific
+      { portId: "7", baseCosts: { "9": 30000, "10": 32000, "11": 31000, "12": 29000, "13": 31500, "14": 33000, "15": 34000 }, transitDays: 14 }, // Mumbai
+      { portId: "8", baseCosts: { "9": 28000, "10": 30000, "11": 29000, "12": 27000, "13": 29500, "14": 31000, "15": 32000 }, transitDays: 12 }, // Singapore
+      { portId: "25", baseCosts: { "9": 29000, "10": 31000, "11": 30000, "12": 28000, "13": 30500, "14": 32000, "15": 33000 }, transitDays: 13 }, // Chennai
       
-      // Singapore to all SA ports
-      { id: "11", originPortId: "8", destinationPortId: "9", seaFreightCost20ft: 28000, seaFreightCost40ft: 38000, seaFreightCost40ftHC: 40000, transitDays: 12 },
-      { id: "12", originPortId: "8", destinationPortId: "10", seaFreightCost20ft: 30000, seaFreightCost40ft: 40000, seaFreightCost40ftHC: 42000, transitDays: 14 },
-      { id: "13", originPortId: "8", destinationPortId: "11", seaFreightCost20ft: 29000, seaFreightCost40ft: 39000, seaFreightCost40ftHC: 41000, transitDays: 13 },
-      { id: "14", originPortId: "8", destinationPortId: "12", seaFreightCost20ft: 27000, seaFreightCost40ft: 37000, seaFreightCost40ftHC: 39000, transitDays: 11 },
+      // Americas
+      { portId: "32", baseCosts: { "9": 42000, "10": 45000, "11": 43000, "12": 44000, "13": 44000, "14": 46000, "15": 47000 }, transitDays: 28 }, // Los Angeles
+      { portId: "34", baseCosts: { "9": 40000, "10": 43000, "11": 41000, "12": 42000, "13": 42000, "14": 44000, "15": 45000 }, transitDays: 26 }, // New York
+      
+      // Middle East
+      { portId: "38", baseCosts: { "9": 25000, "10": 27000, "11": 26000, "12": 24000, "13": 26500, "14": 28000, "15": 29000 }, transitDays: 10 }, // Jebel Ali
     ];
+    
+    let routeId = 1;
+    originPortRoutes.forEach(origin => {
+      saDestinationPorts.forEach(destId => {
+        const baseCost = origin.baseCosts[destId as keyof typeof origin.baseCosts] || 35000; // fallback cost
+        routesData.push({
+          id: routeId.toString(),
+          originPortId: origin.portId,
+          destinationPortId: destId,
+          seaFreightCost20ft: baseCost,
+          seaFreightCost40ft: Math.round(baseCost * 1.3),
+          seaFreightCost40ftHC: Math.round(baseCost * 1.35),
+          transitDays: origin.transitDays
+        });
+        routeId++;
+      });
+    });
 
     routesData.forEach(route => this.routes.set(`${route.originPortId}-${route.destinationPortId}`, route));
 
@@ -285,7 +311,20 @@ export class MemStorage implements IStorage {
   }
 
   async getRoute(originPortId: string, destinationPortId: string): Promise<Route | undefined> {
-    return this.routes.get(`${originPortId}-${destinationPortId}`);
+    const route = this.routes.get(`${originPortId}-${destinationPortId}`);
+    if (route) {
+      return route;
+    }
+    
+    // If no direct route found, try to find by port codes instead of IDs
+    const originPort = Array.from(this.ports.values()).find(p => p.code === originPortId);
+    const destPort = Array.from(this.ports.values()).find(p => p.code === destinationPortId);
+    
+    if (originPort && destPort) {
+      return this.routes.get(`${originPort.id}-${destPort.id}`);
+    }
+    
+    return undefined;
   }
 
   async getDestinations(): Promise<Destination[]> {
