@@ -169,20 +169,34 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
             )}
           </div>
 
-          <Button 
-            className="w-full mt-6 bg-secondary-500 hover:bg-secondary-600"
-            disabled={!quoteResult}
-          >
-            Generate Detailed Quote
-          </Button>
-
-          <Button 
-            variant="outline" 
-            className="w-full mt-2"
-            disabled={!quoteResult}
-          >
-            Save Quote
-          </Button>
+          {quoteResult ? (
+            <div className="mt-6 space-y-2">
+              <Button 
+                variant="outline" 
+                className="w-full"
+              >
+                Save Quote
+              </Button>
+              <Button 
+                variant="outline" 
+                className="w-full"
+              >
+                Email Quote
+              </Button>
+            </div>
+          ) : (
+            <div className="mt-6 text-center">
+              <p className="text-sm text-gray-500 mb-2">
+                Fill out the form on the left to get your quote
+              </p>
+              <Button 
+                className="w-full bg-secondary-500 hover:bg-secondary-600"
+                disabled
+              >
+                Waiting for Quote Data...
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 

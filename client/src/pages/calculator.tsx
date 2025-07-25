@@ -65,8 +65,12 @@ export default function Calculator() {
           <div className="lg:col-span-1">
             <Tabs defaultValue="costs" className="w-full">
               <TabsList className="grid w-full grid-cols-5 text-xs">
-                <TabsTrigger value="costs">Costs</TabsTrigger>
-                <TabsTrigger value="compare">Compare</TabsTrigger>
+                <TabsTrigger value="costs" className={quoteResult ? "bg-green-100 text-green-800" : ""}>
+                  Costs {quoteResult && "✓"}
+                </TabsTrigger>
+                <TabsTrigger value="compare" className={carrierComparison ? "bg-blue-100 text-blue-800" : ""}>
+                  Compare {carrierComparison && "✓"}
+                </TabsTrigger>
                 <TabsTrigger value="customs">Customs</TabsTrigger>
                 <TabsTrigger value="incoterms">Incoterms</TabsTrigger>
                 <TabsTrigger value="carriers">Carriers</TabsTrigger>

@@ -90,8 +90,8 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
                           savings < 0 ? ` (R ${Math.abs(savings).toLocaleString()} higher)` : "";
       
       toast({
-        title: "Quote calculated successfully",
-        description: `Total cost: R ${result.totalCost.toLocaleString()} using ${rateSource}${savingsText}`,
+        title: "Quote calculated successfully! ✅",
+        description: `Total cost: R ${result.totalCost.toLocaleString()} using ${rateSource}${savingsText}. Check the "Costs" tab on the right to see full breakdown.`,
       });
     },
     onError: () => {
