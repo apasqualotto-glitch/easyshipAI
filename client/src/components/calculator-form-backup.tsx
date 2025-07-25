@@ -38,7 +38,11 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [useLiveRates, setUseLiveRates] = useState(false);
+  const [customsTariffs, setCustomsTariffs] = useState<CustomsTariff[]>([]);
   const [selectedCustomsTariff, setSelectedCustomsTariff] = useState<CustomsTariff | null>(null);
+  const [showCustomsSearch, setShowCustomsSearch] = useState(false);
+  const [customsSearchTerm, setCustomsSearchTerm] = useState("");
+  const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
   const [originPortOpen, setOriginPortOpen] = useState(false);
   const [selectedOriginPort, setSelectedOriginPort] = useState("");
 
@@ -56,10 +60,25 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
     },
   });
 
-  const { data: originPorts = [] } = useQuery({ queryKey: ["/api/ports/origin"] });
-  const { data: destinationPorts = [] } = useQuery({ queryKey: ["/api/ports/destination"] });
-  const { data: destinations = [] } = useQuery({ queryKey: ["/api/destinations"] });
-  const { data: incoterms = [] } = useQuery({ queryKey: ["/api/incoterms"] });
+  const { data: originPorts = [] } = useQuery({
+    queryKey: ["/api/ports/origin"],
+  });
+
+  const { data: destinationPorts = [] } = useQuery({
+    queryKey: ["/api/ports/destination"],
+  });
+
+  const { data: destinations = [] } = useQuery({
+    queryKey: ["/api/destinations"],
+  });
+
+  const { data: cargoTypes = [] } = useQuery({
+    queryKey: ["/api/cargo-types"],
+  });
+
+  const { data: incoterms = [] } = useQuery({
+    queryKey: ["/api/incoterms"],
+  });
 
   // Add validation mutation to check data consistency
   const validateQuoteMutation = useMutation({
@@ -97,7 +116,7 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
       const rateSource = result.hasLiveRates ? "live carrier rates" : "estimates";
       const savings = result.liveRateInfo?.savings || 0;
       const savingsText = savings > 0 ? ` (Save R ${Math.abs(savings).toLocaleString()})` : 
-                        savings < 0 ? ` (R ${Math.abs(savings).toLocaleString()} higher)` : "";
+                          savings < 0 ? ` (R ${Math.abs(savings).toLocaleString()} higher)` : "";
       
       toast({
         title: "Quote calculated successfully! ✅",
@@ -120,6 +139,66 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
       onQuoteUpdate(watchedValues);
     }
   }, [watchedValues, onQuoteUpdate]);
+
+  const searchCustomsTariffs = async (searchTerm: string) => {
+    console.log("Searching for:", searchTerm);
+    if (!searchTerm.trim()) return;
+    
+    try {
+      const response = await fetch("/api/customs/search", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ searchTerm }),
+      });
+      
+      if (response.ok) {
+        const results = await response.json();
+        console.log("Search results:", results);
+        setCustomsTariffs(results);
+        
+        if (results.length === 0) {
+          toast({
+            title: "No results found",
+            description: `No customs data found for "${searchTerm}". Try different keywords.`,
+            variant: "destructive",
+          });
+        }
+      } else {
+        console.error("Search response not ok:", response.status);
+      }
+    } catch (error) {
+      console.error("Customs search failed:", error);
+      toast({
+        title: "Search failed",
+        description: "Unable to search customs database. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCustomsTariffSelect = (tariff: CustomsTariff) => {
+    setSelectedCustomsTariff(tariff);
+    
+    // Find matching cargo type or use "Other"
+    const cargoTypesData = (cargoTypes as any[]) || [];
+    const matchingCargoType = cargoTypesData.find((ct: any) => 
+      ct.name.toLowerCase().includes(tariff.category.toLowerCase()) ||
+      tariff.category.toLowerCase().includes(ct.name.toLowerCase())
+    );
+    
+    const cargoTypeToUse = matchingCargoType?.name || "Other";
+    form.setValue("cargoType", cargoTypeToUse);
+    
+    setShowCustomsSearch(false);
+    setCustomsSearchTerm("");
+    
+    toast({
+      title: "HS Code Selected",
+      description: `${tariff.hsCode}: ${tariff.description} (${(tariff.dutyRate * 100).toFixed(1)}% duty)`,
+    });
+  };
 
   const onSubmit = (data: QuoteRequest) => {
     // Include customs tariff information if selected
@@ -410,6 +489,183 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
               </div>
             </div>
             
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                  <div className="space-y-3">
+                    <div className="bg-blue-50 p-3 rounded-lg text-sm">
+                      <div className="flex items-start gap-2">
+                        <span className="material-icons text-blue-600 text-sm mt-0.5">info</span>
+                        <div>
+                          <p className="text-blue-800 font-medium mb-1">HS Code Classification Help</p>
+                          <p className="text-blue-700 text-xs leading-relaxed">
+                            Describe your product in simple terms. We'll help match it to the correct customs code and show you the exact duty rates and requirements.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Describe your product (e.g., smartphone, laptop, jeans, wine)..."
+                        value={customsSearchTerm}
+                        onChange={(e) => {
+                          setCustomsSearchTerm(e.target.value);
+                          if (e.target.value.length > 2) {
+                            // Get suggestions as user types
+                            fetch("/api/customs/suggestions", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ searchTerm: e.target.value })
+                            }).then(res => res.json()).then(setSearchSuggestions).catch(console.error);
+                          } else {
+                            setSearchSuggestions([]);
+                          }
+                        }}
+                        onKeyPress={(e) => e.key === 'Enter' && searchCustomsTariffs(customsSearchTerm)}
+                      />
+                      <Button 
+                        type="button"
+                        onClick={() => searchCustomsTariffs(customsSearchTerm)}
+                        size="sm"
+                        disabled={!customsSearchTerm.trim()}
+                      >
+                        Search
+                      </Button>
+                    </div>
+
+                    {searchSuggestions.length > 0 && customsSearchTerm.length > 2 && (
+                      <div className="border rounded-lg p-2 bg-gray-50">
+                        <p className="text-xs text-gray-600 mb-2">Suggestions:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {searchSuggestions.slice(0, 6).map((suggestion, index) => (
+                            <button
+                              key={index}
+                              type="button"
+                              className="text-xs px-2 py-1 bg-white border rounded hover:bg-blue-50 hover:border-blue-300"
+                              onClick={() => {
+                                setCustomsSearchTerm(suggestion);
+                                searchCustomsTariffs(suggestion);
+                              }}
+                            >
+                              {suggestion}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {customsTariffs.length > 0 && (
+                      <div className="max-h-48 overflow-y-auto border rounded-lg">
+                        {customsTariffs.map((tariff) => (
+                          <div
+                            key={tariff.hsCode}
+                            className="p-3 border-b last:border-b-0 cursor-pointer hover:bg-gray-50"
+                            onClick={() => handleCustomsTariffSelect(tariff)}
+                          >
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <div className="font-mono text-sm font-medium text-blue-600">
+                                  {tariff.hsCode}
+                                </div>
+                                <div className="text-sm text-gray-700 mb-1">
+                                  {tariff.description}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  Examples: {tariff.examples.slice(0, 2).join(", ")}
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className={`font-bold text-sm ${
+                                  tariff.dutyRate === 0 ? 'text-green-600' :
+                                  tariff.dutyRate <= 0.1 ? 'text-yellow-600' :
+                                  tariff.dutyRate <= 0.25 ? 'text-orange-600' : 'text-red-600'
+                                }`}>
+                                  {(tariff.dutyRate * 100).toFixed(1)}%
+                                </div>
+                                <div className="text-xs text-gray-500">Duty</div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {selectedCustomsTariff && (
+                      <div className="bg-blue-50 p-3 rounded-lg border">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <div className="font-mono text-sm font-medium text-blue-600">
+                              {selectedCustomsTariff.hsCode}
+                            </div>
+                            <div className="text-sm text-gray-700">
+                              {selectedCustomsTariff.description}
+                            </div>
+                            <div className="text-xs text-gray-600 mt-1">
+                              {selectedCustomsTariff.explanation}
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="font-bold text-blue-600">
+                              {(selectedCustomsTariff.dutyRate * 100).toFixed(1)}%
+                            </div>
+                            <div className="text-xs text-gray-500">Duty Rate</div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {customsSearchTerm && customsTariffs.length === 0 && searchSuggestions.length === 0 && (
+                      <div className="border rounded-lg p-4 bg-yellow-50 border-yellow-200">
+                        <div className="flex items-start gap-2">
+                          <span className="material-icons text-yellow-600 text-sm mt-0.5">lightbulb</span>
+                          <div>
+                            <p className="text-yellow-800 font-medium mb-2">No exact matches found</p>
+                            <p className="text-yellow-700 text-sm mb-3">
+                              Try these tips to find your product's customs classification:
+                            </p>
+                            <ul className="text-yellow-700 text-xs space-y-1 mb-3">
+                              <li>• Use common product names (e.g., "phone" instead of "telecommunications device")</li>
+                              <li>• Try brand names (e.g., "iPhone", "Samsung Galaxy")</li>
+                              <li>• Include material (e.g., "cotton shirt", "leather shoes")</li>
+                              <li>• Use category names (e.g., "electronics", "clothing", "automotive")</li>
+                            </ul>
+                            <div className="flex flex-wrap gap-1">
+                              <span className="text-xs text-yellow-700">Popular searches:</span>
+                              {["smartphones", "laptops", "clothing", "cars", "shoes", "wine"].map((term) => (
+                                <button
+                                  key={term}
+                                  type="button"
+                                  className="text-xs px-2 py-1 bg-yellow-100 border border-yellow-300 rounded hover:bg-yellow-200"
+                                  onClick={() => {
+                                    setCustomsSearchTerm(term);
+                                    searchCustomsTariffs(term);
+                                  }}
+                                >
+                                  {term}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <Select onValueChange={(value) => form.setValue("cargoType", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select cargo type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(cargoTypes as CargoType[]).map((type) => (
+                        <SelectItem key={type.id} value={type.name}>
+                          {type.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <div>
                 <Label htmlFor="value">Cargo Value (USD)</Label>
@@ -467,34 +723,32 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
             
             <div className="mt-3 text-sm text-blue-600">
               <div className="flex items-start space-x-2">
-                <span className="material-icons text-blue-500 text-sm mt-0.5 flex-shrink-0">info</span>
+                <Ship className="h-4 w-4 mt-0.5 flex-shrink-0" />
                 <div>
-                  <p className="font-medium mb-1">Live Rates Integration</p>
-                  <p className="text-xs leading-relaxed">
-                    Get real-time shipping rates directly from carrier systems. May take slightly longer to calculate but provides the most accurate pricing.
-                  </p>
+                  <p className="font-medium">Live rates from major shipping carriers:</p>
+                  <ul className="mt-1 space-y-1 text-blue-600">
+                    <li>• Maersk (free live rates)</li>
+                    <li>• MSC (contact for setup)</li>
+                    <li>• More carriers coming soon</li>
+                  </ul>
                 </div>
               </div>
             </div>
           </div>
 
-          <Button
-            type="submit"
-            className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3"
-            disabled={calculateQuoteMutation.isPending}
-          >
-            {calculateQuoteMutation.isPending ? (
-              <div className="flex items-center space-x-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                <span>Calculating...</span>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-2">
-                <Truck className="h-5 w-5" />
-                <span>Calculate Shipping Quote</span>
-              </div>
-            )}
-          </Button>
+          <div className="flex justify-between pt-6">
+            <Button type="button" variant="outline" disabled>
+              Previous
+            </Button>
+            <Button 
+              type="submit" 
+              disabled={calculateQuoteMutation.isPending}
+              className="bg-primary-500 hover:bg-primary-600"
+            >
+              {calculateQuoteMutation.isPending ? "Calculating..." : 
+               useLiveRates ? "Get Live Quote" : "Calculate Quote"}
+            </Button>
+          </div>
         </form>
       </CardContent>
     </Card>

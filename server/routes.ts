@@ -708,7 +708,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Search customs tariffs
+  // Helper function to find best cargo type match
+  function findBestCargoTypeMatch(customsCategory: string, cargoTypes: any[]) {
+    const categoryMappings: { [key: string]: string } = {
+      'Electronics': 'Electronics',
+      'Textiles': 'Textiles',
+      'Machinery': 'Machinery',
+      'Food Products': 'Food & Beverages',
+      'Cosmetics': 'Personal Care Products',
+      'Automotive': 'Automotive Parts',
+      'Chemicals': 'Chemicals',
+      'Pharmaceuticals': 'Medical Equipment'
+    };
+    
+    const targetName = categoryMappings[customsCategory] || 'General Cargo';
+    return cargoTypes.find(ct => ct.name === targetName)?.name || 'General Cargo';
+  }
+
+  // Unified cargo search endpoint - combines cargo types and customs lookup
+  app.post("/api/cargo/search", async (req, res) => {
+    try {
+      const { searchTerm } = req.body;
+      
+      if (!searchTerm || searchTerm.trim() === "") {
+        return res.status(400).json({ error: "Search term is required" });
+      }
+      
+      const term = searchTerm.trim();
+      
+      // Search both cargo types and customs database
+      const cargoTypes = await storage.getCargoTypes();
+      const customsResults = customsDatabase.searchByDescription(term);
+      
+      // Match cargo types by name (fuzzy matching)
+      const matchingCargoTypes = cargoTypes.filter(cargo => 
+        cargo.name.toLowerCase().includes(term.toLowerCase()) ||
+        term.toLowerCase().includes(cargo.name.toLowerCase())
+      );
+      
+      // Combine results with preference for specific HS codes
+      const combinedResults = [
+        // HS code results with full customs details (higher priority)
+        ...customsResults.map((customs: any) => ({
+          type: 'customs',
+          id: customs.hsCode,
+          name: customs.description,
+          searchValue: customs.hsCode,
+          category: customs.category,
+          dutyRate: customs.dutyRate,
+          additionalFees: customs.additionalFees,
+          vatRate: customs.vatRate,
+          explanation: customs.explanation,
+          examples: customs.examples,
+          hsCode: customs.hsCode,
+          isSpecific: true,
+          searchScore: customs.searchScore || 1.0,
+          displayText: `${customs.hsCode} - ${customs.description}`,
+          subtitle: `Duty: ${(customs.dutyRate * 100).toFixed(1)}% | ${customs.category}`,
+          cargoTypeEquivalent: findBestCargoTypeMatch(customs.category, cargoTypes)
+        })),
+        // Cargo type results as fallback (lower priority)
+        ...matchingCargoTypes.map(cargo => ({
+          type: 'cargo',
+          id: cargo.id,
+          name: cargo.name,
+          searchValue: cargo.name,
+          category: 'General Category',
+          dutyRate: cargo.dutyRate,
+          additionalFees: cargo.additionalFees,
+          vatRate: 0.15,
+          explanation: `Standard cargo classification for ${cargo.name}`,
+          examples: [cargo.name],
+          isSpecific: false,
+          searchScore: 0.5,
+          displayText: cargo.name,
+          subtitle: `Duty: ${(cargo.dutyRate * 100).toFixed(1)}% | General Category`
+        }))
+      ].sort((a, b) => b.searchScore - a.searchScore);
+      
+      res.json(combinedResults);
+    } catch (error) {
+      console.error("Cargo search error:", error);
+      res.status(500).json({ error: "Failed to search cargo database" });
+    }
+  });
+
+  // Search customs tariffs (legacy endpoint - kept for compatibility)
   app.post("/api/customs/search", async (req, res) => {
     try {
       const { searchTerm } = req.body;
