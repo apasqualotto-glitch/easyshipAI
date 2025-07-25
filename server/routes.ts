@@ -131,14 +131,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
           break;
       }
 
-      // Calculate customs duties
-      const customsDuties = validatedData.value * cargoType.dutyRate;
+      // Use advanced customs tariff if provided, otherwise fall back to basic cargo type
+      let customsDuties, vat, handlingFees, customsExplanation;
       
-      // Calculate VAT (15% on cargo value + duties)
-      const vat = (validatedData.value + customsDuties) * 0.15;
-      
-      // Calculate handling fees
-      const handlingFees = cargoType.additionalFees + (seaFreightCost * 0.05); // 5% of sea freight
+      if (validatedData.customsTariff) {
+        // Use advanced customs calculations
+        customsDuties = validatedData.value * validatedData.customsTariff.dutyRate;
+        vat = validatedData.customsTariff.vatRate > 0 
+          ? (validatedData.value + customsDuties) * validatedData.customsTariff.vatRate 
+          : 0;
+        handlingFees = validatedData.customsTariff.additionalFees + (seaFreightCost * 0.05);
+        customsExplanation = validatedData.customsTariff.explanation;
+      } else {
+        // Use basic cargo type calculations
+        customsDuties = validatedData.value * cargoType.dutyRate;
+        vat = (validatedData.value + customsDuties) * 0.15;
+        handlingFees = cargoType.additionalFees + (seaFreightCost * 0.05);
+      }
       
       // Calculate total cost
       const totalCost = seaFreightCost + truckingCost + customsDuties + vat + handlingFees;
@@ -169,6 +178,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: savedQuote.id,
         costPerKg: totalCost / validatedData.weight,
         transitDays: route.transitDays,
+        customsInfo: validatedData.customsTariff ? {
+          hsCode: validatedData.customsTariff.hsCode,
+          dutyRate: validatedData.customsTariff.dutyRate,
+          vatRate: validatedData.customsTariff.vatRate,
+          explanation: customsExplanation,
+          isAdvancedCalculation: true
+        } : {
+          isAdvancedCalculation: false
+        }
       });
 
     } catch (error) {

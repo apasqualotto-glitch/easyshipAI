@@ -72,7 +72,19 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
             <div className="flex justify-between items-center py-2 border-b border-gray-100">
               <div className="flex items-center">
                 <span className="material-icons text-secondary-500 text-sm mr-2">account_balance</span>
-                <span className="text-sm text-gray-700">Customs Duties</span>
+                <div className="flex flex-col">
+                  <span className="text-sm text-gray-700">Customs Duties</span>
+                  {quoteResult?.customsInfo?.isAdvancedCalculation && (
+                    <div className="flex items-center space-x-1 mt-1">
+                      <Badge variant="outline" className="text-xs">
+                        HS: {quoteResult.customsInfo.hsCode}
+                      </Badge>
+                      <span className="text-xs text-blue-600">
+                        {(quoteResult.customsInfo.dutyRate * 100).toFixed(1)}% rate
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
               <span className="text-sm font-medium">
                 {quoteResult ? formatCurrency(quoteResult.customsDuties) : "—"}
@@ -124,6 +136,31 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
                       <div>
                         <span className="text-xs text-accent-700">Incoterm</span>
                         <div className="text-sm font-medium text-accent-800">{quoteData.incoterm}</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {quoteResult?.customsInfo?.isAdvancedCalculation && (
+                  <div className="bg-blue-50 rounded-lg p-3">
+                    <div className="flex items-start">
+                      <span className="material-icons text-blue-600 text-sm mr-2 mt-0.5">info</span>
+                      <div className="flex-1">
+                        <div className="text-xs text-blue-700 mb-1">Customs Information</div>
+                        <div className="text-sm font-medium text-blue-800 mb-2">
+                          HS Code: {quoteResult.customsInfo.hsCode}
+                        </div>
+                        <p className="text-xs text-blue-700 leading-relaxed">
+                          {quoteResult.customsInfo.explanation}
+                        </p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge variant="secondary" className="text-xs">
+                            Duty: {(quoteResult.customsInfo.dutyRate * 100).toFixed(1)}%
+                          </Badge>
+                          <Badge variant="secondary" className="text-xs">
+                            VAT: {(quoteResult.customsInfo.vatRate * 100).toFixed(0)}%
+                          </Badge>
+                        </div>
                       </div>
                     </div>
                   </div>

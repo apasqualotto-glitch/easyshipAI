@@ -77,6 +77,14 @@ export const insertShippingQuoteSchema = createInsertSchema(shippingQuotes).omit
   createdAt: true,
 });
 
+export const customsTariffSchema = z.object({
+  hsCode: z.string(),
+  dutyRate: z.number(),
+  vatRate: z.number(),
+  additionalFees: z.number(),
+  explanation: z.string(),
+});
+
 export const quoteRequestSchema = z.object({
   originPort: z.string().min(1, "Origin port is required"),
   destinationPort: z.string().min(1, "Destination port is required"),
@@ -89,6 +97,7 @@ export const quoteRequestSchema = z.object({
   incoterm: z.string().min(1, "Incoterm is required"),
   weight: z.number().min(1, "Weight must be greater than 0"),
   value: z.number().min(1, "Cargo value must be greater than 0"),
+  customsTariff: customsTariffSchema.optional(),
 });
 
 export type InsertShippingQuote = z.infer<typeof insertShippingQuoteSchema>;

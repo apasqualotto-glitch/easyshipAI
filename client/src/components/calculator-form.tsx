@@ -13,6 +13,17 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import ProgressStepper from "./progress-stepper";
 import { Port, Destination, CargoType, Incoterm } from "@shared/schema";
+
+interface CustomsTariff {
+  hsCode: string;
+  description: string;
+  dutyRate: number;
+  additionalFees: number;
+  vatRate: number;
+  category: string;
+  explanation: string;
+  examples: string[];
+}
 import { useState, useEffect } from "react";
 
 interface CalculatorFormProps {
@@ -24,6 +35,10 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [useLiveRates, setUseLiveRates] = useState(false);
+  const [customsTariffs, setCustomsTariffs] = useState<CustomsTariff[]>([]);
+  const [selectedCustomsTariff, setSelectedCustomsTariff] = useState<CustomsTariff | null>(null);
+  const [showCustomsSearch, setShowCustomsSearch] = useState(false);
+  const [customsSearchTerm, setCustomsSearchTerm] = useState("");
 
   const form = useForm<QuoteRequest>({
     resolver: zodResolver(quoteRequestSchema),
@@ -95,8 +110,53 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
     }
   }, [watchedValues, onQuoteUpdate]);
 
+  const searchCustomsTariffs = async (searchTerm: string) => {
+    if (!searchTerm.trim()) return;
+    
+    try {
+      const response = await fetch("/api/customs/search", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ searchTerm }),
+      });
+      
+      if (response.ok) {
+        const results = await response.json();
+        setCustomsTariffs(results);
+      }
+    } catch (error) {
+      console.error("Customs search failed:", error);
+    }
+  };
+
+  const handleCustomsTariffSelect = (tariff: CustomsTariff) => {
+    setSelectedCustomsTariff(tariff);
+    form.setValue("cargoType", tariff.description);
+    setShowCustomsSearch(false);
+    setCustomsSearchTerm("");
+    
+    toast({
+      title: "Customs tariff selected",
+      description: `${tariff.hsCode}: ${(tariff.dutyRate * 100).toFixed(1)}% duty rate`,
+    });
+  };
+
   const onSubmit = (data: QuoteRequest) => {
-    calculateQuoteMutation.mutate(data);
+    // Include customs tariff information if selected
+    const enhancedData = {
+      ...data,
+      customsTariff: selectedCustomsTariff ? {
+        hsCode: selectedCustomsTariff.hsCode,
+        dutyRate: selectedCustomsTariff.dutyRate,
+        vatRate: selectedCustomsTariff.vatRate,
+        additionalFees: selectedCustomsTariff.additionalFees,
+        explanation: selectedCustomsTariff.explanation
+      } : undefined
+    };
+    
+    calculateQuoteMutation.mutate(enhancedData);
   };
 
   const containerOptions = [
@@ -270,27 +330,111 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
                 />
               </div>
               <div>
-                <Label htmlFor="cargoType" className="flex items-center">
-                  Cargo Type
-                  <div className="tooltip-trigger relative inline-block ml-1">
-                    <span className="material-icons text-gray-400 text-sm cursor-help">help_outline</span>
-                    <div className="tooltip absolute bottom-6 left-0 bg-gray-900 text-white text-xs p-2 rounded opacity-0 invisible whitespace-nowrap z-10">
-                      Cargo type affects customs duties and handling requirements
-                    </div>
-                  </div>
+                <Label htmlFor="cargoType" className="flex items-center justify-between">
+                  <span>Cargo Type</span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowCustomsSearch(!showCustomsSearch)}
+                    className="text-xs"
+                  >
+                    {showCustomsSearch ? "Use Basic Types" : "Advanced Customs Lookup"}
+                  </Button>
                 </Label>
-                <Select onValueChange={(value) => form.setValue("cargoType", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select cargo type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(cargoTypes as CargoType[]).map((type) => (
-                      <SelectItem key={type.id} value={type.name}>
-                        {type.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                
+                {showCustomsSearch ? (
+                  <div className="space-y-3">
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Search cargo type (e.g., laptops, clothing, machinery)..."
+                        value={customsSearchTerm}
+                        onChange={(e) => setCustomsSearchTerm(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && searchCustomsTariffs(customsSearchTerm)}
+                      />
+                      <Button 
+                        type="button"
+                        onClick={() => searchCustomsTariffs(customsSearchTerm)}
+                        size="sm"
+                      >
+                        Search
+                      </Button>
+                    </div>
+                    
+                    {customsTariffs.length > 0 && (
+                      <div className="max-h-48 overflow-y-auto border rounded-lg">
+                        {customsTariffs.map((tariff) => (
+                          <div
+                            key={tariff.hsCode}
+                            className="p-3 border-b last:border-b-0 cursor-pointer hover:bg-gray-50"
+                            onClick={() => handleCustomsTariffSelect(tariff)}
+                          >
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <div className="font-mono text-sm font-medium text-blue-600">
+                                  {tariff.hsCode}
+                                </div>
+                                <div className="text-sm text-gray-700 mb-1">
+                                  {tariff.description}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  Examples: {tariff.examples.slice(0, 2).join(", ")}
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className={`font-bold text-sm ${
+                                  tariff.dutyRate === 0 ? 'text-green-600' :
+                                  tariff.dutyRate <= 0.1 ? 'text-yellow-600' :
+                                  tariff.dutyRate <= 0.25 ? 'text-orange-600' : 'text-red-600'
+                                }`}>
+                                  {(tariff.dutyRate * 100).toFixed(1)}%
+                                </div>
+                                <div className="text-xs text-gray-500">Duty</div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {selectedCustomsTariff && (
+                      <div className="bg-blue-50 p-3 rounded-lg border">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <div className="font-mono text-sm font-medium text-blue-600">
+                              {selectedCustomsTariff.hsCode}
+                            </div>
+                            <div className="text-sm text-gray-700">
+                              {selectedCustomsTariff.description}
+                            </div>
+                            <div className="text-xs text-gray-600 mt-1">
+                              {selectedCustomsTariff.explanation}
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="font-bold text-blue-600">
+                              {(selectedCustomsTariff.dutyRate * 100).toFixed(1)}%
+                            </div>
+                            <div className="text-xs text-gray-500">Duty Rate</div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <Select onValueChange={(value) => form.setValue("cargoType", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select cargo type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(cargoTypes as CargoType[]).map((type) => (
+                        <SelectItem key={type.id} value={type.name}>
+                          {type.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
