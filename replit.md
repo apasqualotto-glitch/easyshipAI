@@ -101,6 +101,16 @@ The application is designed for easy migration from in-memory storage to Postgre
 
 ## Recent Changes
 
+- **NEW FEATURE: Partial Shipment / Shared Container Support** - July 25, 2025
+  - Added "Partial Shipment / Shared Container" option to container types for cost-effective smaller cargo loads
+  - Conditional fields appear only when partial shipment is selected: cargo volume (CBM), package count, dimensions, special handling
+  - Volume-based pricing calculates cost as percentage of full container based on actual cargo volume (33 CBM = full 20ft container)
+  - Enhanced cost breakdown shows volume utilization percentage and cost savings vs full container
+  - Updated all APIs to handle partial shipments: live rates, carrier booking integration, customs calculations
+  - Container type "partial" maps to "LCL" (Less than Container Load) in carrier systems
+  - Booking service supports LCL shipments with detailed cargo specifications for consolidation
+  - Provides budget-friendly alternative for importers with smaller cargo volumes
+
 - **MAJOR ENHANCEMENT: Incoterm-Based Cost Calculations** - July 25, 2025
   - Implemented comprehensive Incoterm cost adjustments affecting carrier pricing
   - Significant cost differences: FOB (R118k), CIF (R69k - saves R49k), EXW (R123k), DDP (R68k - saves R50k)

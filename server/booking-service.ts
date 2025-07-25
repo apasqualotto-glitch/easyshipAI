@@ -38,12 +38,24 @@ export interface BookingRequest {
   
   // Container Requirements
   container: {
-    type: string; // '20GP', '40GP', '40HC'
+    type: string; // '20GP', '40GP', '40HC', 'LCL'
     quantity: number;
   };
   
   // Service Details
   serviceType: 'FCL' | 'LCL';
+  
+  // Partial shipment specific details (for LCL)
+  partialShipment?: {
+    cargoVolume: number; // CBM
+    packageCount: number;
+    packageDimensions?: {
+      length: number;
+      width: number;
+      height: number;
+    };
+    specialHandling?: string;
+  };
   incoterm: string;
   preferredDeparture?: string; // ISO date
   specialInstructions?: string;
@@ -406,7 +418,8 @@ class CarrierBookingService {
     const mapping: Record<string, string> = {
       '20ft': '20GP',
       '40ft': '40GP',
-      '40ft-hc': '40HC'
+      '40ft-hc': '40HC',
+      'partial': 'LCL'
     };
     return mapping[type] || type;
   }

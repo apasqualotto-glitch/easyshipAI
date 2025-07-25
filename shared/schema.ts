@@ -100,11 +100,11 @@ export const quoteRequestSchema = z.object({
   customsTariff: customsTariffSchema.optional(),
   selectedCustomsTariff: customsTariffSchema.optional(), // Add this for consistency
   // Partial shipment specific fields
-  cargoVolume: z.number().optional(),
-  packageCount: z.number().optional(),
-  packageLength: z.number().optional(),
-  packageWidth: z.number().optional(),
-  packageHeight: z.number().optional(),
+  cargoVolume: z.number().min(0.1, "Cargo volume must be at least 0.1 CBM").optional(),
+  packageCount: z.number().min(1, "Package count must be at least 1").optional(),
+  packageLength: z.number().min(0.01, "Package length must be greater than 0").optional(),
+  packageWidth: z.number().min(0.01, "Package width must be greater than 0").optional(),
+  packageHeight: z.number().min(0.01, "Package height must be greater than 0").optional(),
   specialHandling: z.string().optional(),
 });
 

@@ -378,6 +378,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         transitDays: route.transitDays,
         originCountry,
         incotermExplanation: incotermAdjustments.incotermExplanation,
+        // Include partial shipment details if applicable
+        partialShipmentDetails: validatedData.containerType === "partial" ? {
+          cargoVolume: validatedData.cargoVolume,
+          packageCount: validatedData.packageCount,
+          packageLength: validatedData.packageLength,
+          packageWidth: validatedData.packageWidth,
+          packageHeight: validatedData.packageHeight,
+          specialHandling: validatedData.specialHandling,
+          volumeUtilization: validatedData.cargoVolume ? `${((validatedData.cargoVolume / 33) * 100).toFixed(1)}%` : null,
+          estimatedDeliveryTime: "Additional 1-2 days for consolidation",
+          costSavings: `Approx ${(100 - ((validatedData.cargoVolume || 1) / 33) * 100).toFixed(0)}% vs full container`
+        } : null,
         customsInfo: {
           hsCode: validatedData.customsTariff?.hsCode,
           dutyRate: tradeAgreementInfo?.dutyRate || (validatedData.customsTariff?.dutyRate) || cargoType.dutyRate,
@@ -433,9 +445,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         toPort: destinationPort, 
         containerType,
         weight: weight || 1000, // Use actual weight or reasonable default
-        value: undefined, // Add cargo value if available
+        value: req.body.value, // Include cargo value for partial shipments
         departure,
-        cargoType: undefined // Add cargo type if available
+        cargoType: req.body.cargoType // Include cargo type for specialized handling
       };
 
       const liveRates = await liveShippingService.getAllRates(liveRateRequest);

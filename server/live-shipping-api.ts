@@ -19,6 +19,10 @@ export interface LiveRateRequest {
   value?: number; // Add cargo value for insurance calculations
   departure?: string;
   cargoType?: string; // Add cargo type for specialized handling
+  // Partial shipment specific fields
+  cargoVolume?: number;
+  packageCount?: number;
+  specialHandling?: string;
 }
 
 // Maersk API integration (free to use)
@@ -47,18 +51,29 @@ class MaerskAPI {
 
       const departureDate = request.departure || this.getNextBusinessDay();
       
+      // Convert container type to carrier-specific format
+      const containerSize = request.containerType === "40ft-hc" ? "40HC" : 
+                           request.containerType === "40ft" ? "40GP" : 
+                           request.containerType === "partial" ? "LCL" : "20GP";
+
       // Include weight and container type in API request for accurate pricing
       const requestBody = {
         origin: fromLocation,
         destination: toLocation,
         departureDate,
-        containerType: request.containerType,
+        containerType: containerSize,
         weight: request.weight || 0,
-        cargoValue: request.value || 0
+        cargoValue: request.value || 0,
+        // For partial shipments, include additional details
+        ...(request.containerType === "partial" && {
+          volume: request.value ? Math.min(request.value / 1000, 33) : 1, // Estimate volume from weight
+          consolidation: true,
+          serviceType: "LCL"
+        })
       };
 
       const response = await fetch(
-        `${this.baseUrl}/offers/brand/MAEU/departuredate/${departureDate}?origin=${fromLocation}&destination=${toLocation}&containerType=${request.containerType}&weight=${request.weight}`,
+        `${this.baseUrl}/offers/brand/MAEU/departuredate/${departureDate}?origin=${fromLocation}&destination=${toLocation}&containerType=${containerSize}&weight=${request.weight}`,
         {
           headers: {
             'Authorization': `Bearer ${this.apiKey}`,
