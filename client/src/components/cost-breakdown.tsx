@@ -1,5 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Zap, TrendingDown, TrendingUp, Clock } from "lucide-react";
 import { type QuoteRequest } from "@shared/schema";
 
 interface CostBreakdownProps {
@@ -22,11 +24,39 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
             <div className="flex justify-between items-center py-2 border-b border-gray-100">
               <div className="flex items-center">
                 <span className="material-icons text-primary-500 text-sm mr-2">directions_boat</span>
-                <span className="text-sm text-gray-700">Sea Freight</span>
+                <div className="flex flex-col">
+                  <span className="text-sm text-gray-700">Sea Freight</span>
+                  {quoteResult?.liveRateInfo && (
+                    <div className="flex items-center space-x-1 mt-1">
+                      <Zap className="h-3 w-3 text-blue-500" />
+                      <span className="text-xs text-blue-600">{quoteResult.liveRateInfo.carrier}</span>
+                      {quoteResult.liveRateInfo.savings !== 0 && (
+                        <div className="flex items-center space-x-1">
+                          {quoteResult.liveRateInfo.savings > 0 ? (
+                            <TrendingDown className="h-3 w-3 text-green-500" />
+                          ) : (
+                            <TrendingUp className="h-3 w-3 text-orange-500" />
+                          )}
+                          <span className={`text-xs ${quoteResult.liveRateInfo.savings > 0 ? 'text-green-600' : 'text-orange-600'}`}>
+                            {Math.abs(quoteResult.liveRateInfo.savings).toLocaleString()}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
-              <span className="text-sm font-medium">
-                {quoteResult ? formatCurrency(quoteResult.seaFreightCost) : "—"}
-              </span>
+              <div className="flex flex-col items-end">
+                <span className="text-sm font-medium">
+                  {quoteResult ? formatCurrency(quoteResult.seaFreightCost) : "—"}
+                </span>
+                {quoteResult?.hasLiveRates && (
+                  <Badge variant="secondary" className="text-xs mt-1">
+                    <Zap className="h-3 w-3 mr-1" />
+                    Live Rate
+                  </Badge>
+                )}
+              </div>
             </div>
 
             <div className="flex justify-between items-center py-2 border-b border-gray-100">

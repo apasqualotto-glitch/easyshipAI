@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Truck, Ship, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import ProgressStepper from "./progress-stepper";
@@ -21,6 +23,7 @@ interface CalculatorFormProps {
 export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: CalculatorFormProps) {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
+  const [useLiveRates, setUseLiveRates] = useState(false);
 
   const form = useForm<QuoteRequest>({
     resolver: zodResolver(quoteRequestSchema),
@@ -58,15 +61,21 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
 
   const calculateQuoteMutation = useMutation({
     mutationFn: async (data: QuoteRequest) => {
-      const response = await apiRequest("POST", "/api/calculate-quote", data);
+      const endpoint = useLiveRates ? "/api/calculate-quote-with-live" : "/api/calculate-quote";
+      const response = await apiRequest("POST", endpoint, data);
       return response.json();
     },
     onSuccess: (result) => {
       onQuoteResult(result);
       setCurrentStep(3);
+      const rateSource = result.hasLiveRates ? "live carrier rates" : "estimates";
+      const savings = result.liveRateInfo?.savings || 0;
+      const savingsText = savings > 0 ? ` (Save R ${Math.abs(savings).toLocaleString()})` : 
+                          savings < 0 ? ` (R ${Math.abs(savings).toLocaleString()} higher)` : "";
+      
       toast({
         title: "Quote calculated successfully",
-        description: `Total cost: R ${result.totalCost.toLocaleString()}`,
+        description: `Total cost: R ${result.totalCost.toLocaleString()} using ${rateSource}${savingsText}`,
       });
     },
     onError: () => {
@@ -301,6 +310,39 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
             </div>
           </div>
 
+          {/* Live Shipping Rates Toggle */}
+          <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2">
+                  <Zap className="h-5 w-5 text-blue-600" />
+                  <span className="font-medium text-blue-800">Live Carrier Rates</span>
+                </div>
+                <Switch
+                  checked={useLiveRates}
+                  onCheckedChange={setUseLiveRates}
+                />
+              </div>
+              <div className="text-sm text-blue-700">
+                {useLiveRates ? "Using real-time rates from Maersk" : "Using rate estimates"}
+              </div>
+            </div>
+            
+            <div className="mt-3 text-sm text-blue-600">
+              <div className="flex items-start space-x-2">
+                <Ship className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="font-medium">Live rates from major shipping carriers:</p>
+                  <ul className="mt-1 space-y-1 text-blue-600">
+                    <li>• Maersk (free live rates)</li>
+                    <li>• MSC (contact for setup)</li>
+                    <li>• More carriers coming soon</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="flex justify-between pt-6">
             <Button type="button" variant="outline" disabled>
               Previous
@@ -310,7 +352,8 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
               disabled={calculateQuoteMutation.isPending}
               className="bg-primary-500 hover:bg-primary-600"
             >
-              {calculateQuoteMutation.isPending ? "Calculating..." : "Calculate Quote"}
+              {calculateQuoteMutation.isPending ? "Calculating..." : 
+               useLiveRates ? "Get Live Quote" : "Calculate Quote"}
             </Button>
           </div>
         </form>

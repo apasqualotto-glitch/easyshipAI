@@ -4,6 +4,7 @@ import CalculatorForm from "../components/calculator-form";
 import CostBreakdown from "../components/cost-breakdown";
 import InfoCards from "../components/info-cards";
 import IncotermsChat from "../components/incoterms-chat";
+import LiveRatesInfo from "../components/live-rates-info";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { useState } from "react";
 import { QuoteRequest } from "@shared/schema";
@@ -37,9 +38,10 @@ export default function Calculator() {
           
           <div className="lg:col-span-1">
             <Tabs defaultValue="costs" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="costs">Cost Breakdown</TabsTrigger>
                 <TabsTrigger value="incoterms">Incoterms Help</TabsTrigger>
+                <TabsTrigger value="carriers">Live Carriers</TabsTrigger>
               </TabsList>
               <TabsContent value="costs">
                 <CostBreakdown 
@@ -49,6 +51,9 @@ export default function Calculator() {
               </TabsContent>
               <TabsContent value="incoterms">
                 <IncotermsChat selectedIncoterm={quoteData?.incoterm} />
+              </TabsContent>
+              <TabsContent value="carriers">
+                <LiveRatesInfo />
               </TabsContent>
             </Tabs>
           </div>

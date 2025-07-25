@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { quoteRequestSchema } from "@shared/schema";
+import { liveShippingService, type LiveRateRequest } from "./live-shipping-api";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Get all origin ports
@@ -160,6 +161,114 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(400).json({ message: error.message });
       } else {
         res.status(500).json({ message: "Failed to calculate quote" });
+      }
+    }
+  });
+
+  // Get live shipping rates from carriers
+  app.post("/api/live-rates", async (req, res) => {
+    try {
+      const { originPort, destinationPort, containerType, weight, departure } = req.body;
+      
+      if (!originPort || !destinationPort || !containerType) {
+        return res.status(400).json({ message: "Missing required fields: originPort, destinationPort, containerType" });
+      }
+
+      const liveRateRequest: LiveRateRequest = {
+        fromPort: originPort,
+        toPort: destinationPort, 
+        containerType,
+        weight,
+        departure
+      };
+
+      const liveRates = await liveShippingService.getAllRates(liveRateRequest);
+      
+      res.json({
+        rates: liveRates,
+        source: "live",
+        timestamp: new Date().toISOString(),
+        message: liveRates.length > 0 ? `Found ${liveRates.length} live rates` : "No live rates available, using estimates"
+      });
+
+    } catch (error) {
+      console.error("Live rates error:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch live rates",
+        rates: [],
+        source: "error"
+      });
+    }
+  });
+
+  // Enhanced quote calculation with live rates integration
+  app.post("/api/calculate-quote-with-live", async (req, res) => {
+    try {
+      const validatedData = quoteRequestSchema.parse(req.body);
+      
+      // Get standard quote calculation
+      const standardQuoteResponse = await fetch("http://localhost:5000/api/calculate-quote", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(validatedData)
+      });
+
+      if (!standardQuoteResponse.ok) {
+        throw new Error("Failed to calculate standard quote");
+      }
+
+      const standardQuote = await standardQuoteResponse.json();
+
+      // Try to get live rates
+      const liveRateRequest: LiveRateRequest = {
+        fromPort: validatedData.originPort,
+        toPort: validatedData.destinationPort,
+        containerType: validatedData.containerType,
+        weight: validatedData.weight
+      };
+
+      const liveRates = await liveShippingService.getAllRates(liveRateRequest);
+      
+      let enhancedQuote = { ...standardQuote };
+
+      if (liveRates.length > 0) {
+        // Use the best live rate for sea freight
+        const bestRate = liveRates[0];
+        const liveSeaFreight = bestRate.rate;
+        
+        // Recalculate total with live sea freight rate
+        const difference = liveSeaFreight - standardQuote.seaFreightCost;
+        enhancedQuote = {
+          ...standardQuote,
+          seaFreightCost: liveSeaFreight,
+          totalCost: standardQuote.totalCost + difference,
+          costPerKg: (standardQuote.totalCost + difference) / validatedData.weight,
+          liveRateInfo: {
+            carrier: bestRate.carrier,
+            service: bestRate.service,
+            currency: bestRate.currency,
+            transitTime: bestRate.transitTime,
+            validUntil: bestRate.validUntil,
+            savings: -difference // Negative means more expensive, positive means savings
+          },
+          availableLiveRates: liveRates
+        };
+      }
+
+      res.json({
+        ...enhancedQuote,
+        hasLiveRates: liveRates.length > 0,
+        rateSource: liveRates.length > 0 ? "live" : "estimate"
+      });
+
+    } catch (error) {
+      console.error("Enhanced quote calculation error:", error);
+      if (error instanceof Error) {
+        res.status(400).json({ message: error.message });
+      } else {
+        res.status(500).json({ message: "Failed to calculate enhanced quote" });
       }
     }
   });
