@@ -39,6 +39,7 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
   const [selectedCustomsTariff, setSelectedCustomsTariff] = useState<CustomsTariff | null>(null);
   const [showCustomsSearch, setShowCustomsSearch] = useState(false);
   const [customsSearchTerm, setCustomsSearchTerm] = useState("");
+  const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
 
   const form = useForm<QuoteRequest>({
     resolver: zodResolver(quoteRequestSchema),
@@ -362,21 +363,67 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
                 
                 {showCustomsSearch ? (
                   <div className="space-y-3">
+                    <div className="bg-blue-50 p-3 rounded-lg text-sm">
+                      <div className="flex items-start gap-2">
+                        <span className="material-icons text-blue-600 text-sm mt-0.5">info</span>
+                        <div>
+                          <p className="text-blue-800 font-medium mb-1">HS Code Classification Help</p>
+                          <p className="text-blue-700 text-xs leading-relaxed">
+                            Describe your product in simple terms. We'll help match it to the correct customs code and show you the exact duty rates and requirements.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    
                     <div className="flex gap-2">
                       <Input
-                        placeholder="Search cargo type (e.g., laptops, clothing, machinery)..."
+                        placeholder="Describe your product (e.g., smartphone, laptop, jeans, wine)..."
                         value={customsSearchTerm}
-                        onChange={(e) => setCustomsSearchTerm(e.target.value)}
+                        onChange={(e) => {
+                          setCustomsSearchTerm(e.target.value);
+                          if (e.target.value.length > 2) {
+                            // Get suggestions as user types
+                            fetch("/api/customs/suggestions", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ searchTerm: e.target.value })
+                            }).then(res => res.json()).then(setSearchSuggestions).catch(console.error);
+                          } else {
+                            setSearchSuggestions([]);
+                          }
+                        }}
                         onKeyPress={(e) => e.key === 'Enter' && searchCustomsTariffs(customsSearchTerm)}
                       />
                       <Button 
                         type="button"
                         onClick={() => searchCustomsTariffs(customsSearchTerm)}
                         size="sm"
+                        disabled={!customsSearchTerm.trim()}
                       >
                         Search
                       </Button>
                     </div>
+
+                    {searchSuggestions.length > 0 && customsSearchTerm.length > 2 && (
+                      <div className="border rounded-lg p-2 bg-gray-50">
+                        <p className="text-xs text-gray-600 mb-2">Suggestions:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {searchSuggestions.slice(0, 6).map((suggestion, index) => (
+                            <button
+                              key={index}
+                              type="button"
+                              className="text-xs px-2 py-1 bg-white border rounded hover:bg-blue-50 hover:border-blue-300"
+                              onClick={() => {
+                                setCustomsSearchTerm(suggestion);
+                                searchCustomsTariffs(suggestion);
+                              }}
+                            >
+                              {suggestion}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     
                     {customsTariffs.length > 0 && (
                       <div className="max-h-48 overflow-y-auto border rounded-lg">
@@ -433,6 +480,42 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
                               {(selectedCustomsTariff.dutyRate * 100).toFixed(1)}%
                             </div>
                             <div className="text-xs text-gray-500">Duty Rate</div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {customsSearchTerm && customsTariffs.length === 0 && searchSuggestions.length === 0 && (
+                      <div className="border rounded-lg p-4 bg-yellow-50 border-yellow-200">
+                        <div className="flex items-start gap-2">
+                          <span className="material-icons text-yellow-600 text-sm mt-0.5">lightbulb</span>
+                          <div>
+                            <p className="text-yellow-800 font-medium mb-2">No exact matches found</p>
+                            <p className="text-yellow-700 text-sm mb-3">
+                              Try these tips to find your product's customs classification:
+                            </p>
+                            <ul className="text-yellow-700 text-xs space-y-1 mb-3">
+                              <li>• Use common product names (e.g., "phone" instead of "telecommunications device")</li>
+                              <li>• Try brand names (e.g., "iPhone", "Samsung Galaxy")</li>
+                              <li>• Include material (e.g., "cotton shirt", "leather shoes")</li>
+                              <li>• Use category names (e.g., "electronics", "clothing", "automotive")</li>
+                            </ul>
+                            <div className="flex flex-wrap gap-1">
+                              <span className="text-xs text-yellow-700">Popular searches:</span>
+                              {["smartphones", "laptops", "clothing", "cars", "shoes", "wine"].map((term) => (
+                                <button
+                                  key={term}
+                                  type="button"
+                                  className="text-xs px-2 py-1 bg-yellow-100 border border-yellow-300 rounded hover:bg-yellow-200"
+                                  onClick={() => {
+                                    setCustomsSearchTerm(term);
+                                    searchCustomsTariffs(term);
+                                  }}
+                                >
+                                  {term}
+                                </button>
+                              ))}
+                            </div>
                           </div>
                         </div>
                       </div>

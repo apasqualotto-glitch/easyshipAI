@@ -400,6 +400,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get search suggestions
+  app.post("/api/customs/suggestions", async (req, res) => {
+    try {
+      const { searchTerm } = req.body;
+      
+      if (!searchTerm || typeof searchTerm !== 'string') {
+        return res.status(400).json({ message: "Search term is required" });
+      }
+
+      const suggestions = customsDatabase.getSearchSuggestions(searchTerm);
+      res.json(suggestions);
+
+    } catch (error) {
+      console.error("Suggestions fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch suggestions" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
