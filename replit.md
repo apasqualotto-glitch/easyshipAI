@@ -101,6 +101,13 @@ The application is designed for easy migration from in-memory storage to Postgre
 
 ## Recent Changes
 
+- **Live USD to ZAR Currency Conversion System** - July 25, 2025
+  - Implemented real-time exchange rate fetching from multiple API sources (exchangerate-api.com, exchangerate.host)
+  - Added automatic USD to ZAR conversion for all SARS customs calculations
+  - Enhanced cost breakdown to show both USD cargo value and ZAR converted amounts
+  - Live exchange rate displayed with source and timestamp information
+  - Fallback protection ensures system works even if exchange APIs are unavailable
+
 - **CRITICAL FIX: Resolved 400 "Route not available" errors** - July 25, 2025
   - Fixed route lookup system that was causing quote calculation failures
   - Added comprehensive route coverage for ALL origin ports to ALL SA destination ports

@@ -94,10 +94,12 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
               {quoteResult?.customsInfo?.breakdown && (
                 <div className="mt-2 p-3 bg-gray-50 rounded-lg text-xs space-y-1">
                   <div className="text-gray-600 font-medium">SARS Duty Calculation:</div>
-                  <div>CIF Value: {formatCurrency(quoteResult.customsInfo.breakdown.cifValue)}</div>
+                  <div>CIF Value (USD): ${quoteResult.customsInfo.breakdown.cifValueUSD?.toLocaleString() || quoteResult.value.toLocaleString()}</div>
+                  <div>Exchange Rate: 1 USD = {quoteResult.customsInfo.breakdown.exchangeRate?.toFixed(4) || 'N/A'} ZAR</div>
+                  <div>CIF Value (ZAR): {formatCurrency(quoteResult.customsInfo.breakdown.cifValueZAR || quoteResult.valueZAR || 0)}</div>
                   <div>Duty Rate: {(quoteResult.customsInfo.breakdown.dutyRate * 100).toFixed(1)}%</div>
                   <div className="font-medium text-secondary-700">
-                    Formula: CIF Value × Duty Rate = {formatCurrency(quoteResult.customsDuties)}
+                    Formula: CIF Value (ZAR) × Duty Rate = {formatCurrency(quoteResult.customsDuties)}
                   </div>
                 </div>
               )}
@@ -116,7 +118,7 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
               {quoteResult?.customsInfo?.breakdown && (
                 <div className="mt-2 p-3 bg-blue-50 rounded-lg text-xs space-y-1">
                   <div className="text-gray-600 font-medium">SARS VAT Calculation:</div>
-                  <div>CIF Value: {formatCurrency(quoteResult.customsInfo.breakdown.cifValue)}</div>
+                  <div>CIF Value (ZAR): {formatCurrency(quoteResult.customsInfo.breakdown.cifValueZAR || quoteResult.valueZAR || 0)}</div>
                   {quoteResult.customsInfo.breakdown.markupApplied && (
                     <div>10% Markup: {formatCurrency(quoteResult.customsInfo.breakdown.markupAmount)} (Non-SACU)</div>
                   )}
@@ -210,6 +212,14 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
                               <div><strong>VAT Formula:</strong> {quoteResult.customsInfo.calculationMethod.vatFormula}</div>
                               <div><strong>Origin Rules:</strong> {quoteResult.customsInfo.calculationMethod.sacuExemption}</div>
                             </div>
+                            {quoteResult.customsInfo.exchangeRateInfo && (
+                              <div className="mt-2 p-2 bg-yellow-50 rounded border-l-2 border-yellow-300">
+                                <div className="text-xs text-yellow-800 font-medium">Live Exchange Rate</div>
+                                <div className="text-xs text-yellow-700">
+                                  Source: {quoteResult.customsInfo.exchangeRateInfo.source} • Updated: {new Date(quoteResult.customsInfo.exchangeRateInfo.timestamp).toLocaleTimeString()}
+                                </div>
+                              </div>
+                            )}
                             <div className="mt-2 space-y-1">
                               {quoteResult.customsInfo.calculationMethod.notes.map((note, index) => (
                                 <div key={index} className="text-xs text-gray-500 flex items-start">

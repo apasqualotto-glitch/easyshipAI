@@ -6,21 +6,49 @@ import { liveShippingService, type LiveRateRequest } from "./live-shipping-api";
 import { carrierComparisonService, type ComparisonRequest } from "./carrier-comparison";
 import { customsDatabase } from "./customs-database";
 
-// Currency conversion service
-async function getCurrentExchangeRate(): Promise<number> {
+// Enhanced currency conversion service with multiple API sources
+async function getCurrentExchangeRate(): Promise<{ rate: number; source: string; timestamp: string }> {
   try {
-    // Use a free exchange rate API (exchangerate-api.com)
+    // Try exchangerate-api.com first (reliable and free)
     const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
     if (response.ok) {
       const data = await response.json();
-      return data.rates?.ZAR || 18.5; // Fallback to ~18.5 if API fails
+      if (data.rates?.ZAR) {
+        return {
+          rate: data.rates.ZAR,
+          source: "exchangerate-api.com",
+          timestamp: new Date().toISOString()
+        };
+      }
     }
   } catch (error) {
-    console.warn('Exchange rate API unavailable, using fallback rate:', error);
+    console.log('Primary exchange API failed, trying backup');
+  }
+
+  try {
+    // Backup: exchangerate.host (no API key required)
+    const response = await fetch('https://api.exchangerate.host/latest?base=USD&symbols=ZAR');
+    if (response.ok) {
+      const data = await response.json();
+      if (data.rates?.ZAR) {
+        return {
+          rate: data.rates.ZAR,
+          source: "exchangerate.host",
+          timestamp: new Date().toISOString()
+        };
+      }
+    }
+  } catch (error) {
+    console.log('Backup exchange API failed');
   }
   
-  // Fallback exchange rate (USD to ZAR)
-  return 18.5;
+  // Fallback exchange rate (USD to ZAR) - updated regularly
+  console.warn('All exchange rate APIs unavailable, using fallback rate');
+  return {
+    rate: 18.2, // Current approximate rate as of 2025
+    source: "fallback",
+    timestamp: new Date().toISOString()
+  };
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -178,11 +206,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         throw new Error(`Cargo weight ${validatedData.weight}kg exceeds ${validatedData.containerType} container limit of ${weightLimits.maxWeight}kg`);
       }
 
+      // Get current USD to ZAR exchange rate
+      const exchangeRateData = await getCurrentExchangeRate();
+      const usdToZarRate = exchangeRateData.rate;
+      
+      // Convert USD cargo value to ZAR for SARS calculations
+      const cifValueUSD = validatedData.value;
+      const cifValueZAR = Math.round(cifValueUSD * usdToZarRate);
+      
       // Calculate customs duties and VAT using correct SARS methodology
       let customsDuties, vat, handlingFees, customsExplanation, tradeAgreementInfo, customsBreakdown;
-      
-      // CIF Value = FOB Value + Insurance + Freight (already included in validatedData.value for our calculations)
-      const cifValue = validatedData.value;
       
       // Determine if country is SACU member (no 10% markup)
       const sacuCountries = ["Botswana", "Lesotho", "Namibia", "Eswatini"];
@@ -192,7 +225,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Use advanced customs calculations with trade agreement rates
         const customsCalculation = customsDatabase.calculateDetailedCustomsCostByCountry(
           validatedData.customsTariff.hsCode, 
-          cifValue, 
+          cifValueZAR, 
           originCountry
         );
         
@@ -203,11 +236,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           customsExplanation = customsCalculation.tradeAgreement.description;
           tradeAgreementInfo = customsCalculation.tradeAgreement;
           customsBreakdown = {
-            cifValue,
+            cifValueUSD,
+            cifValueZAR,
+            exchangeRate: usdToZarRate,
             dutyRate: customsCalculation.tradeAgreement.dutyRate,
             customsDuty: customsCalculation.calculations.customsDuty,
             markupApplied: !isSacuCountry,
-            markupAmount: isSacuCountry ? 0 : cifValue * 0.10,
+            markupAmount: isSacuCountry ? 0 : cifValueZAR * 0.10,
             atvValue: customsCalculation.calculations.dutiableAmount,
             vatRate: 0.15,
             vat: customsCalculation.calculations.vat,
@@ -218,14 +253,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } else {
           // Fallback to standard SARS calculation
           const dutyRate = validatedData.customsTariff.dutyRate;
-          customsDuties = cifValue * dutyRate;
+          customsDuties = cifValueZAR * dutyRate;
           
           // SARS VAT Formula: [(CIF Value + 10% markup for non-SACU) + Duties] × 15%
           let atvValue; // Added Tax Value
           if (isSacuCountry) {
-            atvValue = cifValue + customsDuties;
+            atvValue = cifValueZAR + customsDuties;
           } else {
-            atvValue = (cifValue + (cifValue * 0.10)) + customsDuties; // 10% markup for non-SACU
+            atvValue = (cifValueZAR + (cifValueZAR * 0.10)) + customsDuties; // 10% markup for non-SACU
           }
           vat = atvValue * 0.15;
           
@@ -239,11 +274,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
           
           customsBreakdown = {
-            cifValue,
+            cifValueUSD,
+            cifValueZAR,
+            exchangeRate: usdToZarRate,
             dutyRate,
             customsDuty: customsDuties,
             markupApplied: !isSacuCountry,
-            markupAmount: isSacuCountry ? 0 : cifValue * 0.10,
+            markupAmount: isSacuCountry ? 0 : cifValueZAR * 0.10,
             atvValue,
             vatRate: 0.15,
             vat,
@@ -255,14 +292,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         // Use basic cargo type calculations with proper SARS VAT formula
         const dutyRate = cargoType.dutyRate;
-        customsDuties = cifValue * dutyRate;
+        customsDuties = cifValueZAR * dutyRate;
         
         // Apply SARS VAT calculation
         let atvValue;
         if (isSacuCountry) {
-          atvValue = cifValue + customsDuties;
+          atvValue = cifValueZAR + customsDuties;
         } else {
-          atvValue = (cifValue + (cifValue * 0.10)) + customsDuties;
+          atvValue = (cifValueZAR + (cifValueZAR * 0.10)) + customsDuties;
         }
         vat = atvValue * 0.15;
         
@@ -275,11 +312,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
         
         customsBreakdown = {
-          cifValue,
+          cifValueUSD,
+          cifValueZAR,
+          exchangeRate: usdToZarRate,
           dutyRate,
           customsDuty: customsDuties,
           markupApplied: !isSacuCountry,
-          markupAmount: isSacuCountry ? 0 : cifValue * 0.10,
+          markupAmount: isSacuCountry ? 0 : cifValueZAR * 0.10,
           atvValue,
           vatRate: 0.15,
           vat,
@@ -302,6 +341,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         incoterm: validatedData.incoterm,
         weight: validatedData.weight,
         value: validatedData.value,
+        valueZAR: cifValueZAR,
         seaFreightCost,
         truckingCost,
         customsDuties,
@@ -327,13 +367,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isAdvancedCalculation: !!validatedData.customsTariff,
           tradeAgreement: tradeAgreementInfo,
           breakdown: customsBreakdown,
+          exchangeRateInfo: exchangeRateData,
           calculationMethod: {
             description: "Official SARS calculation method",
-            dutyFormula: "Customs Duty = CIF Value × Duty Rate",
+            dutyFormula: "Customs Duty = CIF Value (ZAR) × Duty Rate",
             vatFormula: customsBreakdown?.formula || "VAT = (CIF Value + 10% markup + Duties) × 15%",
             sacuExemption: isSacuCountry ? "SACU country - no 10% markup applied" : "Non-SACU country - 10% markup applied",
             notes: [
-              "CIF Value includes cost, insurance, and freight",
+              `CIF Value converted from USD ${cifValueUSD.toLocaleString()} to ZAR ${cifValueZAR.toLocaleString()} at rate ${usdToZarRate.toFixed(4)}`,
               "VAT rate is 15% as per SARS regulations",
               isSacuCountry ? "SACU members exempt from 10% markup" : "10% markup applied to non-SACU imports",
               "All calculations follow official SARS methodology"
@@ -716,6 +757,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Suggestions fetch error:", error);
       res.status(500).json({ message: "Failed to fetch suggestions" });
+    }
+  });
+
+  // Get current USD to ZAR exchange rate
+  app.get("/api/exchange-rate/usd-zar", async (req, res) => {
+    try {
+      const exchangeRateData = await getCurrentExchangeRate();
+      res.json(exchangeRateData);
+    } catch (error) {
+      res.status(500).json({ 
+        message: "Failed to fetch exchange rate", 
+        error: error.message 
+      });
     }
   });
 
