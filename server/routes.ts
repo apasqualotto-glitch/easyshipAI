@@ -5,6 +5,7 @@ import { quoteRequestSchema } from "@shared/schema";
 import { liveShippingService, type LiveRateRequest } from "./live-shipping-api";
 import { carrierComparisonService, type ComparisonRequest } from "./carrier-comparison";
 import { customsDatabase } from "./customs-database";
+import { bookingService, type BookingRequest, type BookingResponse } from "./booking-service";
 
 // Enhanced currency conversion service with multiple API sources
 async function getCurrentExchangeRate(): Promise<{ rate: number; source: string; timestamp: string }> {
@@ -477,8 +478,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Use the best live rate for sea freight
         const bestRate = liveRates[0];
         
-        // Convert USD to ZAR (using current exchange rate ~18.5 ZAR per USD)
-        const usdToZarRate = await getCurrentExchangeRate();
+        // Convert USD to ZAR (using current exchange rate)
+        const exchangeRateData = await getCurrentExchangeRate();
+        const usdToZarRate = exchangeRateData.rate;
         const liveSeaFreightZAR = bestRate.currency === 'USD' 
           ? bestRate.rate * usdToZarRate 
           : bestRate.rate;
@@ -771,7 +773,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       res.status(500).json({ 
         message: "Failed to fetch exchange rate", 
-        error: error.message 
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Create booking with carrier
+  app.post("/api/bookings/create", async (req, res) => {
+    try {
+      const bookingRequest: BookingRequest = req.body;
+      
+      // Validate required fields
+      if (!bookingRequest.quoteId || !bookingRequest.carrierCode || !bookingRequest.shipper || !bookingRequest.consignee) {
+        return res.status(400).json({ 
+          message: "Missing required fields: quoteId, carrierCode, shipper, consignee" 
+        });
+      }
+
+      const bookingResponse = await bookingService.createBooking(bookingRequest);
+      
+      res.json(bookingResponse);
+
+    } catch (error) {
+      console.error("Booking creation error:", error);
+      res.status(500).json({ 
+        message: "Failed to create booking", 
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Get booking status
+  app.get("/api/bookings/:carrierCode/:bookingReference/status", async (req, res) => {
+    try {
+      const { carrierCode, bookingReference } = req.params;
+      
+      const status = await bookingService.getBookingStatus(carrierCode, bookingReference);
+      res.json(status);
+
+    } catch (error) {
+      console.error("Booking status error:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch booking status", 
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Get available carriers for booking
+  app.get("/api/bookings/carriers", async (req, res) => {
+    try {
+      const carriers = [
+        {
+          code: 'MAEU',
+          name: 'Maersk Line',
+          description: 'World\'s largest container shipping company',
+          apiStatus: process.env.MAERSK_API_KEY ? 'AVAILABLE' : 'SETUP_REQUIRED',
+          services: ['FCL', 'LCL'],
+          coverage: 'Global',
+          bookingSupport: true
+        },
+        {
+          code: 'MSCU',
+          name: 'Mediterranean Shipping Company',
+          description: 'Global container shipping leader',
+          apiStatus: process.env.MSC_API_KEY ? 'AVAILABLE' : 'SETUP_REQUIRED',
+          services: ['FCL', 'LCL'],
+          coverage: 'Global',
+          bookingSupport: true
+        },
+        {
+          code: 'CMDU',
+          name: 'CMA CGM',
+          description: 'Leading worldwide shipping group',
+          apiStatus: 'COMING_SOON',
+          services: ['FCL', 'LCL'],
+          coverage: 'Global',
+          bookingSupport: false
+        },
+        {
+          code: 'COSU',
+          name: 'COSCO Shipping',
+          description: 'Chinese global shipping company',
+          apiStatus: 'COMING_SOON',
+          services: ['FCL'],
+          coverage: 'Global',
+          bookingSupport: false
+        }
+      ];
+      
+      res.json(carriers);
+
+    } catch (error) {
+      res.status(500).json({ 
+        message: "Failed to fetch carrier information" 
       });
     }
   });

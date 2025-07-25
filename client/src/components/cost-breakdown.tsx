@@ -292,6 +292,54 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
           </div>
         </CardContent>
       </Card>
+      
+      {/* Booking Section */}
+      {quoteResult && (
+        <Card className="bg-primary-50 shadow-material">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <span className="material-icons text-primary">local_shipping</span>
+              Book This Shipment
+            </CardTitle>
+            <CardDescription>
+              Create a booking with your preferred shipping carrier
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-4 border rounded-lg bg-white">
+                  <div className="font-medium text-blue-600">Maersk Line</div>
+                  <div className="text-sm text-gray-600">World's largest carrier</div>
+                  <div className="text-xs text-gray-500 mt-1">API Ready • Global Coverage</div>
+                </div>
+                <div className="p-4 border rounded-lg bg-white">
+                  <div className="font-medium text-red-600">MSC</div>
+                  <div className="text-sm text-gray-600">Global shipping leader</div>
+                  <div className="text-xs text-gray-500 mt-1">API Ready • DCSA Compliant</div>
+                </div>
+                <div className="p-4 border rounded-lg bg-white opacity-50">
+                  <div className="font-medium text-gray-600">CMA CGM</div>
+                  <div className="text-sm text-gray-600">Coming soon</div>
+                  <div className="text-xs text-gray-500 mt-1">API Integration In Progress</div>
+                </div>
+              </div>
+              
+              <div className="text-center">
+                <a 
+                  href={`/booking?quote=${quoteResult.id}`}
+                  className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors inline-block"
+                >
+                  Start Booking Process
+                </a>
+                <p className="text-xs text-gray-500 mt-2">
+                  Direct API integration with carrier booking systems
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

@@ -101,6 +101,15 @@ The application is designed for easy migration from in-memory storage to Postgre
 
 ## Recent Changes
 
+- **Carrier Booking API Integration System** - July 25, 2025
+  - Implemented comprehensive booking service supporting Maersk, MSC, and CMA CGM APIs
+  - Added DCSA (Digital Container Shipping Association) standards compliance for industry standardization
+  - Created complete booking workflow: quote → carrier selection → booking form → status tracking
+  - Integrated with major carrier APIs (Maersk Developer Portal, MSC API, CMA CGM MyING)
+  - Real-time booking status updates with milestone tracking and document management
+  - Direct API connections to carrier booking systems with proper authentication and error handling
+  - Enhanced freight calculator with "Book This Shipment" functionality for seamless user experience
+
 - **CRITICAL FIX: SARS Compliance - FOB Valuation Method** - July 25, 2025
   - Discovered and corrected major compliance issue: SARS uses FOB (Free on Board) valuation method, NOT CIF
   - Updated all customs calculations to use FOB basis per WTO Customs Valuation Agreement
