@@ -69,36 +69,67 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
               </span>
             </div>
 
-            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <div className="flex items-center">
-                <span className="material-icons text-secondary-500 text-sm mr-2">account_balance</span>
-                <div className="flex flex-col">
-                  <span className="text-sm text-gray-700">Customs Duties</span>
-                  {quoteResult?.customsInfo?.isAdvancedCalculation && (
-                    <div className="flex items-center space-x-1 mt-1">
-                      <Badge variant="outline" className="text-xs">
-                        HS: {quoteResult.customsInfo.hsCode}
-                      </Badge>
-                      <span className="text-xs text-blue-600">
-                        {(quoteResult.customsInfo.dutyRate * 100).toFixed(1)}% rate
-                      </span>
-                    </div>
-                  )}
+            <div className="py-2 border-b border-gray-100">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center">
+                  <span className="material-icons text-secondary-500 text-sm mr-2">account_balance</span>
+                  <div className="flex flex-col">
+                    <span className="text-sm text-gray-700">Customs Duties</span>
+                    {quoteResult?.customsInfo?.isAdvancedCalculation && (
+                      <div className="flex items-center space-x-1 mt-1">
+                        <Badge variant="outline" className="text-xs">
+                          HS: {quoteResult.customsInfo.hsCode}
+                        </Badge>
+                        <span className="text-xs text-blue-600">
+                          {(quoteResult.customsInfo.dutyRate * 100).toFixed(1)}% rate
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
+                <span className="text-sm font-medium">
+                  {quoteResult ? formatCurrency(quoteResult.customsDuties) : "—"}
+                </span>
               </div>
-              <span className="text-sm font-medium">
-                {quoteResult ? formatCurrency(quoteResult.customsDuties) : "—"}
-              </span>
+              {quoteResult?.customsInfo?.breakdown && (
+                <div className="mt-2 p-3 bg-gray-50 rounded-lg text-xs space-y-1">
+                  <div className="text-gray-600 font-medium">SARS Duty Calculation:</div>
+                  <div>CIF Value: {formatCurrency(quoteResult.customsInfo.breakdown.cifValue)}</div>
+                  <div>Duty Rate: {(quoteResult.customsInfo.breakdown.dutyRate * 100).toFixed(1)}%</div>
+                  <div className="font-medium text-secondary-700">
+                    Formula: CIF Value × Duty Rate = {formatCurrency(quoteResult.customsDuties)}
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <div className="flex items-center">
-                <span className="material-icons text-secondary-500 text-sm mr-2">receipt</span>
-                <span className="text-sm text-gray-700">VAT (15%)</span>
+            <div className="py-2 border-b border-gray-100">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center">
+                  <span className="material-icons text-secondary-500 text-sm mr-2">receipt</span>
+                  <span className="text-sm text-gray-700">VAT (15%)</span>
+                </div>
+                <span className="text-sm font-medium">
+                  {quoteResult ? formatCurrency(quoteResult.vat) : "—"}
+                </span>
               </div>
-              <span className="text-sm font-medium">
-                {quoteResult ? formatCurrency(quoteResult.vat) : "—"}
-              </span>
+              {quoteResult?.customsInfo?.breakdown && (
+                <div className="mt-2 p-3 bg-blue-50 rounded-lg text-xs space-y-1">
+                  <div className="text-gray-600 font-medium">SARS VAT Calculation:</div>
+                  <div>CIF Value: {formatCurrency(quoteResult.customsInfo.breakdown.cifValue)}</div>
+                  {quoteResult.customsInfo.breakdown.markupApplied && (
+                    <div>10% Markup: {formatCurrency(quoteResult.customsInfo.breakdown.markupAmount)} (Non-SACU)</div>
+                  )}
+                  <div>Customs Duty: {formatCurrency(quoteResult.customsDuties)}</div>
+                  <div>ATV (Added Tax Value): {formatCurrency(quoteResult.customsInfo.breakdown.atvValue)}</div>
+                  <div className="font-medium text-blue-700">
+                    {quoteResult.customsInfo.breakdown.formula} = {formatCurrency(quoteResult.vat)}
+                  </div>
+                  {!quoteResult.customsInfo.breakdown.markupApplied && (
+                    <div className="text-green-600 text-xs mt-1">✓ SACU country - no 10% markup applied</div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="flex justify-between items-center py-2 border-b border-gray-100">
@@ -141,28 +172,56 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
                   </div>
                 )}
 
-                {quoteResult?.customsInfo?.isAdvancedCalculation && (
-                  <div className="bg-blue-50 rounded-lg p-3">
-                    <div className="flex items-start">
-                      <span className="material-icons text-blue-600 text-sm mr-2 mt-0.5">info</span>
-                      <div className="flex-1">
-                        <div className="text-xs text-blue-700 mb-1">Customs Information</div>
-                        <div className="text-sm font-medium text-blue-800 mb-2">
-                          HS Code: {quoteResult.customsInfo.hsCode}
-                        </div>
-                        <p className="text-xs text-blue-700 leading-relaxed">
-                          {quoteResult.customsInfo.explanation}
-                        </p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <Badge variant="secondary" className="text-xs">
-                            Duty: {(quoteResult.customsInfo.dutyRate * 100).toFixed(1)}%
-                          </Badge>
-                          <Badge variant="secondary" className="text-xs">
-                            VAT: {(quoteResult.customsInfo.vatRate * 100).toFixed(0)}%
-                          </Badge>
+                {quoteResult?.customsInfo && (
+                  <div className="space-y-3">
+                    {quoteResult.customsInfo.isAdvancedCalculation && (
+                      <div className="bg-blue-50 rounded-lg p-3">
+                        <div className="flex items-start">
+                          <span className="material-icons text-blue-600 text-sm mr-2 mt-0.5">info</span>
+                          <div className="flex-1">
+                            <div className="text-xs text-blue-700 mb-1">Customs Information</div>
+                            <div className="text-sm font-medium text-blue-800 mb-2">
+                              HS Code: {quoteResult.customsInfo.hsCode}
+                            </div>
+                            <p className="text-xs text-blue-700 leading-relaxed">
+                              {quoteResult.customsInfo.explanation}
+                            </p>
+                            <div className="flex items-center gap-2 mt-2">
+                              <Badge variant="secondary" className="text-xs">
+                                Duty: {(quoteResult.customsInfo.dutyRate * 100).toFixed(1)}%
+                              </Badge>
+                              <Badge variant="secondary" className="text-xs">
+                                VAT: {(quoteResult.customsInfo.vatRate * 100).toFixed(0)}%
+                              </Badge>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    )}
+                    
+                    {quoteResult.customsInfo.calculationMethod && (
+                      <div className="bg-gray-50 rounded-lg p-3">
+                        <div className="flex items-start">
+                          <span className="material-icons text-gray-600 text-sm mr-2 mt-0.5">calculate</span>
+                          <div className="flex-1">
+                            <div className="text-xs text-gray-700 mb-2 font-medium">SARS Calculation Method</div>
+                            <div className="space-y-1 text-xs text-gray-600">
+                              <div><strong>Duty Formula:</strong> {quoteResult.customsInfo.calculationMethod.dutyFormula}</div>
+                              <div><strong>VAT Formula:</strong> {quoteResult.customsInfo.calculationMethod.vatFormula}</div>
+                              <div><strong>Origin Rules:</strong> {quoteResult.customsInfo.calculationMethod.sacuExemption}</div>
+                            </div>
+                            <div className="mt-2 space-y-1">
+                              {quoteResult.customsInfo.calculationMethod.notes.map((note, index) => (
+                                <div key={index} className="text-xs text-gray-500 flex items-start">
+                                  <span className="text-gray-400 mr-1">•</span>
+                                  <span>{note}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

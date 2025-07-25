@@ -178,14 +178,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         throw new Error(`Cargo weight ${validatedData.weight}kg exceeds ${validatedData.containerType} container limit of ${weightLimits.maxWeight}kg`);
       }
 
-      // Use advanced customs tariff with country-specific rates if provided
-      let customsDuties, vat, handlingFees, customsExplanation, tradeAgreementInfo;
+      // Calculate customs duties and VAT using correct SARS methodology
+      let customsDuties, vat, handlingFees, customsExplanation, tradeAgreementInfo, customsBreakdown;
+      
+      // CIF Value = FOB Value + Insurance + Freight (already included in validatedData.value for our calculations)
+      const cifValue = validatedData.value;
+      
+      // Determine if country is SACU member (no 10% markup)
+      const sacuCountries = ["Botswana", "Lesotho", "Namibia", "Eswatini"];
+      const isSacuCountry = sacuCountries.includes(originCountry);
       
       if (validatedData.customsTariff) {
         // Use advanced customs calculations with trade agreement rates
         const customsCalculation = customsDatabase.calculateDetailedCustomsCostByCountry(
           validatedData.customsTariff.hsCode, 
-          validatedData.value, 
+          cifValue, 
           originCountry
         );
         
@@ -195,25 +202,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
           handlingFees = customsCalculation.calculations.additionalFees + (seaFreightCost * 0.05);
           customsExplanation = customsCalculation.tradeAgreement.description;
           tradeAgreementInfo = customsCalculation.tradeAgreement;
+          customsBreakdown = {
+            cifValue,
+            dutyRate: customsCalculation.tradeAgreement.dutyRate,
+            customsDuty: customsCalculation.calculations.customsDuty,
+            markupApplied: !isSacuCountry,
+            markupAmount: isSacuCountry ? 0 : cifValue * 0.10,
+            atvValue: customsCalculation.calculations.dutiableAmount,
+            vatRate: 0.15,
+            vat: customsCalculation.calculations.vat,
+            formula: isSacuCountry 
+              ? "VAT = (CIF Value + Duties) × 15%" 
+              : "VAT = (CIF Value + 10% markup + Duties) × 15%"
+          };
         } else {
-          // Fallback to standard calculation
-          customsDuties = validatedData.value * validatedData.customsTariff.dutyRate;
-          vat = validatedData.customsTariff.vatRate > 0 
-            ? (validatedData.value + customsDuties) * validatedData.customsTariff.vatRate 
-            : 0;
+          // Fallback to standard SARS calculation
+          const dutyRate = validatedData.customsTariff.dutyRate;
+          customsDuties = cifValue * dutyRate;
+          
+          // SARS VAT Formula: [(CIF Value + 10% markup for non-SACU) + Duties] × 15%
+          let atvValue; // Added Tax Value
+          if (isSacuCountry) {
+            atvValue = cifValue + customsDuties;
+          } else {
+            atvValue = (cifValue + (cifValue * 0.10)) + customsDuties; // 10% markup for non-SACU
+          }
+          vat = atvValue * 0.15;
+          
           handlingFees = validatedData.customsTariff.additionalFees + (seaFreightCost * 0.05);
           customsExplanation = validatedData.customsTariff.explanation;
+          tradeAgreementInfo = {
+            name: "Standard MFN",
+            preferential: false,
+            description: validatedData.customsTariff.explanation,
+            dutyRate: dutyRate
+          };
+          
+          customsBreakdown = {
+            cifValue,
+            dutyRate,
+            customsDuty: customsDuties,
+            markupApplied: !isSacuCountry,
+            markupAmount: isSacuCountry ? 0 : cifValue * 0.10,
+            atvValue,
+            vatRate: 0.15,
+            vat,
+            formula: isSacuCountry 
+              ? "VAT = (CIF Value + Duties) × 15%" 
+              : "VAT = (CIF Value + 10% markup + Duties) × 15%"
+          };
         }
       } else {
-        // Use basic cargo type calculations (no trade agreement benefits)
-        customsDuties = validatedData.value * cargoType.dutyRate;
-        vat = (validatedData.value + customsDuties) * 0.15;
+        // Use basic cargo type calculations with proper SARS VAT formula
+        const dutyRate = cargoType.dutyRate;
+        customsDuties = cifValue * dutyRate;
+        
+        // Apply SARS VAT calculation
+        let atvValue;
+        if (isSacuCountry) {
+          atvValue = cifValue + customsDuties;
+        } else {
+          atvValue = (cifValue + (cifValue * 0.10)) + customsDuties;
+        }
+        vat = atvValue * 0.15;
+        
         handlingFees = cargoType.additionalFees + (seaFreightCost * 0.05);
         tradeAgreementInfo = {
           name: "Standard MFN",
           preferential: false,
           description: "No HS code selected - using cargo type rate",
-          dutyRate: cargoType.dutyRate
+          dutyRate: dutyRate
+        };
+        
+        customsBreakdown = {
+          cifValue,
+          dutyRate,
+          customsDuty: customsDuties,
+          markupApplied: !isSacuCountry,
+          markupAmount: isSacuCountry ? 0 : cifValue * 0.10,
+          atvValue,
+          vatRate: 0.15,
+          vat,
+          formula: isSacuCountry 
+            ? "VAT = (CIF Value + Duties) × 15%" 
+            : "VAT = (CIF Value + 10% markup + Duties) × 15%"
         };
       }
       
@@ -247,16 +319,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         costPerKg: totalCost / validatedData.weight,
         transitDays: route.transitDays,
         originCountry,
-        customsInfo: validatedData.customsTariff ? {
-          hsCode: validatedData.customsTariff.hsCode,
-          dutyRate: tradeAgreementInfo?.dutyRate || validatedData.customsTariff.dutyRate,
-          vatRate: validatedData.customsTariff.vatRate,
+        customsInfo: {
+          hsCode: validatedData.customsTariff?.hsCode,
+          dutyRate: tradeAgreementInfo?.dutyRate || (validatedData.customsTariff?.dutyRate) || cargoType.dutyRate,
+          vatRate: 0.15,
           explanation: customsExplanation,
-          isAdvancedCalculation: true,
-          tradeAgreement: tradeAgreementInfo
-        } : {
-          isAdvancedCalculation: false,
-          tradeAgreement: tradeAgreementInfo
+          isAdvancedCalculation: !!validatedData.customsTariff,
+          tradeAgreement: tradeAgreementInfo,
+          breakdown: customsBreakdown,
+          calculationMethod: {
+            description: "Official SARS calculation method",
+            dutyFormula: "Customs Duty = CIF Value × Duty Rate",
+            vatFormula: customsBreakdown?.formula || "VAT = (CIF Value + 10% markup + Duties) × 15%",
+            sacuExemption: isSacuCountry ? "SACU country - no 10% markup applied" : "Non-SACU country - 10% markup applied",
+            notes: [
+              "CIF Value includes cost, insurance, and freight",
+              "VAT rate is 15% as per SARS regulations",
+              isSacuCountry ? "SACU members exempt from 10% markup" : "10% markup applied to non-SACU imports",
+              "All calculations follow official SARS methodology"
+            ]
+          }
         }
       });
 
