@@ -3,6 +3,8 @@ import Hero from "../components/hero";
 import CalculatorForm from "../components/calculator-form";
 import CostBreakdown from "../components/cost-breakdown";
 import InfoCards from "../components/info-cards";
+import IncotermsChat from "../components/incoterms-chat";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { useState } from "react";
 import { QuoteRequest } from "@shared/schema";
 
@@ -34,10 +36,21 @@ export default function Calculator() {
           </div>
           
           <div className="lg:col-span-1">
-            <CostBreakdown 
-              quoteData={quoteData}
-              quoteResult={quoteResult}
-            />
+            <Tabs defaultValue="costs" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="costs">Cost Breakdown</TabsTrigger>
+                <TabsTrigger value="incoterms">Incoterms Help</TabsTrigger>
+              </TabsList>
+              <TabsContent value="costs">
+                <CostBreakdown 
+                  quoteData={quoteData}
+                  quoteResult={quoteResult}
+                />
+              </TabsContent>
+              <TabsContent value="incoterms">
+                <IncotermsChat selectedIncoterm={quoteData?.incoterm} />
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
 
