@@ -98,3 +98,27 @@ The application follows a monorepo structure with a clear separation between cli
 6. **Material Design**: Custom color scheme provides professional appearance suitable for business shipping calculations
 
 The application is designed for easy migration from in-memory storage to PostgreSQL database, with all database operations abstracted behind a storage interface.
+
+## Recent Changes
+
+- Successfully integrated advanced customs lookup with main calculator form cargo type selection
+- Enhanced customs search system with intelligent HS code matching and comprehensive product keyword database
+- Implemented search scoring, real-time suggestions, and user guidance for complex HS code classification
+- Massively expanded product coverage to accommodate "everything" people import:
+  - Agricultural products (bird seed, millet, barley, animal feed)
+  - Food products (meat, beef, chicken, frozen foods)
+  - Textiles & clothing (t-shirts, sneakers, footwear)
+  - Electronics (batteries, phones, laptops)
+  - Medical equipment (syringes, healthcare devices)
+  - Industrial machinery and tools
+  - Cosmetics and personal care
+  - Building materials and hardware
+  - Toys, sports equipment, musical instruments
+  - Jewelry, art, books, office supplies
+  - Kitchen items, garden tools, cleaning products
+  - Photography equipment, fishing gear
+  - Baby products, pets/live animals
+  - Plastics, chemicals, packaging materials
+- Added real-time search suggestions as users type
+- Created helpful "no results found" guidance with popular search examples
+- System now handles diverse search terms from common names to technical descriptions
