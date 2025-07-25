@@ -47,21 +47,58 @@ export class MemStorage implements IStorage {
   }
 
   private initializeData() {
-    // Initialize ports
+    // Initialize ports - expanded popular origins for better coverage
     const portsData: Port[] = [
+      // China - Major manufacturing hubs
       { id: "1", name: "Shanghai, China", code: "CNSHA", country: "China", type: "origin" },
       { id: "2", name: "Ningbo, China", code: "CNNGB", country: "China", type: "origin" },
       { id: "3", name: "Tianjin, China", code: "CNTXG", country: "China", type: "origin" },
+      { id: "16", name: "Shenzhen, China", code: "CNSZX", country: "China", type: "origin" },
+      { id: "17", name: "Qingdao, China", code: "CNQIN", country: "China", type: "origin" },
+      { id: "18", name: "Guangzhou, China", code: "CNGZH", country: "China", type: "origin" },
+      { id: "19", name: "Xiamen, China", code: "CNXMN", country: "China", type: "origin" },
+      
+      // Europe - Major trade hubs
       { id: "4", name: "Hamburg, Germany", code: "DEHAM", country: "Germany", type: "origin" },
       { id: "5", name: "Rotterdam, Netherlands", code: "NLRTM", country: "Netherlands", type: "origin" },
       { id: "6", name: "Felixstowe, UK", code: "GBFXT", country: "United Kingdom", type: "origin" },
+      { id: "20", name: "Antwerp, Belgium", code: "BEANR", country: "Belgium", type: "origin" },
+      { id: "21", name: "Southampton, UK", code: "GBSOU", country: "United Kingdom", type: "origin" },
+      { id: "22", name: "Bremen, Germany", code: "DEBRE", country: "Germany", type: "origin" },
+      { id: "23", name: "Valencia, Spain", code: "ESVLC", country: "Spain", type: "origin" },
+      { id: "24", name: "Le Havre, France", code: "FRLEH", country: "France", type: "origin" },
+      
+      // Asia Pacific
       { id: "7", name: "Mumbai, India", code: "INMUN", country: "India", type: "origin" },
       { id: "8", name: "Singapore", code: "SGSIN", country: "Singapore", type: "origin" },
+      { id: "25", name: "Chennai, India", code: "INMAA", country: "India", type: "origin" },
+      { id: "26", name: "Jawaharlal Nehru Port, India", code: "INJNP", country: "India", type: "origin" },
+      { id: "27", name: "Port Klang, Malaysia", code: "MYPKG", country: "Malaysia", type: "origin" },
+      { id: "28", name: "Bangkok, Thailand", code: "THBKK", country: "Thailand", type: "origin" },
+      { id: "29", name: "Hong Kong", code: "HKHKG", country: "Hong Kong", type: "origin" },
+      { id: "30", name: "Busan, South Korea", code: "KRPUS", country: "South Korea", type: "origin" },
+      { id: "31", name: "Tokyo, Japan", code: "JPTYO", country: "Japan", type: "origin" },
+      
+      // Americas
+      { id: "32", name: "Los Angeles, USA", code: "USLAX", country: "USA", type: "origin" },
+      { id: "33", name: "Long Beach, USA", code: "USLGB", country: "USA", type: "origin" },
+      { id: "34", name: "New York, USA", code: "USNYC", country: "USA", type: "origin" },
+      { id: "35", name: "Miami, USA", code: "USMIA", country: "USA", type: "origin" },
+      { id: "36", name: "Vancouver, Canada", code: "CAVAN", country: "Canada", type: "origin" },
+      { id: "37", name: "Santos, Brazil", code: "BRSSZ", country: "Brazil", type: "origin" },
+      
+      // Middle East & Africa
+      { id: "38", name: "Jebel Ali, UAE", code: "AEJEA", country: "UAE", type: "origin" },
+      { id: "39", name: "Casablanca, Morocco", code: "MACAS", country: "Morocco", type: "origin" },
+      
+      // South African ports (destinations)
       { id: "9", name: "Durban", code: "ZADUR", country: "South Africa", type: "destination" },
       { id: "10", name: "Cape Town", code: "ZACPT", country: "South Africa", type: "destination" },
       { id: "11", name: "Port Elizabeth (Gqeberha)", code: "ZAPEZ", country: "South Africa", type: "destination" },
       { id: "12", name: "Richards Bay", code: "ZARBD", country: "South Africa", type: "destination" },
       { id: "13", name: "East London", code: "ZAELS", country: "South Africa", type: "destination" },
+      { id: "14", name: "Mossel Bay", code: "ZAMOB", country: "South Africa", type: "destination" },
+      { id: "15", name: "Saldanha Bay", code: "ZASDB", country: "South Africa", type: "destination" },
       { id: "14", name: "Mossel Bay", code: "ZAMOB", country: "South Africa", type: "destination" },
       { id: "15", name: "Saldanha Bay", code: "ZASDB", country: "South Africa", type: "destination" },
     ];

@@ -8,11 +8,13 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { Truck, Ship, Zap } from "lucide-react";
+import { Truck, Ship, Zap, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import ProgressStepper from "./progress-stepper";
 import { Port, Destination, CargoType, Incoterm } from "@shared/schema";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface CustomsTariff {
   hsCode: string;
@@ -40,6 +42,8 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
   const [showCustomsSearch, setShowCustomsSearch] = useState(false);
   const [customsSearchTerm, setCustomsSearchTerm] = useState("");
   const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
+  const [originPortOpen, setOriginPortOpen] = useState(false);
+  const [selectedOriginPort, setSelectedOriginPort] = useState("");
 
   const form = useForm<QuoteRequest>({
     resolver: zodResolver(quoteRequestSchema),
@@ -226,22 +230,108 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
                 <div className="tooltip-trigger relative inline-block ml-1">
                   <span className="material-icons text-gray-400 text-sm cursor-help">help_outline</span>
                   <div className="tooltip absolute bottom-6 left-0 bg-gray-900 text-white text-xs p-2 rounded opacity-0 invisible whitespace-nowrap z-10">
-                    Select the port where your cargo will be shipped from
+                    Search and select the port where your cargo will be shipped from
                   </div>
                 </div>
               </Label>
-              <Select onValueChange={(value) => form.setValue("originPort", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select origin port" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(originPorts as Port[]).map((port) => (
-                    <SelectItem key={port.id} value={port.code}>
-                      {port.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover open={originPortOpen} onOpenChange={setOriginPortOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={originPortOpen}
+                    className="w-full justify-between"
+                  >
+                    {selectedOriginPort
+                      ? (originPorts as Port[]).find((port) => port.code === selectedOriginPort)?.name
+                      : "Search and select origin port..."}
+                    <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[400px] p-0">
+                  <Command>
+                    <CommandInput placeholder="Search ports..." />
+                    <CommandEmpty>No port found.</CommandEmpty>
+                    <CommandList>
+                      <CommandGroup heading="China">
+                        {(originPorts as Port[]).filter(port => port.country === "China").map((port) => (
+                          <CommandItem
+                            key={port.id}
+                            value={port.name}
+                            onSelect={() => {
+                              setSelectedOriginPort(port.code);
+                              form.setValue("originPort", port.code);
+                              setOriginPortOpen(false);
+                            }}
+                          >
+                            {port.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                      <CommandGroup heading="Europe">
+                        {(originPorts as Port[]).filter(port => ["Germany", "Netherlands", "United Kingdom", "Belgium", "Spain", "France"].includes(port.country)).map((port) => (
+                          <CommandItem
+                            key={port.id}
+                            value={port.name}
+                            onSelect={() => {
+                              setSelectedOriginPort(port.code);
+                              form.setValue("originPort", port.code);
+                              setOriginPortOpen(false);
+                            }}
+                          >
+                            {port.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                      <CommandGroup heading="Asia Pacific">
+                        {(originPorts as Port[]).filter(port => ["India", "Singapore", "Malaysia", "Thailand", "Hong Kong", "South Korea", "Japan"].includes(port.country)).map((port) => (
+                          <CommandItem
+                            key={port.id}
+                            value={port.name}
+                            onSelect={() => {
+                              setSelectedOriginPort(port.code);
+                              form.setValue("originPort", port.code);
+                              setOriginPortOpen(false);
+                            }}
+                          >
+                            {port.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                      <CommandGroup heading="Americas">
+                        {(originPorts as Port[]).filter(port => ["USA", "Canada", "Brazil"].includes(port.country)).map((port) => (
+                          <CommandItem
+                            key={port.id}
+                            value={port.name}
+                            onSelect={() => {
+                              setSelectedOriginPort(port.code);
+                              form.setValue("originPort", port.code);
+                              setOriginPortOpen(false);
+                            }}
+                          >
+                            {port.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                      <CommandGroup heading="Middle East & Africa">
+                        {(originPorts as Port[]).filter(port => ["UAE", "Morocco"].includes(port.country)).map((port) => (
+                          <CommandItem
+                            key={port.id}
+                            value={port.name}
+                            onSelect={() => {
+                              setSelectedOriginPort(port.code);
+                              form.setValue("originPort", port.code);
+                              setOriginPortOpen(false);
+                            }}
+                          >
+                            {port.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div>
@@ -310,6 +400,9 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
                 {...form.register("deliveryAddress")}
                 className="h-10"
               />
+              <p className="text-xs text-gray-500 mt-1">
+                📍 Trucking cost is calculated from the SA port to the destination city above
+              </p>
             </div>
           </div>
 
