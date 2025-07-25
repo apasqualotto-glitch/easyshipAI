@@ -85,10 +85,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid final destination" });
       }
 
-      // Get cargo type for duty calculation
-      const cargoType = await storage.getCargoType(validatedData.cargoType);
+      // Get cargo type for duty calculation - be flexible with advanced customs lookup
+      let cargoType = await storage.getCargoType(validatedData.cargoType);
       if (!cargoType) {
-        return res.status(400).json({ message: "Invalid cargo type" });
+        // If using advanced customs tariff, try to find a matching cargo type or use a default
+        if (validatedData.customsTariff) {
+          cargoType = await storage.getCargoType("Other") || await storage.getCargoType("General Cargo");
+          if (!cargoType) {
+            // Create a temporary cargo type for calculation purposes
+            cargoType = {
+              id: "temp",
+              name: validatedData.cargoType,
+              dutyRate: 0.15, // Default fallback rate
+              additionalFees: 1000
+            };
+          }
+        } else {
+          return res.status(400).json({ message: "Invalid cargo type" });
+        }
       }
 
       // Calculate costs

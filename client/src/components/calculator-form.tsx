@@ -151,13 +151,23 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
 
   const handleCustomsTariffSelect = (tariff: CustomsTariff) => {
     setSelectedCustomsTariff(tariff);
-    form.setValue("cargoType", tariff.description);
+    
+    // Find matching cargo type or use "Other"
+    const cargoTypesData = (cargoTypes as any[]) || [];
+    const matchingCargoType = cargoTypesData.find((ct: any) => 
+      ct.name.toLowerCase().includes(tariff.category.toLowerCase()) ||
+      tariff.category.toLowerCase().includes(ct.name.toLowerCase())
+    );
+    
+    const cargoTypeToUse = matchingCargoType?.name || "Other";
+    form.setValue("cargoType", cargoTypeToUse);
+    
     setShowCustomsSearch(false);
     setCustomsSearchTerm("");
     
     toast({
-      title: "Customs tariff selected",
-      description: `${tariff.hsCode}: ${(tariff.dutyRate * 100).toFixed(1)}% duty rate`,
+      title: "HS Code Selected",
+      description: `${tariff.hsCode}: ${tariff.description} (${(tariff.dutyRate * 100).toFixed(1)}% duty)`,
     });
   };
 
@@ -355,11 +365,36 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
                     variant="outline"
                     size="sm"
                     onClick={() => setShowCustomsSearch(!showCustomsSearch)}
-                    className="text-xs"
+                    className={`text-xs ${selectedCustomsTariff ? 'bg-green-50 border-green-300 text-green-700' : ''}`}
                   >
-                    {showCustomsSearch ? "Use Basic Types" : "Advanced Customs Lookup"}
+                    {selectedCustomsTariff ? `HS: ${selectedCustomsTariff.hsCode}` : 
+                     showCustomsSearch ? "Use Basic Types" : "Advanced HS Lookup"}
                   </Button>
                 </Label>
+                
+                {selectedCustomsTariff && (
+                  <div className="mb-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-green-800">Selected HS Code: {selectedCustomsTariff.hsCode}</p>
+                        <p className="text-xs text-green-600">{selectedCustomsTariff.description}</p>
+                        <p className="text-xs text-green-600">Duty: {(selectedCustomsTariff.dutyRate * 100).toFixed(1)}% | VAT: {(selectedCustomsTariff.vatRate * 100).toFixed(1)}%</p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedCustomsTariff(null);
+                          form.setValue("cargoType", "");
+                        }}
+                        className="text-green-700 hover:text-green-900"
+                      >
+                        Change
+                      </Button>
+                    </div>
+                  </div>
+                )}
                 
                 {showCustomsSearch ? (
                   <div className="space-y-3">
