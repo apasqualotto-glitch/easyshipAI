@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { quoteRequestSchema } from "@shared/schema";
 import { liveShippingService, type LiveRateRequest } from "./live-shipping-api";
+import { carrierComparisonService, type ComparisonRequest } from "./carrier-comparison";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Get all origin ports
@@ -283,6 +284,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         res.status(500).json({ message: "Failed to calculate enhanced quote" });
       }
+    }
+  });
+
+  // Compare rates across multiple carriers
+  app.post("/api/compare-carriers", async (req, res) => {
+    try {
+      const validatedData = quoteRequestSchema.parse(req.body);
+      
+      // Get base quote first
+      const baseQuoteResponse = await fetch("http://localhost:5000/api/calculate-quote", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(validatedData)
+      });
+
+      if (!baseQuoteResponse.ok) {
+        throw new Error("Failed to calculate base quote");
+      }
+
+      const baseQuote = await baseQuoteResponse.json();
+
+      // Get carrier comparison
+      const comparisonRequest: ComparisonRequest = {
+        quoteData: validatedData,
+        baseQuote
+      };
+
+      const carrierRates = await carrierComparisonService.compareRates(comparisonRequest);
+
+      res.json({
+        baseQuote,
+        carrierRates,
+        totalCarriers: carrierRates.length,
+        bestRate: carrierRates[0],
+        route: `${validatedData.originPort} → ${validatedData.destinationPort}`,
+        containerType: validatedData.containerType,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error("Carrier comparison error:", error);
+      res.status(500).json({ 
+        message: "Failed to compare carrier rates",
+        carrierRates: []
+      });
     }
   });
 

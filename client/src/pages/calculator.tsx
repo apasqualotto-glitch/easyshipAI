@@ -5,6 +5,7 @@ import CostBreakdown from "../components/cost-breakdown";
 import InfoCards from "../components/info-cards";
 import IncotermsChat from "../components/incoterms-chat";
 import LiveRatesInfo from "../components/live-rates-info";
+import CarrierComparison from "../components/carrier-comparison";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { useState } from "react";
 import { QuoteRequest } from "@shared/schema";
@@ -12,6 +13,7 @@ import { QuoteRequest } from "@shared/schema";
 export default function Calculator() {
   const [quoteData, setQuoteData] = useState<QuoteRequest | null>(null);
   const [quoteResult, setQuoteResult] = useState<any>(null);
+  const [carrierComparison, setCarrierComparison] = useState<any>(null);
 
   const handleQuoteUpdate = (data: QuoteRequest) => {
     setQuoteData(data);
@@ -19,6 +21,29 @@ export default function Calculator() {
 
   const handleQuoteResult = (result: any) => {
     setQuoteResult(result);
+    // Automatically fetch carrier comparison when we get a quote result
+    if (quoteData) {
+      fetchCarrierComparison(quoteData);
+    }
+  };
+
+  const fetchCarrierComparison = async (data: QuoteRequest) => {
+    try {
+      const response = await fetch("/api/compare-carriers", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+      
+      if (response.ok) {
+        const comparison = await response.json();
+        setCarrierComparison(comparison);
+      }
+    } catch (error) {
+      console.error("Failed to fetch carrier comparison:", error);
+    }
   };
 
   return (
@@ -38,8 +63,9 @@ export default function Calculator() {
           
           <div className="lg:col-span-1">
             <Tabs defaultValue="costs" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="costs">Cost Breakdown</TabsTrigger>
+                <TabsTrigger value="compare">Compare Carriers</TabsTrigger>
                 <TabsTrigger value="incoterms">Incoterms Help</TabsTrigger>
                 <TabsTrigger value="carriers">Live Carriers</TabsTrigger>
               </TabsList>
@@ -47,6 +73,14 @@ export default function Calculator() {
                 <CostBreakdown 
                   quoteData={quoteData}
                   quoteResult={quoteResult}
+                />
+              </TabsContent>
+              <TabsContent value="compare">
+                <CarrierComparison 
+                  rates={carrierComparison?.carrierRates || []}
+                  baseCost={quoteResult?.totalCost || 0}
+                  containerType={quoteData?.containerType || ""}
+                  route={carrierComparison?.route || ""}
                 />
               </TabsContent>
               <TabsContent value="incoterms">
