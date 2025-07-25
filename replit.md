@@ -101,6 +101,12 @@ The application is designed for easy migration from in-memory storage to Postgre
 
 ## Recent Changes
 
+- **CRITICAL FIX: Sea Freight Pricing Update** - July 25, 2025
+  - Corrected sea freight rates to match current market conditions
+  - Shanghai to Durban: R35,000 → R48,500 (+38% increase) - now aligns with $2,750 USD spot rate
+  - Updated all China and Europe port rates based on July 2025 market research
+  - System now provides accurate, market-realistic shipping quotes
+
 - **Carrier Booking API Integration System** - July 25, 2025
   - Implemented comprehensive booking service supporting Maersk, MSC, and CMA CGM APIs
   - Added DCSA (Digital Container Shipping Association) standards compliance for industry standardization

@@ -114,18 +114,18 @@ export class MemStorage implements IStorage {
     
     // Define origin ports with base costs for each destination port
     const originPortRoutes = [
-      // China ports
-      { portId: "1", baseCosts: { "9": 35000, "10": 38000, "11": 36000, "12": 34000, "13": 37000, "14": 39000, "15": 40000 }, transitDays: 20 }, // Shanghai
-      { portId: "2", baseCosts: { "9": 34000, "10": 37000, "11": 35000, "12": 33000, "13": 36000, "14": 38000, "15": 39000 }, transitDays: 22 }, // Ningbo
-      { portId: "3", baseCosts: { "9": 36000, "10": 39000, "11": 37000, "12": 35000, "13": 38000, "14": 40000, "15": 41000 }, transitDays: 24 }, // Tianjin
-      { portId: "16", baseCosts: { "9": 33000, "10": 36000, "11": 34000, "12": 32000, "13": 35000, "14": 37000, "15": 38000 }, transitDays: 19 }, // Shenzhen
-      { portId: "17", baseCosts: { "9": 34500, "10": 37500, "11": 35500, "12": 33500, "13": 36500, "14": 38500, "15": 39500 }, transitDays: 21 }, // Qingdao
+      // China ports - Updated July 2025 based on current market rates ($2,750 USD = ~R48,500 ZAR)
+      { portId: "1", baseCosts: { "9": 48500, "10": 51000, "11": 49500, "12": 47500, "13": 50000, "14": 52000, "15": 53000 }, transitDays: 20 }, // Shanghai
+      { portId: "2", baseCosts: { "9": 47500, "10": 50000, "11": 48500, "12": 46500, "13": 49000, "14": 51000, "15": 52000 }, transitDays: 22 }, // Ningbo
+      { portId: "3", baseCosts: { "9": 49500, "10": 52000, "11": 50500, "12": 48500, "13": 51000, "14": 53000, "15": 54000 }, transitDays: 24 }, // Tianjin
+      { portId: "16", baseCosts: { "9": 46500, "10": 49000, "11": 47500, "12": 45500, "13": 48000, "14": 50000, "15": 51000 }, transitDays: 19 }, // Shenzhen
+      { portId: "17", baseCosts: { "9": 48000, "10": 50500, "11": 49000, "12": 47000, "13": 49500, "14": 51500, "15": 52500 }, transitDays: 21 }, // Qingdao
       
-      // Europe ports
-      { portId: "4", baseCosts: { "9": 33000, "10": 32000, "11": 34000, "12": 35000, "13": 35000, "14": 37000, "15": 31000 }, transitDays: 17 }, // Hamburg
-      { portId: "5", baseCosts: { "9": 34000, "10": 33000, "11": 35000, "12": 36000, "13": 36000, "14": 38000, "15": 32000 }, transitDays: 18 }, // Rotterdam
-      { portId: "6", baseCosts: { "9": 35000, "10": 34000, "11": 36000, "12": 37000, "13": 37000, "14": 39000, "15": 33000 }, transitDays: 19 }, // Felixstowe
-      { portId: "20", baseCosts: { "9": 33500, "10": 32500, "11": 34500, "12": 35500, "13": 35500, "14": 37500, "15": 31500 }, transitDays: 18 }, // Antwerp
+      // Europe ports - Updated July 2025 market rates (typically lower than China routes)
+      { portId: "4", baseCosts: { "9": 42000, "10": 40000, "11": 43000, "12": 44000, "13": 44000, "14": 46000, "15": 38000 }, transitDays: 17 }, // Hamburg
+      { portId: "5", baseCosts: { "9": 43000, "10": 41000, "11": 44000, "12": 45000, "13": 45000, "14": 47000, "15": 39000 }, transitDays: 18 }, // Rotterdam
+      { portId: "6", baseCosts: { "9": 44000, "10": 42000, "11": 45000, "12": 46000, "13": 46000, "14": 48000, "15": 40000 }, transitDays: 19 }, // Felixstowe
+      { portId: "20", baseCosts: { "9": 42500, "10": 40500, "11": 43500, "12": 44500, "13": 44500, "14": 46500, "15": 38500 }, transitDays: 18 }, // Antwerp
       
       // Asia Pacific
       { portId: "7", baseCosts: { "9": 30000, "10": 32000, "11": 31000, "12": 29000, "13": 31500, "14": 33000, "15": 34000 }, transitDays: 14 }, // Mumbai
