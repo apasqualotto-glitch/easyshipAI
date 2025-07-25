@@ -1,8 +1,16 @@
 // Comprehensive South African customs tariff database based on SARS tariff book
+export interface TradeAgreementRate {
+  country: string;
+  agreementName: string;
+  dutyRate: number;
+  preferential: boolean;
+  description: string;
+}
+
 export interface CustomsTariff {
   hsCode: string;
   description: string;
-  dutyRate: number;
+  dutyRate: number; // Standard MFN rate
   additionalFees: number;
   vatRate: number;
   category: string;
@@ -12,13 +20,36 @@ export interface CustomsTariff {
   relatedCodes?: string[];
   examples: string[];
   searchScore?: number;
+  tradeAgreementRates?: TradeAgreementRate[]; // Preferential rates by country/agreement
 }
 
 export class CustomsDatabase {
   private tariffs: Map<string, CustomsTariff> = new Map();
+  private tradeAgreements: Map<string, string[]> = new Map(); // Country -> Agreement names
 
   constructor() {
+    this.initializeTradeAgreements();
     this.initializeTariffs();
+  }
+
+  private initializeTradeAgreements() {
+    // SACU (Southern African Customs Union) - Zero duties
+    this.tradeAgreements.set("SACU", ["Botswana", "Lesotho", "Namibia", "Eswatini"]);
+    
+    // SADC (Southern African Development Community) - Reduced duties
+    this.tradeAgreements.set("SADC", ["Angola", "Democratic Republic of Congo", "Madagascar", "Malawi", "Mauritius", "Mozambique", "Seychelles", "Tanzania", "Zambia", "Zimbabwe"]);
+    
+    // AGOA (African Growth and Opportunity Act) - US preferential access
+    this.tradeAgreements.set("AGOA", ["USA"]);
+    
+    // EPA (Economic Partnership Agreement) - EU preferential access
+    this.tradeAgreements.set("EPA", ["Germany", "France", "Netherlands", "Belgium", "Spain", "Italy", "United Kingdom", "Austria", "Portugal", "Greece", "Ireland", "Denmark", "Sweden", "Finland", "Luxembourg"]);
+    
+    // MERCOSUR - Limited preferential access
+    this.tradeAgreements.set("MERCOSUR", ["Brazil", "Argentina", "Uruguay", "Paraguay"]);
+    
+    // India Trade Agreement
+    this.tradeAgreements.set("INDIA_PREFERENTIAL", ["India"]);
   }
 
   private initializeTariffs() {
@@ -26,14 +57,20 @@ export class CustomsDatabase {
       {
         hsCode: "8471.30",
         description: "Portable automatic data processing machines, weighing not more than 10 kg",
-        dutyRate: 0.00,
+        dutyRate: 0.00, // Standard MFN rate
         additionalFees: 1500,
         vatRate: 0.15,
         category: "Electronics",
         restrictions: ["ICASA certificate required for radio equipment"],
-        explanation: "Laptops and portable computers are duty-free under SACU agreement to promote digital access. VAT still applies on CIF value.",
+        explanation: "Laptops and portable computers are duty-free under most trade agreements to promote digital access.",
         examples: ["Laptops", "Notebooks", "Tablets with keyboards", "Portable computers", "MacBooks", "Chromebooks", "Ultrabooks"],
-        relatedCodes: ["8471.41", "8471.49"]
+        relatedCodes: ["8471.41", "8471.49"],
+        tradeAgreementRates: [
+          { country: "China", agreementName: "Standard MFN", dutyRate: 0.00, preferential: false, description: "Duty-free for WTO members" },
+          { country: "USA", agreementName: "AGOA", dutyRate: 0.00, preferential: true, description: "Duty-free under AGOA" },
+          { country: "Germany", agreementName: "EPA", dutyRate: 0.00, preferential: true, description: "Duty-free under EU-SADC EPA" },
+          { country: "India", agreementName: "India Preferential", dutyRate: 0.00, preferential: true, description: "Duty-free under bilateral agreement" }
+        ]
       },
       {
         hsCode: "8517.12",
@@ -50,25 +87,38 @@ export class CustomsDatabase {
       {
         hsCode: "6203.42",
         description: "Men's or boys' trousers, breeches and shorts, of cotton",
-        dutyRate: 0.40,
+        dutyRate: 0.40, // Standard MFN rate
         additionalFees: 800,
         vatRate: 0.15,
         category: "Textiles & Clothing",
-        explanation: "High duty rate (40%) to protect local textile industry. Part of AGOA/SADC trade protection measures for clothing sector.",
+        explanation: "Standard rate 40% to protect local textile industry. Significantly reduced under trade agreements.",
         examples: ["Cotton jeans", "Chino pants", "Cotton shorts", "Work trousers"],
-        relatedCodes: ["6203.41", "6203.43", "6203.49"]
+        relatedCodes: ["6203.41", "6203.43", "6203.49"],
+        tradeAgreementRates: [
+          { country: "China", agreementName: "Standard MFN", dutyRate: 0.40, preferential: false, description: "Standard tariff rate" },
+          { country: "USA", agreementName: "AGOA", dutyRate: 0.00, preferential: true, description: "Duty-free under AGOA for qualifying products" },
+          { country: "Germany", agreementName: "EPA", dutyRate: 0.20, preferential: true, description: "50% reduction under EU-SADC EPA" },
+          { country: "Botswana", agreementName: "SACU", dutyRate: 0.00, preferential: true, description: "Duty-free within SACU" },
+          { country: "Mauritius", agreementName: "SADC", dutyRate: 0.25, preferential: true, description: "Reduced rate under SADC" }
+        ]
       },
       {
         hsCode: "8703.23",
         description: "Motor cars with spark-ignition engine, 1500-3000cc",
-        dutyRate: 0.25,
+        dutyRate: 0.25, // Standard MFN rate
         additionalFees: 15000,
         vatRate: 0.15,
         category: "Automotive",
         restrictions: ["Homologation certificate", "Emissions certificate", "Safety compliance"],
-        explanation: "25% duty to support local automotive manufacturing. Additional fees for compliance testing and certification.",
+        explanation: "25% standard duty to support local automotive manufacturing. Reduced rates under trade agreements.",
         examples: ["Sedans 1.6-2.5L", "Hatchbacks 1.5-3.0L", "Small SUVs"],
-        relatedCodes: ["8703.21", "8703.22", "8703.24"]
+        relatedCodes: ["8703.21", "8703.22", "8703.24"],
+        tradeAgreementRates: [
+          { country: "Germany", agreementName: "EPA", dutyRate: 0.18, preferential: true, description: "Reduced rate under EU-SADC EPA" },
+          { country: "Japan", agreementName: "Standard MFN", dutyRate: 0.25, preferential: false, description: "Standard tariff rate" },
+          { country: "USA", agreementName: "Standard MFN", dutyRate: 0.25, preferential: false, description: "No preferential agreement for vehicles" },
+          { country: "Brazil", agreementName: "MERCOSUR", dutyRate: 0.20, preferential: true, description: "Limited reduction under MERCOSUR" }
+        ]
       },
       {
         hsCode: "8414.10",
@@ -785,7 +835,7 @@ export class CustomsDatabase {
       suggestions.push('pants', 'shirts', 'dresses', 'jackets', 'shoes');
     }
 
-    return [...new Set(suggestions)].slice(0, 8);
+    return Array.from(new Set(suggestions)).slice(0, 8);
   }
 
   calculateDetailedCustomsCost(hsCode: string, cifValue: number) {
@@ -839,6 +889,107 @@ export class CustomsDatabase {
         }
       ]
     };
+  }
+
+  // Get applicable duty rate for specific country of origin
+  public getDutyRateByCountry(hsCode: string, originCountry: string): { dutyRate: number; agreementName: string; preferential: boolean; description: string } {
+    const tariff = this.tariffs.get(hsCode);
+    if (!tariff) {
+      return { dutyRate: 0.10, agreementName: "Standard Rate", preferential: false, description: "Default 10% rate for unknown HS codes" };
+    }
+
+    // Check if country has preferential rates
+    if (tariff.tradeAgreementRates) {
+      const countryRate = tariff.tradeAgreementRates.find(rate => 
+        rate.country.toLowerCase() === originCountry.toLowerCase()
+      );
+      
+      if (countryRate) {
+        return {
+          dutyRate: countryRate.dutyRate,
+          agreementName: countryRate.agreementName,
+          preferential: countryRate.preferential,
+          description: countryRate.description
+        };
+      }
+    }
+
+    // Return standard MFN rate if no preferential rate found
+    return {
+      dutyRate: tariff.dutyRate,
+      agreementName: "Standard MFN",
+      preferential: false,
+      description: "Most Favored Nation standard tariff rate"
+    };
+  }
+
+  // Calculate customs cost with country-specific rates
+  calculateDetailedCustomsCostByCountry(hsCode: string, cifValue: number, originCountry: string) {
+    const tariff = this.getByHSCode(hsCode);
+    if (!tariff) {
+      return {
+        error: "HS Code not found",
+        hsCode,
+        cifValue,
+        originCountry
+      };
+    }
+
+    const countryRate = this.getDutyRateByCountry(hsCode, originCountry);
+    const customsDuty = cifValue * countryRate.dutyRate;
+    const dutiableAmount = cifValue + customsDuty;
+    const vat = tariff.vatRate > 0 ? dutiableAmount * tariff.vatRate : 0;
+    const additionalFees = tariff.additionalFees;
+    const totalCustomsCost = customsDuty + vat + additionalFees;
+
+    return {
+      tariff,
+      originCountry,
+      tradeAgreement: {
+        name: countryRate.agreementName,
+        preferential: countryRate.preferential,
+        description: countryRate.description,
+        dutyRate: countryRate.dutyRate
+      },
+      calculations: {
+        cifValue,
+        customsDuty,
+        dutiableAmount,
+        vat,
+        additionalFees,
+        totalCustomsCost
+      },
+      breakdown: [
+        {
+          item: "CIF Value",
+          amount: cifValue,
+          description: "Cost, Insurance, Freight value"
+        },
+        {
+          item: "Customs Duty",
+          amount: customsDuty,
+          description: `${(countryRate.dutyRate * 100).toFixed(1)}% of CIF value (${countryRate.agreementName})`
+        },
+        {
+          item: "VAT",
+          amount: vat,
+          description: tariff.vatRate > 0 
+            ? `${(tariff.vatRate * 100).toFixed(0)}% of (CIF + Duty)`
+            : "VAT exempt"
+        },
+        {
+          item: "Additional Fees",
+          amount: additionalFees,
+          description: "Processing, inspection, and certification fees"
+        }
+      ]
+    };
+  }
+
+  // Get all available trade agreement rates for an HS code
+  public getTradeAgreementRates(hsCode: string): TradeAgreementRate[] {
+    const tariff = this.tariffs.get(hsCode);
+    return tariff?.tradeAgreementRates || [];
   }
 }
 

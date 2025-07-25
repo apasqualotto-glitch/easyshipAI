@@ -162,22 +162,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
           break;
       }
 
-      // Use advanced customs tariff if provided, otherwise fall back to basic cargo type
-      let customsDuties, vat, handlingFees, customsExplanation;
+      // Get origin country from port information for trade agreement calculations
+      const allOriginPorts = await storage.getOriginPorts();
+      const selectedOriginPort = allOriginPorts.find(p => p.code === validatedData.originPort);
+      const originCountry = selectedOriginPort?.country || "Unknown";
+
+      // Use advanced customs tariff with country-specific rates if provided
+      let customsDuties, vat, handlingFees, customsExplanation, tradeAgreementInfo;
       
       if (validatedData.customsTariff) {
-        // Use advanced customs calculations
-        customsDuties = validatedData.value * validatedData.customsTariff.dutyRate;
-        vat = validatedData.customsTariff.vatRate > 0 
-          ? (validatedData.value + customsDuties) * validatedData.customsTariff.vatRate 
-          : 0;
-        handlingFees = validatedData.customsTariff.additionalFees + (seaFreightCost * 0.05);
-        customsExplanation = validatedData.customsTariff.explanation;
+        // Use advanced customs calculations with trade agreement rates
+        const customsCalculation = customsDatabase.calculateDetailedCustomsCostByCountry(
+          validatedData.customsTariff.hsCode, 
+          validatedData.value, 
+          originCountry
+        );
+        
+        if (!customsCalculation.error && customsCalculation.calculations && customsCalculation.tradeAgreement) {
+          customsDuties = customsCalculation.calculations.customsDuty;
+          vat = customsCalculation.calculations.vat;
+          handlingFees = customsCalculation.calculations.additionalFees + (seaFreightCost * 0.05);
+          customsExplanation = customsCalculation.tradeAgreement.description;
+          tradeAgreementInfo = customsCalculation.tradeAgreement;
+        } else {
+          // Fallback to standard calculation
+          customsDuties = validatedData.value * validatedData.customsTariff.dutyRate;
+          vat = validatedData.customsTariff.vatRate > 0 
+            ? (validatedData.value + customsDuties) * validatedData.customsTariff.vatRate 
+            : 0;
+          handlingFees = validatedData.customsTariff.additionalFees + (seaFreightCost * 0.05);
+          customsExplanation = validatedData.customsTariff.explanation;
+        }
       } else {
-        // Use basic cargo type calculations
+        // Use basic cargo type calculations (no trade agreement benefits)
         customsDuties = validatedData.value * cargoType.dutyRate;
         vat = (validatedData.value + customsDuties) * 0.15;
         handlingFees = cargoType.additionalFees + (seaFreightCost * 0.05);
+        tradeAgreementInfo = {
+          name: "Standard MFN",
+          preferential: false,
+          description: "No HS code selected - using cargo type rate",
+          dutyRate: cargoType.dutyRate
+        };
       }
       
       // Calculate total cost
@@ -209,14 +235,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: savedQuote.id,
         costPerKg: totalCost / validatedData.weight,
         transitDays: route.transitDays,
+        originCountry,
         customsInfo: validatedData.customsTariff ? {
           hsCode: validatedData.customsTariff.hsCode,
-          dutyRate: validatedData.customsTariff.dutyRate,
+          dutyRate: tradeAgreementInfo?.dutyRate || validatedData.customsTariff.dutyRate,
           vatRate: validatedData.customsTariff.vatRate,
           explanation: customsExplanation,
-          isAdvancedCalculation: true
+          isAdvancedCalculation: true,
+          tradeAgreement: tradeAgreementInfo
         } : {
-          isAdvancedCalculation: false
+          isAdvancedCalculation: false,
+          tradeAgreement: tradeAgreementInfo
         }
       });
 
@@ -389,6 +418,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Failed to compare carrier rates",
         carrierRates: []
       });
+    }
+  });
+
+  // Get trade agreement rates for specific HS code
+  app.get("/api/trade-agreements/:hsCode", async (req, res) => {
+    try {
+      const hsCode = req.params.hsCode;
+      const rates = customsDatabase.getTradeAgreementRates(hsCode);
+      
+      res.json({
+        hsCode,
+        tradeAgreementRates: rates,
+        availableCountries: rates.map(r => r.country),
+        preferentialCountries: rates.filter(r => r.preferential).map(r => r.country)
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch trade agreement rates" });
+    }
+  });
+
+  // Get duty rate for specific country and HS code
+  app.post("/api/duty-rate", async (req, res) => {
+    try {
+      const { hsCode, originCountry } = req.body;
+      
+      if (!hsCode || !originCountry) {
+        return res.status(400).json({ message: "HS code and origin country are required" });
+      }
+
+      const dutyInfo = customsDatabase.getDutyRateByCountry(hsCode, originCountry);
+      
+      res.json({
+        hsCode,
+        originCountry,
+        ...dutyInfo
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to calculate duty rate" });
     }
   });
 
