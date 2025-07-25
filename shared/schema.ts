@@ -37,6 +37,17 @@ export const cargoTypes = pgTable("cargo_types", {
   additionalFees: real("additional_fees").notNull(),
 });
 
+export const incoterms = pgTable("incoterms", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  code: text("code").notNull().unique(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  sellerResponsibilities: text("seller_responsibilities").array().notNull(),
+  buyerResponsibilities: text("buyer_responsibilities").array().notNull(),
+  riskTransferPoint: text("risk_transfer_point").notNull(),
+  applicableTransport: text("applicable_transport").array().notNull(), // sea, air, land, any
+});
+
 export const shippingQuotes = pgTable("shipping_quotes", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   originPort: text("origin_port").notNull(),
@@ -44,6 +55,7 @@ export const shippingQuotes = pgTable("shipping_quotes", {
   finalDestination: text("final_destination").notNull(),
   containerType: text("container_type").notNull(),
   cargoType: text("cargo_type").notNull(),
+  incoterm: text("incoterm").notNull(),
   weight: integer("weight").notNull(),
   value: real("value").notNull(),
   seaFreightCost: real("sea_freight_cost").notNull(),
@@ -68,6 +80,7 @@ export const quoteRequestSchema = z.object({
     required_error: "Container type is required",
   }),
   cargoType: z.string().min(1, "Cargo type is required"),
+  incoterm: z.string().min(1, "Incoterm is required"),
   weight: z.number().min(1, "Weight must be greater than 0"),
   value: z.number().min(1, "Cargo value must be greater than 0"),
 });
@@ -79,3 +92,4 @@ export type Port = typeof ports.$inferSelect;
 export type Route = typeof routes.$inferSelect;
 export type Destination = typeof destinations.$inferSelect;
 export type CargoType = typeof cargoTypes.$inferSelect;
+export type Incoterm = typeof incoterms.$inferSelect;

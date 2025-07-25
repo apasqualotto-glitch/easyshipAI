@@ -77,13 +77,27 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
             </div>
 
             {quoteResult && (
-              <div className="bg-primary-50 rounded-lg p-3 mt-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-primary-700">Cost per kg</span>
-                  <span className="text-sm font-medium text-primary-700">
-                    {formatCurrency(quoteResult.costPerKg)}
-                  </span>
+              <div className="space-y-3 mt-4">
+                <div className="bg-primary-50 rounded-lg p-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-primary-700">Cost per kg</span>
+                    <span className="text-sm font-medium text-primary-700">
+                      {formatCurrency(quoteResult.costPerKg)}
+                    </span>
+                  </div>
                 </div>
+                
+                {quoteData?.incoterm && (
+                  <div className="bg-accent-50 rounded-lg p-3">
+                    <div className="flex items-center">
+                      <span className="material-icons text-accent-600 text-sm mr-2">assignment</span>
+                      <div>
+                        <span className="text-xs text-accent-700">Incoterm</span>
+                        <div className="text-sm font-medium text-accent-800">{quoteData.incoterm}</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

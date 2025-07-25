@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import ProgressStepper from "./progress-stepper";
+import { Port, Destination, CargoType, Incoterm } from "@shared/schema";
 import { useState, useEffect } from "react";
 
 interface CalculatorFormProps {
@@ -29,6 +30,7 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
       finalDestination: "",
       containerType: "20ft",
       cargoType: "",
+      incoterm: "",
       weight: 0,
       value: 0,
     },
@@ -48,6 +50,10 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
 
   const { data: cargoTypes = [] } = useQuery({
     queryKey: ["/api/cargo-types"],
+  });
+
+  const { data: incoterms = [] } = useQuery({
+    queryKey: ["/api/incoterms"],
   });
 
   const calculateQuoteMutation = useMutation({
@@ -132,7 +138,7 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
                   <SelectValue placeholder="Select origin port" />
                 </SelectTrigger>
                 <SelectContent>
-                  {originPorts.map((port: any) => (
+                  {(originPorts as Port[]).map((port) => (
                     <SelectItem key={port.id} value={port.code}>
                       {port.name}
                     </SelectItem>
@@ -156,7 +162,7 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
                   <SelectValue placeholder="Select SA port" />
                 </SelectTrigger>
                 <SelectContent>
-                  {destinationPorts.map((port: any) => (
+                  {(destinationPorts as Port[]).map((port) => (
                     <SelectItem key={port.id} value={port.code}>
                       {port.name} ({port.code})
                     </SelectItem>
@@ -181,7 +187,7 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
                 <SelectValue placeholder="Select final destination" />
               </SelectTrigger>
               <SelectContent>
-                {destinations.map((dest: any) => (
+                {(destinations as Destination[]).map((dest) => (
                   <SelectItem key={dest.id} value={dest.name}>
                     {dest.name}
                   </SelectItem>
@@ -249,7 +255,7 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
                     <SelectValue placeholder="Select cargo type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {cargoTypes.map((type: any) => (
+                    {(cargoTypes as CargoType[]).map((type) => (
                       <SelectItem key={type.id} value={type.name}>
                         {type.name}
                       </SelectItem>
@@ -258,15 +264,40 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
                 </Select>
               </div>
             </div>
-            <div className="mt-4">
-              <Label htmlFor="value">Cargo Value (USD)</Label>
-              <Input
-                id="value"
-                type="number"
-                placeholder="e.g., 50000"
-                {...form.register("value", { valueAsNumber: true })}
-              />
-              <p className="text-xs text-gray-500 mt-1">Used for customs duty calculation</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div>
+                <Label htmlFor="value">Cargo Value (USD)</Label>
+                <Input
+                  id="value"
+                  type="number"
+                  placeholder="e.g., 50000"
+                  {...form.register("value", { valueAsNumber: true })}
+                />
+                <p className="text-xs text-gray-500 mt-1">Used for customs duty calculation</p>
+              </div>
+              <div>
+                <Label htmlFor="incoterm" className="flex items-center">
+                  Incoterm
+                  <div className="tooltip-trigger relative inline-block ml-1">
+                    <span className="material-icons text-gray-400 text-sm cursor-help">help_outline</span>
+                    <div className="tooltip absolute bottom-6 left-0 bg-gray-900 text-white text-xs p-2 rounded opacity-0 invisible whitespace-nowrap z-10">
+                      Defines who pays for what and where risk transfers
+                    </div>
+                  </div>
+                </Label>
+                <Select onValueChange={(value) => form.setValue("incoterm", value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select incoterm" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(incoterms as Incoterm[]).map((incoterm) => (
+                      <SelectItem key={incoterm.id} value={incoterm.code}>
+                        {incoterm.code} - {incoterm.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 

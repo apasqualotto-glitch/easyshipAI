@@ -1,8 +1,8 @@
-import Header from "@/components/header";
-import Hero from "@/components/hero";
-import CalculatorForm from "@/components/calculator-form";
-import CostBreakdown from "@/components/cost-breakdown";
-import InfoCards from "@/components/info-cards";
+import Header from "../components/header";
+import Hero from "../components/hero";
+import CalculatorForm from "../components/calculator-form";
+import CostBreakdown from "../components/cost-breakdown";
+import InfoCards from "../components/info-cards";
 import { useState } from "react";
 import { QuoteRequest } from "@shared/schema";
 

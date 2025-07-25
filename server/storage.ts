@@ -1,4 +1,4 @@
-import { type ShippingQuote, type InsertShippingQuote, type Port, type Route, type Destination, type CargoType } from "@shared/schema";
+import { type ShippingQuote, type InsertShippingQuote, type Port, type Route, type Destination, type CargoType, type Incoterm } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -18,6 +18,10 @@ export interface IStorage {
   getCargoTypes(): Promise<CargoType[]>;
   getCargoType(name: string): Promise<CargoType | undefined>;
   
+  // Incoterms
+  getIncoterms(): Promise<Incoterm[]>;
+  getIncoterm(code: string): Promise<Incoterm | undefined>;
+  
   // Quotes
   createQuote(quote: InsertShippingQuote): Promise<ShippingQuote>;
   getQuote(id: string): Promise<ShippingQuote | undefined>;
@@ -28,6 +32,7 @@ export class MemStorage implements IStorage {
   private routes: Map<string, Route>;
   private destinations: Map<string, Destination>;
   private cargoTypes: Map<string, CargoType>;
+  private incoterms: Map<string, Incoterm>;
   private quotes: Map<string, ShippingQuote>;
 
   constructor() {
@@ -35,6 +40,7 @@ export class MemStorage implements IStorage {
     this.routes = new Map();
     this.destinations = new Map();
     this.cargoTypes = new Map();
+    this.incoterms = new Map();
     this.quotes = new Map();
     
     this.initializeData();
@@ -94,6 +100,92 @@ export class MemStorage implements IStorage {
     ];
 
     cargoTypesData.forEach(cargo => this.cargoTypes.set(cargo.name, cargo));
+
+    // Initialize incoterms
+    const incotermsData: Incoterm[] = [
+      {
+        id: "1",
+        code: "EXW",
+        name: "Ex Works",
+        description: "Seller makes goods available at their premises. Buyer assumes all transportation risks and costs.",
+        sellerResponsibilities: ["Make goods available at named place", "Provide commercial invoice", "Assist with export formalities if requested"],
+        buyerResponsibilities: ["Collect goods", "Handle all transportation", "Pay all costs from seller's premises", "Handle export and import clearance"],
+        riskTransferPoint: "Seller's premises",
+        applicableTransport: ["any"]
+      },
+      {
+        id: "2", 
+        code: "FOB",
+        name: "Free on Board",
+        description: "Seller delivers goods on board vessel at named port. Risk transfers when goods cross ship's rail.",
+        sellerResponsibilities: ["Deliver goods on board vessel", "Handle export clearance", "Pay costs until goods on board"],
+        buyerResponsibilities: ["Pay sea freight", "Handle import clearance", "Pay costs from vessel onwards"],
+        riskTransferPoint: "When goods cross ship's rail at port of shipment",
+        applicableTransport: ["sea"]
+      },
+      {
+        id: "3",
+        code: "CFR", 
+        name: "Cost and Freight",
+        description: "Seller pays sea freight to destination port but risk transfers at port of shipment.",
+        sellerResponsibilities: ["Deliver goods on board vessel", "Pay sea freight to destination", "Handle export clearance"],
+        buyerResponsibilities: ["Handle import clearance", "Pay costs from arrival at destination port", "Arrange insurance"],
+        riskTransferPoint: "When goods cross ship's rail at port of shipment",
+        applicableTransport: ["sea"]
+      },
+      {
+        id: "4",
+        code: "CIF",
+        name: "Cost, Insurance and Freight", 
+        description: "Seller pays sea freight and minimum insurance to destination port.",
+        sellerResponsibilities: ["Deliver goods on board vessel", "Pay sea freight to destination", "Arrange minimum insurance", "Handle export clearance"],
+        buyerResponsibilities: ["Handle import clearance", "Pay costs from arrival at destination port"],
+        riskTransferPoint: "When goods cross ship's rail at port of shipment",
+        applicableTransport: ["sea"]
+      },
+      {
+        id: "5",
+        code: "FCA",
+        name: "Free Carrier",
+        description: "Seller delivers goods to carrier nominated by buyer at named place.",
+        sellerResponsibilities: ["Deliver goods to named carrier", "Handle export clearance", "Load goods if at seller's premises"],
+        buyerResponsibilities: ["Nominate carrier", "Pay main carriage", "Handle import clearance"],
+        riskTransferPoint: "When goods delivered to carrier",
+        applicableTransport: ["any"]
+      },
+      {
+        id: "6",
+        code: "CPT",
+        name: "Carriage Paid To",
+        description: "Seller pays main carriage to named destination but risk transfers at first carrier.",
+        sellerResponsibilities: ["Deliver goods to carrier", "Pay main carriage to destination", "Handle export clearance"],
+        buyerResponsibilities: ["Handle import clearance", "Pay costs from destination", "Arrange insurance"],
+        riskTransferPoint: "When goods delivered to first carrier",
+        applicableTransport: ["any"]
+      },
+      {
+        id: "7",
+        code: "CIP",
+        name: "Carriage and Insurance Paid To",
+        description: "Seller pays main carriage and insurance to named destination.",
+        sellerResponsibilities: ["Deliver goods to carrier", "Pay main carriage to destination", "Arrange insurance", "Handle export clearance"],
+        buyerResponsibilities: ["Handle import clearance", "Pay costs from destination"],
+        riskTransferPoint: "When goods delivered to first carrier", 
+        applicableTransport: ["any"]
+      },
+      {
+        id: "8",
+        code: "DDP",
+        name: "Delivered Duty Paid",
+        description: "Seller delivers goods cleared for import at named destination. Maximum seller obligation.",
+        sellerResponsibilities: ["Deliver goods to destination", "Handle all transportation", "Pay all duties and taxes", "Handle export and import clearance"],
+        buyerResponsibilities: ["Receive goods at destination", "Unload goods"],
+        riskTransferPoint: "At named place of destination",
+        applicableTransport: ["any"]
+      }
+    ];
+
+    incotermsData.forEach(incoterm => this.incoterms.set(incoterm.code, incoterm));
   }
 
   async getPorts(): Promise<Port[]> {
@@ -126,6 +218,14 @@ export class MemStorage implements IStorage {
 
   async getCargoType(name: string): Promise<CargoType | undefined> {
     return this.cargoTypes.get(name);
+  }
+
+  async getIncoterms(): Promise<Incoterm[]> {
+    return Array.from(this.incoterms.values());
+  }
+
+  async getIncoterm(code: string): Promise<Incoterm | undefined> {
+    return this.incoterms.get(code);
   }
 
   async createQuote(insertQuote: InsertShippingQuote): Promise<ShippingQuote> {

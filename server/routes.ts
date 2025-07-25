@@ -44,6 +44,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all incoterms
+  app.get("/api/incoterms", async (req, res) => {
+    try {
+      const incoterms = await storage.getIncoterms();
+      res.json(incoterms);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch incoterms" });
+    }
+  });
+
   // Calculate shipping quote
   app.post("/api/calculate-quote", async (req, res) => {
     try {
@@ -124,6 +134,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         finalDestination: validatedData.finalDestination,
         containerType: validatedData.containerType,
         cargoType: validatedData.cargoType,
+        incoterm: validatedData.incoterm,
         weight: validatedData.weight,
         value: validatedData.value,
         seaFreightCost,
