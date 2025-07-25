@@ -69,6 +69,7 @@ export class MemStorage implements IStorage {
     portsData.forEach(port => this.ports.set(port.id, port));
 
     // Initialize routes with realistic costs in ZAR - covering all SA ports
+    // Note: These are estimate baselines. Live rates from carriers (Maersk API) will be converted from USD to ZAR using real-time exchange rates
     const routesData: Route[] = [
       // Shanghai to all SA ports
       { id: "1", originPortId: "1", destinationPortId: "9", seaFreightCost20ft: 35000, seaFreightCost40ft: 45000, seaFreightCost40ftHC: 47000, transitDays: 20 },
@@ -96,6 +97,7 @@ export class MemStorage implements IStorage {
     routesData.forEach(route => this.routes.set(`${route.originPortId}-${route.destinationPortId}`, route));
 
     // Initialize destinations with trucking costs from all SA ports
+    // Note: These are industry-standard trucking estimates. Future enhancement: integrate with real trucking companies like Imperial Logistics, Unitrans
     const destinationsData: Destination[] = [
       { 
         id: "1", name: "Johannesburg, Gauteng", province: "Gauteng", 

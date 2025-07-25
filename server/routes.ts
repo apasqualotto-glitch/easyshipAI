@@ -6,6 +6,23 @@ import { liveShippingService, type LiveRateRequest } from "./live-shipping-api";
 import { carrierComparisonService, type ComparisonRequest } from "./carrier-comparison";
 import { customsDatabase } from "./customs-database";
 
+// Currency conversion service
+async function getCurrentExchangeRate(): Promise<number> {
+  try {
+    // Use a free exchange rate API (exchangerate-api.com)
+    const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+    if (response.ok) {
+      const data = await response.json();
+      return data.rates?.ZAR || 18.5; // Fallback to ~18.5 if API fails
+    }
+  } catch (error) {
+    console.warn('Exchange rate API unavailable, using fallback rate:', error);
+  }
+  
+  // Fallback exchange rate (USD to ZAR)
+  return 18.5;
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Get all origin ports
   app.get("/api/ports/origin", async (req, res) => {
@@ -283,19 +300,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (liveRates.length > 0) {
         // Use the best live rate for sea freight
         const bestRate = liveRates[0];
-        const liveSeaFreight = bestRate.rate;
         
-        // Recalculate total with live sea freight rate
-        const difference = liveSeaFreight - standardQuote.seaFreightCost;
+        // Convert USD to ZAR (using current exchange rate ~18.5 ZAR per USD)
+        const usdToZarRate = await getCurrentExchangeRate();
+        const liveSeaFreightZAR = bestRate.currency === 'USD' 
+          ? bestRate.rate * usdToZarRate 
+          : bestRate.rate;
+        
+        // Recalculate total with live sea freight rate in ZAR
+        const difference = liveSeaFreightZAR - standardQuote.seaFreightCost;
         enhancedQuote = {
           ...standardQuote,
-          seaFreightCost: liveSeaFreight,
+          seaFreightCost: liveSeaFreightZAR,
           totalCost: standardQuote.totalCost + difference,
           costPerKg: (standardQuote.totalCost + difference) / validatedData.weight,
           liveRateInfo: {
             carrier: bestRate.carrier,
             service: bestRate.service,
-            currency: bestRate.currency,
+            currency: 'ZAR', // Always convert to ZAR
+            originalCurrency: bestRate.currency,
+            originalRate: bestRate.rate,
+            exchangeRate: usdToZarRate,
             transitTime: bestRate.transitTime,
             validUntil: bestRate.validUntil,
             savings: -difference // Negative means more expensive, positive means savings
