@@ -6,6 +6,7 @@ import InfoCards from "../components/info-cards";
 import IncotermsChat from "../components/incoterms-chat";
 import LiveRatesInfo from "../components/live-rates-info";
 import CarrierComparison from "../components/carrier-comparison";
+import CustomsLookup from "../components/customs-lookup";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { useState } from "react";
 import { QuoteRequest } from "@shared/schema";
@@ -63,11 +64,12 @@ export default function Calculator() {
           
           <div className="lg:col-span-1">
             <Tabs defaultValue="costs" className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="costs">Cost Breakdown</TabsTrigger>
-                <TabsTrigger value="compare">Compare Carriers</TabsTrigger>
-                <TabsTrigger value="incoterms">Incoterms Help</TabsTrigger>
-                <TabsTrigger value="carriers">Live Carriers</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-5 text-xs">
+                <TabsTrigger value="costs">Costs</TabsTrigger>
+                <TabsTrigger value="compare">Compare</TabsTrigger>
+                <TabsTrigger value="customs">Customs</TabsTrigger>
+                <TabsTrigger value="incoterms">Incoterms</TabsTrigger>
+                <TabsTrigger value="carriers">Carriers</TabsTrigger>
               </TabsList>
               <TabsContent value="costs">
                 <CostBreakdown 
@@ -82,6 +84,9 @@ export default function Calculator() {
                   containerType={quoteData?.containerType || ""}
                   route={carrierComparison?.route || ""}
                 />
+              </TabsContent>
+              <TabsContent value="customs">
+                <CustomsLookup />
               </TabsContent>
               <TabsContent value="incoterms">
                 <IncotermsChat selectedIncoterm={quoteData?.incoterm} />

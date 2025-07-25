@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { quoteRequestSchema } from "@shared/schema";
 import { liveShippingService, type LiveRateRequest } from "./live-shipping-api";
 import { carrierComparisonService, type ComparisonRequest } from "./carrier-comparison";
+import { customsDatabase } from "./customs-database";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Get all origin ports
@@ -331,6 +332,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Failed to compare carrier rates",
         carrierRates: []
       });
+    }
+  });
+
+  // Search customs tariffs
+  app.post("/api/customs/search", async (req, res) => {
+    try {
+      const { searchTerm } = req.body;
+      
+      if (!searchTerm || typeof searchTerm !== 'string') {
+        return res.status(400).json({ message: "Search term is required" });
+      }
+
+      const results = customsDatabase.searchByDescription(searchTerm);
+      res.json(results);
+
+    } catch (error) {
+      console.error("Customs search error:", error);
+      res.status(500).json({ message: "Failed to search customs database" });
+    }
+  });
+
+  // Calculate detailed customs costs
+  app.post("/api/customs/calculate", async (req, res) => {
+    try {
+      const { hsCode, cifValue } = req.body;
+      
+      if (!hsCode || !cifValue || cifValue <= 0) {
+        return res.status(400).json({ message: "HS Code and CIF value are required" });
+      }
+
+      const calculation = customsDatabase.calculateDetailedCustomsCost(hsCode, cifValue);
+      res.json(calculation);
+
+    } catch (error) {
+      console.error("Customs calculation error:", error);
+      res.status(500).json({ message: "Failed to calculate customs costs" });
+    }
+  });
+
+  // Get customs categories
+  app.get("/api/customs/categories", async (req, res) => {
+    try {
+      const categories = customsDatabase.getAllCategories();
+      res.json(categories);
+    } catch (error) {
+      console.error("Categories fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch categories" });
     }
   });
 
