@@ -151,19 +151,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Calculate costs
-      let seaFreightCost = 0;
+      // Calculate base sea freight cost
+      let baseSeaFreightCost = 0;
       switch (validatedData.containerType) {
         case "20ft":
-          seaFreightCost = route.seaFreightCost20ft;
+          baseSeaFreightCost = route.seaFreightCost20ft;
           break;
         case "40ft":
-          seaFreightCost = route.seaFreightCost40ft;
+          baseSeaFreightCost = route.seaFreightCost40ft;
           break;
         case "40ft-hc":
-          seaFreightCost = route.seaFreightCost40ftHC;
+          baseSeaFreightCost = route.seaFreightCost40ftHC;
           break;
       }
+
+      // Apply Incoterm-based cost adjustments (will be calculated after exchange rate)
+      let seaFreightCost = baseSeaFreightCost; // Default to base cost, will be adjusted below
 
       // Calculate trucking cost based on destination port
       let truckingCost = 0;
@@ -210,6 +213,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get current USD to ZAR exchange rate
       const exchangeRateData = await getCurrentExchangeRate();
       const usdToZarRate = exchangeRateData.rate;
+      
+      // Apply Incoterm-based cost adjustments now that we have the exchange rate
+      const incotermAdjustments = calculateIncotermCosts(validatedData.incoterm, baseSeaFreightCost, validatedData.value, usdToZarRate);
+      seaFreightCost = incotermAdjustments.seaFreightCostToBuyer;
       
       // SARS uses FOB (Free on Board) valuation method per WTO Customs Valuation Agreement
       // FOB excludes international shipping and insurance costs from customs value
@@ -266,7 +273,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
           vat = atvValue * 0.15;
           
-          handlingFees = validatedData.customsTariff.additionalFees + (seaFreightCost * 0.05);
+          handlingFees = incotermAdjustments.handlingFeesToBuyer || (validatedData.customsTariff.additionalFees + (seaFreightCost * 0.05));
           customsExplanation = validatedData.customsTariff.explanation;
           tradeAgreementInfo = {
             name: "Standard MFN",
@@ -305,7 +312,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         vat = atvValue * 0.15;
         
-        handlingFees = cargoType.additionalFees + (seaFreightCost * 0.05);
+        handlingFees = incotermAdjustments.handlingFeesToBuyer || (cargoType.additionalFees + (seaFreightCost * 0.05));
         tradeAgreementInfo = {
           name: "Standard MFN",
           preferential: false,
@@ -361,6 +368,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         costPerKg: totalCost / validatedData.weight,
         transitDays: route.transitDays,
         originCountry,
+        incotermExplanation: incotermAdjustments.incotermExplanation,
         customsInfo: {
           hsCode: validatedData.customsTariff?.hsCode,
           dutyRate: tradeAgreementInfo?.dutyRate || (validatedData.customsTariff?.dutyRate) || cargoType.dutyRate,
@@ -873,4 +881,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
   return httpServer;
+}
+
+// Incoterm cost calculation function
+function calculateIncotermCosts(incoterm: string, baseSeaFreightCost: number, cargoValueUSD: number, exchangeRate: number) {
+  const cargoValueZAR = cargoValueUSD * exchangeRate;
+  const insuranceCost = Math.round(cargoValueZAR * 0.003); // Standard 0.3% insurance rate
+  
+  switch (incoterm.toUpperCase()) {
+    case 'EXW': // Ex Works - Buyer pays everything including local transport
+      return {
+        seaFreightCostToBuyer: baseSeaFreightCost + 3000, // Add local transport costs
+        handlingFeesToBuyer: baseSeaFreightCost * 0.08, // Higher handling as buyer manages everything
+        insuranceCostToBuyer: insuranceCost,
+        incotermExplanation: "EXW: You pay all transportation costs including local pickup, export clearance, and sea freight. Highest buyer responsibility.",
+        additionalCosts: { localTransport: 3000, exportClearance: 1500 }
+      };
+      
+    case 'FOB': // Free on Board - Current baseline (buyer pays sea freight only)
+      return {
+        seaFreightCostToBuyer: baseSeaFreightCost,
+        handlingFeesToBuyer: baseSeaFreightCost * 0.05,
+        insuranceCostToBuyer: insuranceCost,
+        incotermExplanation: "FOB: Seller delivers to port. You pay sea freight, insurance, and import costs. Standard choice for importers.",
+        additionalCosts: {}
+      };
+      
+    case 'CFR': // Cost and Freight - Seller pays sea freight, buyer pays insurance
+      return {
+        seaFreightCostToBuyer: 0, // Seller pays sea freight
+        handlingFeesToBuyer: baseSeaFreightCost * 0.03,
+        insuranceCostToBuyer: insuranceCost,
+        incotermExplanation: "CFR: Seller pays sea freight. You pay insurance and import costs. Good for cost predictability.",
+        additionalCosts: {}
+      };
+      
+    case 'CIF': // Cost, Insurance, and Freight - Seller pays both
+      return {
+        seaFreightCostToBuyer: 0, // Seller pays sea freight
+        handlingFeesToBuyer: baseSeaFreightCost * 0.03,
+        insuranceCostToBuyer: 0, // Seller pays basic insurance
+        incotermExplanation: "CIF: Seller pays sea freight and insurance. You only pay import duties and local delivery. Convenient but typically more expensive overall.",
+        additionalCosts: {}
+      };
+      
+    case 'DDP': // Delivered Duty Paid - Seller pays almost everything
+      return {
+        seaFreightCostToBuyer: 0,
+        handlingFeesToBuyer: 1000, // Minimal handling fees
+        insuranceCostToBuyer: 0,
+        incotermExplanation: "DDP: Seller handles everything including duties and delivery. You pay the highest product price but minimal logistics costs.",
+        additionalCosts: {}
+      };
+      
+    default: // Default to FOB behavior
+      return {
+        seaFreightCostToBuyer: baseSeaFreightCost,
+        handlingFeesToBuyer: baseSeaFreightCost * 0.05,
+        insuranceCostToBuyer: insuranceCost,
+        incotermExplanation: "Standard terms applied. FOB equivalent - you pay sea freight and import costs.",
+        additionalCosts: {}
+      };
+  }
 }

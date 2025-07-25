@@ -25,12 +25,27 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
             </div>
           )}
           
+          {/* Incoterm Information */}
+          {quoteResult?.incotermExplanation && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+              <div className="flex items-start gap-2">
+                <div className="flex-shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                  <span className="text-blue-600 text-xs font-semibold">{quoteResult.incoterm}</span>
+                </div>
+                <div className="flex-1">
+                  <h4 className="text-sm font-medium text-blue-900 mb-1">Incoterm Cost Impact</h4>
+                  <p className="text-xs text-blue-700">{quoteResult.incotermExplanation}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-4">
             <div className="flex justify-between items-center py-2 border-b border-gray-100">
               <div className="flex items-center">
                 <span className="material-icons text-primary-500 text-sm mr-2">directions_boat</span>
                 <div className="flex flex-col">
-                  <span className="text-sm text-gray-700">Sea Freight</span>
+                  <span className="text-sm text-gray-700">Sea Freight {quoteResult?.incoterm && `(${quoteResult.incoterm})`}</span>
                   {quoteResult?.liveRateInfo && (
                     <div className="flex items-center space-x-1 mt-1">
                       <Zap className="h-3 w-3 text-blue-500" />
