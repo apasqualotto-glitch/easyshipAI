@@ -29,6 +29,9 @@ export function BookingForm({ quoteData, onBookingCreated }: BookingFormProps) {
   const [loading, setLoading] = useState(false);
   const [carriers, setCarriers] = useState<CarrierInfo[]>([]);
   const [selectedCarrier, setSelectedCarrier] = useState<string>('');
+  const [preSelectedCarrier, setPreSelectedCarrier] = useState<string>('');
+  const [preSelectedService, setPreSelectedService] = useState<string>('');
+  const [preSelectedRate, setPreSelectedRate] = useState<number>(0);
   
   const [formData, setFormData] = useState({
     // Shipper Information
@@ -58,8 +61,25 @@ export function BookingForm({ quoteData, onBookingCreated }: BookingFormProps) {
     specialInstructions: ''
   });
 
-  // Load available carriers
+  // Load available carriers and check for pre-selected carrier from URL
   useState(() => {
+    // Check URL parameters for pre-selected carrier
+    const urlParams = new URLSearchParams(window.location.search);
+    const carrierFromUrl = urlParams.get('carrier');
+    const serviceFromUrl = urlParams.get('service');
+    const rateFromUrl = urlParams.get('rate');
+    
+    if (carrierFromUrl) {
+      setPreSelectedCarrier(decodeURIComponent(carrierFromUrl));
+      setSelectedCarrier(getCarrierCode(decodeURIComponent(carrierFromUrl)));
+    }
+    if (serviceFromUrl) {
+      setPreSelectedService(decodeURIComponent(serviceFromUrl));
+    }
+    if (rateFromUrl) {
+      setPreSelectedRate(parseFloat(rateFromUrl));
+    }
+    
     fetch('/api/bookings/carriers')
       .then(res => res.json())
       .then(data => setCarriers(data))
@@ -68,6 +88,19 @@ export function BookingForm({ quoteData, onBookingCreated }: BookingFormProps) {
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Helper function to map carrier names to codes
+  const getCarrierCode = (carrierName: string): string => {
+    const mapping: Record<string, string> = {
+      'Maersk': 'MAEU',
+      'Maersk Line': 'MAEU',
+      'MSC': 'MSCU',
+      'Mediterranean Shipping Company': 'MSCU',
+      'CMA CGM': 'CMDU',
+      'COSCO': 'COSU'
+    };
+    return mapping[carrierName] || carrierName.toUpperCase();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -188,26 +221,50 @@ export function BookingForm({ quoteData, onBookingCreated }: BookingFormProps) {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             
-            {/* Carrier Selection */}
-            <div className="space-y-4">
-              <Label className="text-base font-semibold">Select Shipping Carrier</Label>
-              <div className="grid gap-3">
-                {carriers.map((carrier) => (
-                  <div
-                    key={carrier.code}
-                    className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                      selectedCarrier === carrier.code 
-                        ? 'border-primary bg-primary/5' 
-                        : 'border-gray-200 hover:border-gray-300'
-                    } ${!carrier.bookingSupport ? 'opacity-50' : ''}`}
-                    onClick={() => carrier.bookingSupport && setSelectedCarrier(carrier.code)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">{carrier.name}</span>
-                          {getStatusBadge(carrier.apiStatus)}
-                        </div>
+            {/* Carrier Selection - Show selection or pre-selected carrier */}
+            {preSelectedCarrier ? (
+              <div className="space-y-4">
+                <Label className="text-base font-semibold">Selected Carrier</Label>
+                <div className="p-4 bg-green-50 border-2 border-green-200 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-green-800">{preSelectedCarrier}</span>
+                        <Badge className="bg-green-100 text-green-800">Selected from Comparison</Badge>
+                      </div>
+                      {preSelectedService && (
+                        <p className="text-sm text-green-700 mt-1">Service: {preSelectedService}</p>
+                      )}
+                      {preSelectedRate > 0 && (
+                        <p className="text-sm text-green-700">Quote Rate: R {preSelectedRate.toLocaleString()}</p>
+                      )}
+                    </div>
+                    <div className="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center">
+                      <span className="text-white text-sm">✓</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <Label className="text-base font-semibold">Select Shipping Carrier</Label>
+                <div className="grid gap-3">
+                  {carriers.map((carrier) => (
+                    <div
+                      key={carrier.code}
+                      className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                        selectedCarrier === carrier.code 
+                          ? 'border-primary bg-primary/5' 
+                          : 'border-gray-200 hover:border-gray-300'
+                      } ${!carrier.bookingSupport ? 'opacity-50' : ''}`}
+                      onClick={() => carrier.bookingSupport && setSelectedCarrier(carrier.code)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{carrier.name}</span>
+                            {getStatusBadge(carrier.apiStatus)}
+                          </div>
                         <p className="text-sm text-gray-600">{carrier.description}</p>
                         <p className="text-xs text-gray-500">
                           Services: {carrier.services.join(', ')} • Coverage: {carrier.coverage}
@@ -215,12 +272,13 @@ export function BookingForm({ quoteData, onBookingCreated }: BookingFormProps) {
                       </div>
                       {selectedCarrier === carrier.code && (
                         <div className="w-4 h-4 bg-primary rounded-full"></div>
-                      )}
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             <Separator />
 
@@ -395,7 +453,7 @@ export function BookingForm({ quoteData, onBookingCreated }: BookingFormProps) {
               className="w-full" 
               disabled={loading || !selectedCarrier}
             >
-              {loading ? "Creating Booking..." : "Create Booking"}
+              {loading ? "Creating Booking..." : preSelectedCarrier ? `Book with ${preSelectedCarrier}` : "Create Booking"}
             </Button>
           </form>
         </CardContent>
