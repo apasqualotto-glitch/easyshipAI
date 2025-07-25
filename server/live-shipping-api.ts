@@ -15,8 +15,10 @@ export interface LiveRateRequest {
   fromPort: string;
   toPort: string;
   containerType: string;
-  weight?: number;
+  weight: number; // Make weight required for accurate rates
+  value?: number; // Add cargo value for insurance calculations
   departure?: string;
+  cargoType?: string; // Add cargo type for specialized handling
 }
 
 // Maersk API integration (free to use)
@@ -45,13 +47,25 @@ class MaerskAPI {
 
       const departureDate = request.departure || this.getNextBusinessDay();
       
+      // Include weight and container type in API request for accurate pricing
+      const requestBody = {
+        origin: fromLocation,
+        destination: toLocation,
+        departureDate,
+        containerType: request.containerType,
+        weight: request.weight || 0,
+        cargoValue: request.value || 0
+      };
+
       const response = await fetch(
-        `${this.baseUrl}/offers/brand/MAEU/departuredate/${departureDate}?origin=${fromLocation}&destination=${toLocation}`,
+        `${this.baseUrl}/offers/brand/MAEU/departuredate/${departureDate}?origin=${fromLocation}&destination=${toLocation}&containerType=${request.containerType}&weight=${request.weight}`,
         {
           headers: {
             'Authorization': `Bearer ${this.apiKey}`,
             'Content-Type': 'application/json',
-          }
+          },
+          method: 'POST',
+          body: JSON.stringify(requestBody)
         }
       );
 

@@ -98,6 +98,7 @@ export const quoteRequestSchema = z.object({
   weight: z.number().min(1, "Weight must be greater than 0"),
   value: z.number().min(1, "Cargo value must be greater than 0"),
   customsTariff: customsTariffSchema.optional(),
+  selectedCustomsTariff: customsTariffSchema.optional(), // Add this for consistency
 });
 
 export type InsertShippingQuote = z.infer<typeof insertShippingQuoteSchema>;

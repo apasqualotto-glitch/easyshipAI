@@ -79,8 +79,32 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
     queryKey: ["/api/incoterms"],
   });
 
+  // Add validation mutation to check data consistency
+  const validateQuoteMutation = useMutation({
+    mutationFn: async (data: QuoteRequest) => {
+      const response = await apiRequest("POST", "/api/validate-quote", data);
+      return response.json();
+    },
+  });
+
   const calculateQuoteMutation = useMutation({
     mutationFn: async (data: QuoteRequest) => {
+      // First validate the data for consistency
+      const validation = await validateQuoteMutation.mutateAsync(data);
+      
+      if (!validation.isValid) {
+        throw new Error(`Data validation failed: ${validation.errors.join(", ")}`);
+      }
+
+      // Show warnings about data consistency if any
+      if (validation.warnings && validation.warnings.length > 0) {
+        toast({
+          title: "Data Check Warning",
+          description: validation.warnings[0], // Show first warning
+          variant: "default",
+        });
+      }
+
       const endpoint = useLiveRates ? "/api/calculate-quote-with-live" : "/api/calculate-quote";
       const response = await apiRequest("POST", endpoint, data);
       return response.json();
@@ -95,13 +119,13 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
       
       toast({
         title: "Quote calculated successfully! ✅",
-        description: `Total cost: R ${result.totalCost.toLocaleString()} using ${rateSource}${savingsText}. Check the "Costs" tab on the right to see full breakdown.`,
+        description: `Total cost: R ${result.totalCost.toLocaleString()} | Weight: ${result.weight}kg | Origin: ${result.originCountry || 'Unknown'} using ${rateSource}${savingsText}`,
       });
     },
-    onError: () => {
+    onError: (error: any) => {
       toast({
-        title: "Error",
-        description: "Failed to calculate quote. Please try again.",
+        title: "Quote calculation failed",
+        description: error.message || "Failed to calculate quote. Please check your input and try again.",
         variant: "destructive",
       });
     },

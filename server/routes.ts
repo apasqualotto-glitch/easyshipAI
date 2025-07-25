@@ -162,10 +162,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           break;
       }
 
-      // Get origin country from port information for trade agreement calculations
+      // Validate and get origin country from port information for trade agreement calculations
       const allOriginPorts = await storage.getOriginPorts();
       const selectedOriginPort = allOriginPorts.find(p => p.code === validatedData.originPort);
-      const originCountry = selectedOriginPort?.country || "Unknown";
+      
+      if (!selectedOriginPort) {
+        throw new Error(`Origin port ${validatedData.originPort} not found`);
+      }
+      
+      const originCountry = selectedOriginPort.country;
+
+      // Validate container weight limits
+      const weightLimits = getContainerWeightLimits(validatedData.containerType);
+      if (validatedData.weight > weightLimits.maxWeight) {
+        throw new Error(`Cargo weight ${validatedData.weight}kg exceeds ${validatedData.containerType} container limit of ${weightLimits.maxWeight}kg`);
+      }
 
       // Use advanced customs tariff with country-specific rates if provided
       let customsDuties, vat, handlingFees, customsExplanation, tradeAgreementInfo;
@@ -267,12 +278,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Missing required fields: originPort, destinationPort, containerType" });
       }
 
+      // Validate weight if provided
+      if (weight && weight <= 0) {
+        return res.status(400).json({ message: "Weight must be greater than 0" });
+      }
+
+      // Ensure all cargo data is passed for accurate rate calculation
       const liveRateRequest: LiveRateRequest = {
         fromPort: originPort,
         toPort: destinationPort, 
         containerType,
-        weight,
-        departure
+        weight: weight || 1000, // Use actual weight or reasonable default
+        value: undefined, // Add cargo value if available
+        departure,
+        cargoType: undefined // Add cargo type if available
       };
 
       const liveRates = await liveShippingService.getAllRates(liveRateRequest);
@@ -314,12 +333,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const standardQuote = await standardQuoteResponse.json();
 
-      // Try to get live rates
+      // Try to get live rates with complete cargo information
       const liveRateRequest: LiveRateRequest = {
         fromPort: validatedData.originPort,
         toPort: validatedData.destinationPort,
         containerType: validatedData.containerType,
-        weight: validatedData.weight
+        weight: validatedData.weight, // Pass actual weight for accurate rates
+        value: validatedData.value, // Pass cargo value for insurance
+        cargoType: validatedData.cargoType // Pass cargo type for specialized handling
       };
 
       const liveRates = await liveShippingService.getAllRates(liveRateRequest);
@@ -420,6 +441,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+
+  // Validate quote data consistency before processing
+  app.post("/api/validate-quote", async (req, res) => {
+    try {
+      const validatedData = quoteRequestSchema.parse(req.body);
+      
+      // Comprehensive validation checks
+      const validationResults = {
+        isValid: true,
+        errors: [] as string[],
+        warnings: [] as string[],
+        dataConsistency: {
+          weight: validatedData.weight,
+          value: validatedData.value,
+          containerType: validatedData.containerType,
+          weightLimits: getContainerWeightLimits(validatedData.containerType),
+          exceedsLimit: false
+        }
+      };
+
+      // Check weight limits for container type
+      const weightLimits = getContainerWeightLimits(validatedData.containerType);
+      if (validatedData.weight > weightLimits.maxWeight) {
+        validationResults.errors.push(`Weight ${validatedData.weight}kg exceeds ${validatedData.containerType} limit of ${weightLimits.maxWeight}kg`);
+        validationResults.isValid = false;
+        validationResults.dataConsistency.exceedsLimit = true;
+      }
+
+      // Check cargo value reasonableness
+      const valuePerKg = validatedData.value / validatedData.weight;
+      if (valuePerKg < 0.5) {
+        validationResults.warnings.push(`Cargo value seems low (R${valuePerKg.toFixed(2)}/kg). Please verify.`);
+      }
+      if (valuePerKg > 1000) {
+        validationResults.warnings.push(`Cargo value seems high (R${valuePerKg.toFixed(2)}/kg). Consider increased insurance.`);
+      }
+
+      // Verify port connectivity
+      const originPorts = await storage.getOriginPorts();
+      const destinationPorts = await storage.getDestinationPorts();
+      
+      const originExists = originPorts.find(p => p.code === validatedData.originPort);
+      const destinationExists = destinationPorts.find(p => p.code === validatedData.destinationPort);
+      
+      if (!originExists) {
+        validationResults.errors.push(`Origin port ${validatedData.originPort} not found`);
+        validationResults.isValid = false;
+      }
+      if (!destinationExists) {
+        validationResults.errors.push(`Destination port ${validatedData.destinationPort} not found`);
+        validationResults.isValid = false;
+      }
+
+      // Check route availability
+      if (originExists && destinationExists) {
+        const route = await storage.getRoute(originExists.id, destinationExists.id);
+        if (!route) {
+          validationResults.warnings.push(`No direct route found from ${originExists.name} to ${destinationExists.name}. Using estimate.`);
+        }
+      }
+
+      res.json({
+        ...validationResults,
+        message: validationResults.isValid ? "Quote data is valid" : "Quote data has errors",
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(400).json({ 
+          isValid: false,
+          errors: [error.message],
+          message: "Data validation failed"
+        });
+      } else {
+        res.status(500).json({ 
+          isValid: false,
+          errors: ["Unknown validation error"],
+          message: "Validation service error"
+        });
+      }
+    }
+  });
+
+  function getContainerWeightLimits(containerType: string) {
+    const limits = {
+      "20ft": { maxWeight: 28080, volume: 33.1 },
+      "40ft": { maxWeight: 26680, volume: 67.5 },
+      "40ft-hc": { maxWeight: 26680, volume: 76.0 }
+    };
+    return limits[containerType as keyof typeof limits] || { maxWeight: 20000, volume: 30 };
+  }
 
   // Get trade agreement rates for specific HS code
   app.get("/api/trade-agreements/:hsCode", async (req, res) => {
