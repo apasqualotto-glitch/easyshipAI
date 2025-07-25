@@ -163,6 +163,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         case "40ft-hc":
           baseSeaFreightCost = route.seaFreightCost40ftHC;
           break;
+        case "partial":
+          // For partial shipments, calculate based on volume
+          const volume = validatedData.cargoVolume || 1; // Default to 1 CBM if not provided
+          const baseRate = route.seaFreightCost20ft; // Use 20ft as base rate
+          const partialMultiplier = Math.min(volume / 33, 1); // 33 CBM = full 20ft container
+          baseSeaFreightCost = baseRate * partialMultiplier;
+          break;
+        default:
+          return res.status(400).json({ message: "Invalid container type" });
       }
 
       // Apply Incoterm-based cost adjustments (will be calculated after exchange rate)
@@ -344,7 +353,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         originPort: originPort.name,
         destinationPort: destinationPort.name,
         finalDestination: validatedData.finalDestination,
-        deliveryAddress: validatedData.deliveryAddress,
+        deliveryAddress: validatedData.deliveryAddress || "",
         containerType: validatedData.containerType,
         cargoType: validatedData.cargoType,
         incoterm: validatedData.incoterm,

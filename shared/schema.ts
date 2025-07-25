@@ -89,8 +89,8 @@ export const quoteRequestSchema = z.object({
   originPort: z.string().min(1, "Origin port is required"),
   destinationPort: z.string().min(1, "Destination port is required"),
   finalDestination: z.string().min(1, "Final destination is required"),
-  deliveryAddress: z.string().min(1, "Delivery address is required"),
-  containerType: z.enum(["20ft", "40ft", "40ft-hc"], {
+  deliveryAddress: z.string().optional(),
+  containerType: z.enum(["20ft", "40ft", "40ft-hc", "partial"], {
     required_error: "Container type is required",
   }),
   cargoType: z.string().min(1, "Cargo type is required"),
@@ -99,6 +99,13 @@ export const quoteRequestSchema = z.object({
   value: z.number().min(1, "Cargo value must be greater than 0"),
   customsTariff: customsTariffSchema.optional(),
   selectedCustomsTariff: customsTariffSchema.optional(), // Add this for consistency
+  // Partial shipment specific fields
+  cargoVolume: z.number().optional(),
+  packageCount: z.number().optional(),
+  packageLength: z.number().optional(),
+  packageWidth: z.number().optional(),
+  packageHeight: z.number().optional(),
+  specialHandling: z.string().optional(),
 });
 
 export type InsertShippingQuote = z.infer<typeof insertShippingQuoteSchema>;

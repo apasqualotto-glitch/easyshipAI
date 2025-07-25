@@ -158,6 +158,13 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
       dimensions: "12.03m × 2.35m × 2.69m", 
       weight: "Max: 26,680 kg",
       icon: "unarchive"
+    },
+    {
+      value: "partial",
+      title: "Partial Shipment",
+      dimensions: "Shared container space",
+      weight: "Based on cargo volume",
+      icon: "inventory_2"
     }
   ];
 
@@ -358,11 +365,11 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
               <div className="tooltip-trigger relative inline-block ml-1">
                 <span className="material-icons text-gray-400 text-sm cursor-help">help_outline</span>
                 <div className="tooltip absolute bottom-6 left-0 bg-gray-900 text-white text-xs p-2 rounded opacity-0 invisible whitespace-nowrap z-10">
-                  Choose based on your cargo volume. HC = High Cube (extra height)
+                  Choose based on your cargo volume. HC = High Cube (extra height). Partial = Shared container space.
                 </div>
               </div>
             </Label>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {containerOptions.map((option) => (
                 <label key={option.value} className="relative cursor-pointer">
                   <input
@@ -371,17 +378,112 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
                     {...form.register("containerType")}
                     className="sr-only peer"
                   />
-                  <div className="border-2 border-gray-200 rounded-lg p-4 hover:border-primary-300 peer-checked:border-primary-500 peer-checked:bg-primary-50">
+                  <div className={`border-2 border-gray-200 rounded-lg p-4 hover:border-primary-300 peer-checked:border-primary-500 peer-checked:bg-primary-50 ${
+                    option.value === "partial" ? "bg-blue-50 border-blue-200" : ""
+                  }`}>
                     <div className="text-center">
                       <span className="material-icons text-3xl text-gray-600 mb-2">{option.icon}</span>
                       <h4 className="font-medium text-gray-900">{option.title}</h4>
                       <p className="text-sm text-gray-500">{option.dimensions}</p>
                       <p className="text-xs text-gray-400 mt-1">{option.weight}</p>
+                      {option.value === "partial" && (
+                        <p className="text-xs text-blue-600 mt-1 font-medium">Cost-effective option</p>
+                      )}
                     </div>
                   </div>
                 </label>
               ))}
             </div>
+
+            {/* Partial Shipment Additional Fields */}
+            {form.watch("containerType") === "partial" && (
+              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h5 className="font-medium text-blue-900 mb-4 flex items-center">
+                  <span className="material-icons text-blue-600 mr-2">info</span>
+                  Partial Shipment Details
+                </h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="cargoVolume" className="flex items-center">
+                      Cargo Volume (CBM)
+                      <div className="tooltip-trigger relative inline-block ml-1">
+                        <span className="material-icons text-gray-400 text-sm cursor-help">help_outline</span>
+                        <div className="tooltip absolute bottom-6 left-0 bg-gray-900 text-white text-xs p-2 rounded opacity-0 invisible whitespace-nowrap z-10">
+                          Cubic meters (Length × Width × Height in meters)
+                        </div>
+                      </div>
+                    </Label>
+                    <Input
+                      id="cargoVolume"
+                      type="number"
+                      step="0.1"
+                      placeholder="e.g., 2.5"
+                      {...form.register("cargoVolume", { valueAsNumber: true })}
+                    />
+                    <p className="text-xs text-blue-600 mt-1">Required for shared container pricing</p>
+                  </div>
+                  <div>
+                    <Label htmlFor="packageCount">Number of Packages</Label>
+                    <Input
+                      id="packageCount"
+                      type="number"
+                      placeholder="e.g., 10"
+                      {...form.register("packageCount", { valueAsNumber: true })}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                  <div>
+                    <Label htmlFor="packageLength">Package Length (cm)</Label>
+                    <Input
+                      id="packageLength"
+                      type="number"
+                      placeholder="e.g., 120"
+                      {...form.register("packageLength", { valueAsNumber: true })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="packageWidth">Package Width (cm)</Label>
+                    <Input
+                      id="packageWidth"
+                      type="number"
+                      placeholder="e.g., 80"
+                      {...form.register("packageWidth", { valueAsNumber: true })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="packageHeight">Package Height (cm)</Label>
+                    <Input
+                      id="packageHeight"
+                      type="number"
+                      placeholder="e.g., 60"
+                      {...form.register("packageHeight", { valueAsNumber: true })}
+                    />
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <Label htmlFor="specialHandling">Special Handling Requirements</Label>
+                  <Select onValueChange={(value) => form.setValue("specialHandling", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select if any special handling needed" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No special handling</SelectItem>
+                      <SelectItem value="fragile">Fragile items</SelectItem>
+                      <SelectItem value="hazardous">Hazardous materials</SelectItem>
+                      <SelectItem value="temperature">Temperature controlled</SelectItem>
+                      <SelectItem value="high-value">High value items</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="mt-4 p-3 bg-blue-100 rounded-lg">
+                  <p className="text-sm text-blue-800">
+                    <span className="font-medium">Partial shipments</span> are cost-effective for smaller cargo volumes. 
+                    Your goods will share container space with other shipments, reducing costs while maintaining security and tracking.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="bg-gray-50 rounded-lg p-6">
