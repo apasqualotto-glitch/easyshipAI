@@ -7,6 +7,7 @@ import IncotermsChat from "../components/incoterms-chat";
 import LiveRatesInfo from "../components/live-rates-info";
 import CarrierComparison from "../components/carrier-comparison";
 import CustomsLookup from "../components/customs-lookup";
+import { AIChatInterface } from "../components/ai-chat-interface";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { useState } from "react";
 import { QuoteRequest } from "@shared/schema";
@@ -49,9 +50,12 @@ export default function Calculator() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* AI Chat Interface */}
+      <AIChatInterface context="calculator" />
+      
       <Header />
       
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-20">
         <Hero />
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

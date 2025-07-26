@@ -101,6 +101,18 @@ The application is designed for easy migration from in-memory storage to Postgre
 
 ## Recent Changes
 
+- **MAJOR EXPANSION: EasyShip AI - Complete Platform Transformation** - July 26, 2025
+  - **NEW: AI-Powered Chat Interface** - Added conversational AI assistant using Anthropic Claude on every page
+  - **NEW: Homepage with Clear CTA** - Professional landing page designed for first-time importers
+  - **NEW: Comprehensive Customs & Incoterms Guide** - Interactive educational content with tabs, tooltips, and examples
+  - **NEW: Real-Time Shipment Tracking** - Mock tracking system with timeline visualization and carrier integration
+  - **NEW: Navigation System** - Fixed navigation bar with mobile responsiveness and active state management
+  - **NEW: Database Schema Expansion** - Added users, chat conversations, bookings, tracking events, and notifications
+  - **NEW: AI Service Integration** - Advanced AI service with fallback responses and context-aware assistance
+  - **Enhanced Architecture** - Transformed from freight calculator to comprehensive shipping platform
+  - **User Experience Focus** - All content written in plain language for first-time shipping users
+  - Platform now serves as complete "EasyShip AI" solution for South African container imports
+
 - **NEW FEATURE: Partial Shipment / Shared Container Support** - July 25, 2025
   - Added "Partial Shipment / Shared Container" option to container types for cost-effective smaller cargo loads
   - Conditional fields appear only when partial shipment is selected: cargo volume (CBM), package count, dimensions, special handling

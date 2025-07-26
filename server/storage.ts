@@ -1,4 +1,23 @@
-import { type ShippingQuote, type InsertShippingQuote, type Port, type Route, type Destination, type CargoType, type Incoterm } from "@shared/schema";
+import { 
+  type ShippingQuote, 
+  type InsertShippingQuote, 
+  type Port, 
+  type Route, 
+  type Destination, 
+  type CargoType, 
+  type Incoterm,
+  type User,
+  type UpsertUser,
+  type ChatConversation,
+  type ChatMessage,
+  type InsertChatConversation,
+  type InsertChatMessage,
+  type ShipmentBooking,
+  type InsertShipmentBooking,
+  type TrackingEvent,
+  type InsertTrackingEvent,
+  type Notification
+} from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -25,6 +44,32 @@ export interface IStorage {
   // Quotes
   createQuote(quote: InsertShippingQuote): Promise<ShippingQuote>;
   getQuote(id: string): Promise<ShippingQuote | undefined>;
+
+  // User operations (required for EasyShip AI)
+  getUser(id: string): Promise<User | undefined>;
+  upsertUser(user: UpsertUser): Promise<User>;
+  
+  // Chat operations
+  createConversation(conversation: InsertChatConversation): Promise<ChatConversation>;
+  getConversation(id: string): Promise<ChatConversation | undefined>;
+  getUserConversations(userId?: string): Promise<ChatConversation[]>;
+  addMessage(message: InsertChatMessage): Promise<ChatMessage>;
+  getConversationMessages(conversationId: string): Promise<ChatMessage[]>;
+  
+  // Booking operations
+  createBooking(booking: InsertShipmentBooking): Promise<ShipmentBooking>;
+  getBooking(id: string): Promise<ShipmentBooking | undefined>;
+  getUserBookings(userId?: string): Promise<ShipmentBooking[]>;
+  updateBookingStatus(id: string, status: string): Promise<void>;
+  
+  // Tracking operations
+  addTrackingEvent(event: InsertTrackingEvent): Promise<TrackingEvent>;
+  getBookingEvents(bookingId: string): Promise<TrackingEvent[]>;
+  
+  // Notifications
+  createNotification(notification: { userId: string; type: string; title: string; message: string; relatedBookingId?: string }): Promise<Notification>;
+  getUserNotifications(userId: string): Promise<Notification[]>;
+  markNotificationRead(id: string): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -34,6 +79,12 @@ export class MemStorage implements IStorage {
   private cargoTypes: Map<string, CargoType>;
   private incoterms: Map<string, Incoterm>;
   private quotes: Map<string, ShippingQuote>;
+  private users: Map<string, User>;
+  private conversations: Map<string, ChatConversation>;
+  private messages: Map<string, ChatMessage>;
+  private bookings: Map<string, ShipmentBooking>;
+  private trackingEvents: Map<string, TrackingEvent>;
+  private notifications: Map<string, Notification>;
 
   constructor() {
     this.ports = new Map();
@@ -42,6 +93,12 @@ export class MemStorage implements IStorage {
     this.cargoTypes = new Map();
     this.incoterms = new Map();
     this.quotes = new Map();
+    this.users = new Map();
+    this.conversations = new Map();
+    this.messages = new Map();
+    this.bookings = new Map();
+    this.trackingEvents = new Map();
+    this.notifications = new Map();
     
     this.initializeData();
   }
@@ -364,6 +421,143 @@ export class MemStorage implements IStorage {
 
   async getQuote(id: string): Promise<ShippingQuote | undefined> {
     return this.quotes.get(id);
+  }
+
+  // User operations (required for EasyShip AI)
+  async getUser(id: string): Promise<User | undefined> {
+    return this.users.get(id);
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const existing = this.users.get(userData.id);
+    const user: User = {
+      ...userData,
+      createdAt: existing?.createdAt || new Date(),
+      updatedAt: new Date(),
+    };
+    this.users.set(userData.id, user);
+    return user;
+  }
+
+  // Chat operations
+  async createConversation(conversation: InsertChatConversation): Promise<ChatConversation> {
+    const id = randomUUID();
+    const newConversation: ChatConversation = {
+      ...conversation,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.conversations.set(id, newConversation);
+    return newConversation;
+  }
+
+  async getConversation(id: string): Promise<ChatConversation | undefined> {
+    return this.conversations.get(id);
+  }
+
+  async getUserConversations(userId?: string): Promise<ChatConversation[]> {
+    const conversations = Array.from(this.conversations.values());
+    if (userId) {
+      return conversations.filter(c => c.userId === userId);
+    }
+    return conversations;
+  }
+
+  async addMessage(message: InsertChatMessage): Promise<ChatMessage> {
+    const id = randomUUID();
+    const newMessage: ChatMessage = {
+      ...message,
+      id,
+      createdAt: new Date(),
+    };
+    this.messages.set(id, newMessage);
+    return newMessage;
+  }
+
+  async getConversationMessages(conversationId: string): Promise<ChatMessage[]> {
+    return Array.from(this.messages.values())
+      .filter(m => m.conversationId === conversationId)
+      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+  }
+
+  // Booking operations
+  async createBooking(booking: InsertShipmentBooking): Promise<ShipmentBooking> {
+    const id = randomUUID();
+    const newBooking: ShipmentBooking = {
+      ...booking,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.bookings.set(id, newBooking);
+    return newBooking;
+  }
+
+  async getBooking(id: string): Promise<ShipmentBooking | undefined> {
+    return this.bookings.get(id);
+  }
+
+  async getUserBookings(userId?: string): Promise<ShipmentBooking[]> {
+    const bookings = Array.from(this.bookings.values());
+    if (userId) {
+      return bookings.filter(b => b.userId === userId);
+    }
+    return bookings;
+  }
+
+  async updateBookingStatus(id: string, status: string): Promise<void> {
+    const booking = this.bookings.get(id);
+    if (booking) {
+      booking.status = status;
+      booking.updatedAt = new Date();
+      this.bookings.set(id, booking);
+    }
+  }
+
+  // Tracking operations
+  async addTrackingEvent(event: InsertTrackingEvent): Promise<TrackingEvent> {
+    const id = randomUUID();
+    const newEvent: TrackingEvent = {
+      ...event,
+      id,
+      createdAt: new Date(),
+    };
+    this.trackingEvents.set(id, newEvent);
+    return newEvent;
+  }
+
+  async getBookingEvents(bookingId: string): Promise<TrackingEvent[]> {
+    return Array.from(this.trackingEvents.values())
+      .filter(e => e.bookingId === bookingId)
+      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+  }
+
+  // Notifications
+  async createNotification(notification: { userId: string; type: string; title: string; message: string; relatedBookingId?: string }): Promise<Notification> {
+    const id = randomUUID();
+    const newNotification: Notification = {
+      ...notification,
+      id,
+      isRead: false,
+      createdAt: new Date(),
+    };
+    this.notifications.set(id, newNotification);
+    return newNotification;
+  }
+
+  async getUserNotifications(userId: string): Promise<Notification[]> {
+    return Array.from(this.notifications.values())
+      .filter(n => n.userId === userId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+
+  async markNotificationRead(id: string): Promise<void> {
+    const notification = this.notifications.get(id);
+    if (notification) {
+      notification.isRead = true;
+      this.notifications.set(id, notification);
+    }
   }
 }
 

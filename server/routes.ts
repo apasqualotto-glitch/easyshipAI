@@ -6,6 +6,8 @@ import { liveShippingService, type LiveRateRequest } from "./live-shipping-api";
 import { carrierComparisonService, type ComparisonRequest } from "./carrier-comparison";
 import { customsDatabase } from "./customs-database";
 import { bookingService, type BookingRequest, type BookingResponse } from "./booking-service";
+import { generateChatResponse } from "./ai-service";
+import { z } from "zod";
 
 // Enhanced currency conversion service with multiple API sources
 async function getCurrentExchangeRate(): Promise<{ rate: number; source: string; timestamp: string }> {
@@ -1049,4 +1051,60 @@ function calculateIncotermCosts(incoterm: string, baseSeaFreightCost: number, ca
         additionalCosts: {}
       };
   }
+}
+
+  // AI Chat Endpoint for EasyShip AI Assistant
+  const chatRequestSchema = z.object({
+    message: z.string().min(1),
+    context: z.string().optional(),
+    conversationHistory: z.array(z.object({
+      role: z.enum(['user', 'assistant']),
+      content: z.string()
+    })).optional()
+  });
+
+  app.post("/api/chat", async (req, res) => {
+    try {
+      const validatedData = chatRequestSchema.parse(req.body);
+      
+      // Extract context information
+      const context = {
+        page: validatedData.context || 'general',
+        userType: 'first_time', // Default to first-time user
+      };
+
+      // Generate AI response using the AI service
+      const response = await generateChatResponse(
+        validatedData.message,
+        validatedData.conversationHistory || [],
+        context
+      );
+
+      res.json({
+        response,
+        timestamp: new Date().toISOString(),
+        context: context.page
+      });
+
+    } catch (error) {
+      console.error("AI Chat error:", error);
+      
+      // Provide helpful fallback response
+      const fallbackResponse = `I'm having trouble connecting to the AI service right now. Here are some ways I can help:
+
+• **Shipping Calculator**: Get instant quotes with SARS-compliant customs calculations
+• **Incoterms Guide**: Learn about FOB, CIF, EXW, and DDP with real examples  
+• **Customs Information**: Understand South African import procedures and documentation
+• **Container Options**: Compare 20ft, 40ft, and partial shipment options
+
+What specific shipping question can I help you with?`;
+
+      res.json({
+        response: fallbackResponse,
+        timestamp: new Date().toISOString(),
+        context: "fallback"
+      });
+    }
+  });
+
 }
