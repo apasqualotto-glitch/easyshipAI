@@ -174,7 +174,7 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
       let aiResponse = data.response;
       if ((messageContent.toLowerCase().includes('quote') || messageContent.toLowerCase().includes('cost')) && 
           (messageContent.toLowerCase().includes('china') || messageContent.toLowerCase().includes('container'))) {
-        aiResponse += "\n\n💡 **Want a detailed quote with carrier options?** Use the calculator button below for a comprehensive quote with live rates from major shipping lines!";
+        aiResponse += "\n\n💡 **Would you like a detailed quote with carrier options?** Use the calculator button below for a comprehensive quote with live rates from major shipping lines!";
       }
       
       const assistantMessage: ChatMessage = {
