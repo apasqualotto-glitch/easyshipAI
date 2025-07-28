@@ -176,7 +176,6 @@ export function Homepage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      
       {/* Prominent Chat Dialog Box - Mobile Optimized */}
       <section className="pt-16 sm:pt-24 pb-6 sm:pb-8 px-3 sm:px-4">
           <div className="max-w-4xl mx-auto">
@@ -202,7 +201,7 @@ export function Homepage() {
                 <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
                   {chatMessages.length === 0 ? (
                     <div className="flex justify-start">
-                      <div className="bg-white border border-gray-200 px-3 sm:px-4 py-2 sm:py-3 rounded-2xl rounded-bl-md shadow-sm max-w-full sm:max-w-md">
+                      <div className="bg-white border border-gray-200 px-3 sm:px-4 py-2 sm:py-3 rounded-2xl rounded-bl-md shadow-sm max-w-full sm:max-w-md ml-[0px] mr-[0px] pl-[16px] pr-[16px] text-[17px]">
                         <div className="text-xs sm:text-sm text-gray-900 leading-relaxed">
                           <div className="font-semibold mb-2">👋 Welcome to EasyShip AI!</div>
                           <div className="mb-3">I'm your personal shipping assistant for container imports to South Africa.</div>
@@ -368,7 +367,6 @@ export function Homepage() {
           </Card>
         </div>
       </section>
-
       {/* Alternative: Manual Calculator Section - Mobile Optimized */}
       <section className="pb-8 sm:pb-12 px-3 sm:px-4">
         <div className="max-w-4xl mx-auto text-center">
@@ -393,7 +391,6 @@ export function Homepage() {
           </Link>
         </div>
       </section>
-      
       {/* Features Section - Mobile Optimized */}
       <section className="pb-12 sm:pb-16 px-3 sm:px-4">
         <div className="max-w-6xl mx-auto text-center">
@@ -428,7 +425,6 @@ export function Homepage() {
           </div>
         </div>
       </section>
-
       {/* Stats Section - Mobile Optimized */}
       <section className="py-12 sm:py-16 bg-white">
         <div className="max-w-6xl mx-auto px-3 sm:px-4">
@@ -449,7 +445,6 @@ export function Homepage() {
           </div>
         </div>
       </section>
-
       {/* Detailed Features Section - Mobile Optimized */}
       <section className="py-12 sm:py-16 lg:py-20 px-3 sm:px-4">
         <div className="max-w-6xl mx-auto">
@@ -496,7 +491,6 @@ export function Homepage() {
           </div>
         </div>
       </section>
-
       {/* Benefits Section - Mobile Optimized */}
       <section className="py-12 sm:py-16 lg:py-20 bg-gray-50">
         <div className="max-w-6xl mx-auto px-3 sm:px-4">
@@ -526,7 +520,6 @@ export function Homepage() {
           </div>
         </div>
       </section>
-
       {/* How It Works Section */}
       <section className="py-20 px-4">
         <div className="max-w-6xl mx-auto">
@@ -590,7 +583,6 @@ export function Homepage() {
           </div>
         </div>
       </section>
-
       {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
         <div className="max-w-4xl mx-auto text-center px-4">
