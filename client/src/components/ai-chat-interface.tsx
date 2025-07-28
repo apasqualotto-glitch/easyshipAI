@@ -299,8 +299,8 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
             )}
 
             {/* Chat Messages */}
-            <ScrollArea className="h-64 mb-4">
-              <div className="space-y-4">
+            <ScrollArea className="h-80 mb-4">
+              <div className="space-y-4 px-2">
                 {messages.map((message) => (
                   <div key={message.id} className={cn(
                     "flex gap-3",
@@ -312,12 +312,12 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
                       </div>
                     )}
                     <div className={cn(
-                      "max-w-[80%] p-3 rounded-lg",
+                      "max-w-[95%] p-4 rounded-lg",
                       message.role === 'user' 
                         ? "bg-blue-600 text-white" 
                         : "bg-gray-100 text-gray-900"
                     )}>
-                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                      <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
                       {message.role === 'assistant' && (
                         message.content.toLowerCase().includes('calculator') || 
                         message.content.toLowerCase().includes('detailed quote')

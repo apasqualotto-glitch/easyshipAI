@@ -7,6 +7,7 @@ FreightCalc SA is a full-stack web application that calculates comprehensive shi
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Chat interface: Wider message bubbles for better readability and user experience.
 
 ## System Architecture
 
