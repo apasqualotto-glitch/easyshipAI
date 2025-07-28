@@ -133,6 +133,25 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
     }
   };
 
+  // Listen for quick chat messages from homepage
+  useEffect(() => {
+    const handleQuickMessage = (event: CustomEvent) => {
+      const message = event.detail?.message;
+      if (message) {
+        setIsExpanded(true);
+        setTimeout(() => {
+          sendMessage(message);
+        }, 300); // Small delay to allow expansion animation
+      }
+    };
+
+    window.addEventListener('openChatWithMessage', handleQuickMessage as EventListener);
+    
+    return () => {
+      window.removeEventListener('openChatWithMessage', handleQuickMessage as EventListener);
+    };
+  }, [sendMessage]);
+
   const handleQuickQuestion = (question: string) => {
     sendMessage(question);
     if (!isExpanded) {

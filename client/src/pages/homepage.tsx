@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { AIChatInterface } from "@/components/ai-chat-interface";
 import { 
   Ship,
@@ -16,7 +17,9 @@ import {
   Clock,
   Users,
   BookOpen,
-  MessageSquare
+  MessageSquare,
+  Send,
+  Sparkles
 } from "lucide-react";
 
 const FEATURES = [
@@ -78,118 +81,135 @@ const STATS = [
 
 export function Homepage() {
   const [activeFeature, setActiveFeature] = useState<number | null>(null);
+  const [chatMessage, setChatMessage] = useState("");
+
+
+  const handleQuickChat = () => {
+    if (!chatMessage.trim()) return;
+    
+    // Store the message temporarily and open the chat interface
+    sessionStorage.setItem('pendingChatMessage', chatMessage);
+    
+    // Trigger the chat interface to expand and use the message
+    const event = new CustomEvent('openChatWithMessage', { 
+      detail: { message: chatMessage } 
+    });
+    window.dispatchEvent(event);
+    
+    setChatMessage("");
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleQuickChat();
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       {/* AI Chat Interface - Always Available */}
       <AIChatInterface context="homepage" />
       
-      {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4">
-        <div className="max-w-6xl mx-auto text-center">
-          <Badge className="mb-6 bg-blue-100 text-blue-800 border-blue-200">
-            ✨ New: AI-Powered Shipping Assistant
-          </Badge>
+      {/* Prominent Chat Dialog Box */}
+      <section className="pt-24 pb-8 px-4">
+        <div className="max-w-4xl mx-auto">
+          <Card className="bg-white shadow-xl border-0 mb-8">
+            <CardHeader className="text-center pb-4">
+              <div className="flex justify-center mb-2">
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
+                  <Sparkles className="h-6 w-6 text-white" />
+                </div>
+              </div>
+              <CardTitle className="text-xl text-gray-900">Ask EasyShip AI anything about container shipping</CardTitle>
+              <CardDescription className="text-gray-600">
+                Get instant answers about customs, incoterms, costs, and shipping procedures
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="relative">
+                <Input
+                  value={chatMessage}
+                  onChange={(e) => setChatMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Ask me: What's the difference between FOB and CIF? or How much to ship from China?"
+                  className="pr-12 h-14 text-lg bg-gray-50 border-gray-200 focus:bg-white"
+
+                />
+                <Button
+                  onClick={handleQuickChat}
+                  disabled={!chatMessage.trim()}
+                  className="absolute right-2 top-2 h-10 w-10 p-0 bg-blue-600 hover:bg-blue-700"
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              {/* Quick suggestion buttons */}
+              <div className="flex flex-wrap gap-2 mt-3">
+                {[
+                  "Calculate shipping from Shanghai to Johannesburg",
+                  "What documents do I need for importing?",
+                  "Explain FOB vs CIF pricing",
+                  "How do customs duties work?"
+                ].map((suggestion, index) => (
+                  <Button
+                    key={index}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs text-blue-700 border-blue-200 hover:bg-blue-50"
+                    onClick={() => setChatMessage(suggestion)}
+                  >
+                    {suggestion}
+                  </Button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* Alternative: Manual Calculator Section */}
+      <section className="pb-12 px-4">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="flex items-center justify-center mb-6">
+            <div className="h-px bg-gray-300 flex-1"></div>
+            <span className="px-4 text-gray-500 text-sm font-medium">OR USE MANUAL CALCULATOR</span>
+            <div className="h-px bg-gray-300 flex-1"></div>
+          </div>
           
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-            Ship to South Africa
-            <span className="block text-blue-600">Made Simple</span>
-          </h1>
-          
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-            EasyShip AI guides first-time importers through container shipping with plain-language explanations, 
-            SARS-compliant quotes, and step-by-step booking assistance.
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            Get Instant Shipping Quotes
+          </h2>
+          <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+            Use our step-by-step calculator for detailed freight cost estimates including customs, duties, and door-to-door delivery.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Link href="/calculator">
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg">
-                <Calculator className="mr-2 h-5 w-5" />
-                Get Shipping Quote
-              </Button>
-            </Link>
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="border-blue-300 text-blue-700 hover:bg-blue-50 px-8 py-4 text-lg"
-              onClick={() => document.querySelector('.fixed')?.scrollIntoView({ behavior: 'smooth' })}
-            >
-              <MessageSquare className="mr-2 h-5 w-5" />
-              Chat with AI
+          <Link href="/calculator">
+            <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg">
+              <Calculator className="mr-2 h-5 w-5" />
+              Start Manual Calculator
             </Button>
-          </div>
-
-          {/* AI Assistant Dialogue Box */}
-          <div className="max-w-4xl mx-auto mb-16">
-            <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 shadow-lg">
-              <CardHeader className="text-center">
-                <div className="flex justify-center mb-4">
-                  <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center">
-                    <MessageSquare className="h-8 w-8 text-white" />
-                  </div>
-                </div>
-                <CardTitle className="text-2xl text-blue-800">Meet Your AI Shipping Assistant</CardTitle>
-                <CardDescription className="text-lg text-blue-700">
-                  Get instant help with container shipping questions - designed for first-time importers
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <h4 className="font-semibold text-blue-800 mb-3">Ask me anything like:</h4>
-                    <ul className="space-y-2 text-blue-700">
-                      <li className="flex items-start gap-2">
-                        <CheckCircle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                        "What's the difference between FOB and CIF pricing?"
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <CheckCircle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                        "How do I calculate customs duties for electronics?"
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <CheckCircle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                        "What documents do I need for importing to South Africa?"
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <CheckCircle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                        "Should I use a 20ft or 40ft container for my shipment?"
-                      </li>
-                    </ul>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-blue-800 mb-3">Perfect for first-time shippers who need:</h4>
-                    <ul className="space-y-2 text-blue-700">
-                      <li className="flex items-start gap-2">
-                        <Users className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                        Plain language explanations of shipping terms
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <BookOpen className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                        Step-by-step guidance through the import process
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <Shield className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                        SARS compliance and customs regulation help
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <TrendingUp className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                        Cost optimization tips and container selection advice
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-                <div className="text-center mt-6">
-                  <Button 
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                    onClick={() => document.querySelector('.fixed')?.scrollIntoView({ behavior: 'smooth' })}
-                  >
-                    <MessageSquare className="mr-2 h-4 w-4" />
-                    Start Chatting Now
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          </Link>
+        </div>
+      </section>
+      
+      {/* Features Section */}
+      <section className="pb-16 px-4">
+        <div className="max-w-6xl mx-auto text-center">
+          <Badge className="mb-6 bg-blue-100 text-blue-800 border-blue-200">
+            Complete Shipping Platform
+          </Badge>
+          
+          <h2 className="text-4xl font-bold text-gray-900 mb-4 leading-tight">
+            Everything You Need to
+            <span className="block text-blue-600">Ship to South Africa</span>
+          </h2>
+          
+          <p className="text-lg text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
+            From AI-powered quotes to carrier booking, customs guidance, and door-to-door tracking - 
+            we make international shipping simple for first-time importers.
+          </p>
 
           {/* Trust Indicators */}
           <div className="flex flex-wrap justify-center items-center gap-8 text-gray-500 mb-16">
