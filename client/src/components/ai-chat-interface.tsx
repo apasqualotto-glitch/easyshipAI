@@ -378,7 +378,7 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
             )}
 
             {/* Chat Messages */}
-            <ScrollArea className="h-80 mb-4">
+            <ScrollArea className="h-96 mb-4">
               <div className="space-y-4 px-2">
                 {messages.map((message) => (
                   <div key={message.id} className={cn(
@@ -391,12 +391,12 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
                       </div>
                     )}
                     <div className={cn(
-                      "max-w-[95%] p-4 rounded-lg",
+                      "max-w-[85%] p-5 rounded-lg",
                       message.role === 'user' 
                         ? "bg-blue-600 text-white" 
                         : "bg-gray-100 text-gray-900"
                     )}>
-                      <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                      <p className="text-base whitespace-pre-wrap leading-relaxed">{message.content}</p>
                       {message.role === 'assistant' && (
                         message.content.toLowerCase().includes('calculator') || 
                         message.content.toLowerCase().includes('detailed quote') ||
@@ -407,7 +407,7 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
                           <Button
                             size="sm"
                             onClick={() => generateQuote(message.content)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                            className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2"
                           >
                             <Calculator className="h-4 w-4 mr-2" />
                             Click for Detailed Quote
@@ -415,7 +415,7 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
                         </div>
                       )}
                       <p className={cn(
-                        "text-xs mt-1 opacity-70",
+                        "text-xs mt-2 opacity-70",
                         message.role === 'user' ? "text-blue-100" : "text-gray-500"
                       )}>
                         {message.timestamp.toLocaleTimeString()}
