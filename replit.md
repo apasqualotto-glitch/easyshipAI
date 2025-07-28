@@ -9,7 +9,8 @@ FreightCalc SA is a full-stack web application that calculates comprehensive shi
 Preferred communication style: Simple, everyday language.
 Chat interface: Wider message bubbles for better readability and user experience.
 User-friendly guidance: Always tell users explicitly to "click the calculator" for detailed quotes - make buttons and actions crystal clear.
-Auto-quote generation: AI automatically fills manual calculator and displays detailed quotes below chat when sufficient information is provided (origin + destination + container type).
+Form auto-population: AI chat extracts shipping information from conversation and automatically fills the manual calculator form fields below, allowing users to complete missing fields and get quotes through the calculator system.
+Layout preference: Calculator form should be fully visible below chat interface, not hidden or requiring button clicks to access.
 
 ## System Architecture
 
@@ -103,6 +104,15 @@ The application follows a monorepo structure with a clear separation between cli
 The application is designed for easy migration from in-memory storage to PostgreSQL database, with all database operations abstracted behind a storage interface.
 
 ## Recent Changes
+
+- **NEW FEATURE: AI Chat Auto-Populates Manual Calculator Form** - July 28, 2025
+  - **Seamless Integration**: AI chat extracts shipping details and auto-fills calculator form fields in real-time
+  - **Always Visible Layout**: Calculator form is fully open below chat interface on calculator page
+  - **Smart Field Extraction**: Detects origin, destination, container type, cargo value, incoterm from natural language
+  - **User-Friendly Flow**: Users chat naturally, form fills automatically, they complete missing fields
+  - **Visual Indicators**: Clear messaging shows form is being auto-populated from chat
+  - **Toast Notifications**: Confirms when form fields are populated from AI extraction
+  - **Context-Aware UI**: Chat interface adapts based on page context (calculator vs other pages)
 
 - **NEW FEATURE: Detailed Quote Display with Carrier Options** - July 28, 2025
   - **Visual Quote Component**: Created comprehensive quote display modal with cost breakdown and carrier comparison

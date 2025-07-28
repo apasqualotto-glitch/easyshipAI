@@ -57,16 +57,18 @@ export default function Calculator() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* AI Chat Interface with form auto-population */}
-      <AIChatInterface 
-        context="calculator" 
-        onExtractedData={handleAIChatExtraction}
-      />
-      
       <Header />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-20">
         <Hero />
+        
+        {/* AI Chat Interface directly in the page flow */}
+        <div className="mb-8">
+          <AIChatInterface 
+            context="calculator" 
+            onExtractedData={handleAIChatExtraction}
+          />
+        </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
