@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -80,14 +80,51 @@ const STATS = [
   { number: "24/7", label: "AI Support", subtext: "Always here to help" }
 ];
 
+interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+}
+
 export function Homepage() {
   const [activeFeature, setActiveFeature] = useState<number | null>(null);
   const [chatMessage, setChatMessage] = useState("");
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
+    {
+      id: '1',
+      role: 'assistant',
+      content: "👋 Hi! I'm here to help with container shipping to South Africa. Ask me about costs, customs, documentation, or get instant quotes!",
+      timestamp: new Date()
+    }
+  ]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isChatExpanded, setIsChatExpanded] = useState(false);
+  const chatMessagesRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (chatMessagesRef.current) {
+      chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
+    }
+  }, [chatMessages]);
 
 
 
   const handleQuickChat = async () => {
-    if (!chatMessage.trim()) return;
+    if (!chatMessage.trim() || isLoading) return;
+    
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: chatMessage,
+      timestamp: new Date()
+    };
+    
+    setChatMessages(prev => [...prev, userMessage]);
+    setChatMessage("");
+    setIsLoading(true);
+    setIsChatExpanded(true);
     
     try {
       const response = await fetch('/api/chat', {
@@ -98,23 +135,42 @@ export function Homepage() {
         body: JSON.stringify({
           message: chatMessage,
           context: { page: 'homepage' },
-          conversationHistory: []
+          conversationHistory: chatMessages.slice(-5).map(msg => ({
+            role: msg.role,
+            content: msg.content
+          }))
         }),
       });
 
       if (response.ok) {
         const data = await response.json();
-        // Display the response - for now we'll show it in an alert, 
-        // but later this could be integrated with a proper chat interface
-        alert(`AI Response: ${data.response}`);
+        const assistantMessage: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: data.response,
+          timestamp: new Date()
+        };
+        setChatMessages(prev => [...prev, assistantMessage]);
       } else {
-        alert("Sorry, I'm having trouble connecting right now. Please try the manual calculator below.");
+        const errorMessage: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: "Sorry, I'm having trouble connecting right now. Please try the manual calculator below for instant quotes.",
+          timestamp: new Date()
+        };
+        setChatMessages(prev => [...prev, errorMessage]);
       }
     } catch (error) {
-      alert("Sorry, I'm having trouble connecting right now. Please try the manual calculator below.");
+      const errorMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: "Sorry, I'm having trouble connecting right now. Please try the manual calculator below for instant quotes.",
+        timestamp: new Date()
+      };
+      setChatMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
     }
-    
-    setChatMessage("");
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -131,7 +187,10 @@ export function Homepage() {
       <section className="pt-24 pb-8 px-4">
           <div className="max-w-4xl mx-auto">
             <Card className="bg-white shadow-xl border-0 mb-8">
-              <CardHeader className="text-center pb-4">
+              <CardHeader 
+                className="text-center pb-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                onClick={() => setIsChatExpanded(!isChatExpanded)}
+              >
                 <div className="flex justify-center mb-2">
                   <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
                     <Sparkles className="h-6 w-6 text-white" />
@@ -143,6 +202,39 @@ export function Homepage() {
                 </CardDescription>
               </CardHeader>
             <CardContent className="pt-0">
+              
+              {/* Chat Messages */}
+              {isChatExpanded && (
+                <div 
+                  ref={chatMessagesRef}
+                  className="mb-4 border rounded-lg bg-gray-50 max-h-80 overflow-y-auto"
+                >
+                  <div className="p-4 space-y-4">
+                    {chatMessages.map((msg) => (
+                      <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                          msg.role === 'user' 
+                            ? 'bg-blue-600 text-white' 
+                            : 'bg-white border border-gray-200 text-gray-900'
+                        }`}>
+                          <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
+                        </div>
+                      </div>
+                    ))}
+                    {isLoading && (
+                      <div className="flex justify-start">
+                        <div className="bg-white border border-gray-200 px-4 py-2 rounded-lg">
+                          <div className="flex items-center space-x-2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent"></div>
+                            <span className="text-sm text-gray-600">Thinking...</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              
               <div className="relative">
                 <Input
                   value={chatMessage}
@@ -150,36 +242,42 @@ export function Homepage() {
                   onKeyPress={handleKeyPress}
                   placeholder="Ask me: What's the difference between FOB and CIF? or How much to ship from China?"
                   className="pr-12 h-14 text-lg bg-gray-50 border-gray-200 focus:bg-white"
-
+                  disabled={isLoading}
                 />
                 <Button
                   onClick={handleQuickChat}
-                  disabled={!chatMessage.trim()}
+                  disabled={!chatMessage.trim() || isLoading}
                   className="absolute right-2 top-2 h-10 w-10 p-0 bg-blue-600 hover:bg-blue-700"
                 >
-                  <Send className="h-4 w-4" />
+                  {isLoading ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
               
               {/* Quick suggestion buttons */}
-              <div className="flex flex-wrap gap-2 mt-3">
-                {[
-                  "Calculate shipping from Shanghai to Johannesburg",
-                  "What documents do I need for importing?",
-                  "Explain FOB vs CIF pricing",
-                  "How do customs duties work?"
-                ].map((suggestion, index) => (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    size="sm"
-                    className="text-xs text-blue-700 border-blue-200 hover:bg-blue-50"
-                    onClick={() => setChatMessage(suggestion)}
-                  >
-                    {suggestion}
-                  </Button>
-                ))}
-              </div>
+              {!isChatExpanded && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {[
+                    "Calculate shipping from Shanghai to Johannesburg",
+                    "What documents do I need for importing?", 
+                    "Explain FOB vs CIF pricing",
+                    "How do customs duties work?"
+                  ].map((suggestion, index) => (
+                    <Button
+                      key={index}
+                      variant="outline"
+                      size="sm"
+                      className="text-xs text-blue-700 border-blue-200 hover:bg-blue-50"
+                      onClick={() => setChatMessage(suggestion)}
+                    >
+                      {suggestion}
+                    </Button>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
