@@ -280,12 +280,25 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
                                  messageContent.toLowerCase().includes('quote') ||
                                  messageContent.toLowerCase().includes('ship');
       
+      console.log('Quote generation check:', {
+        hasOrigin,
+        hasDestination,
+        hasContainer,
+        hasValue,
+        hasSufficientInfo,
+        shouldGenerateQuote,
+        messageContent: messageContent.toLowerCase().substring(0, 50) + '...'
+      });
+
       if (shouldGenerateQuote) {
+        console.log('✅ Triggering automatic quote generation');
         // Use AI response content to extract better shipping details
         const fullContext = messageContent + " " + aiResponse;
         setTimeout(() => {
           generateQuote(fullContext);
         }, 1000); // Slightly longer delay to let AI response fully appear
+      } else {
+        console.log('❌ Quote generation not triggered');
       }
       
     } catch (error) {
