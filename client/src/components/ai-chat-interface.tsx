@@ -182,8 +182,20 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
       
       // Add calculator suggestion for relevant shipping queries
       let aiResponse = data.response;
-      if ((messageContent.toLowerCase().includes('quote') || messageContent.toLowerCase().includes('cost')) && 
-          (messageContent.toLowerCase().includes('china') || messageContent.toLowerCase().includes('container'))) {
+      
+      // Add detailed quote offer for shipping-related messages
+      const hasShippingKeywords = messageContent.toLowerCase().includes('ship') ||
+                                 messageContent.toLowerCase().includes('container') ||
+                                 messageContent.toLowerCase().includes('freight') ||
+                                 messageContent.toLowerCase().includes('quote') ||
+                                 messageContent.toLowerCase().includes('cost') ||
+                                 messageContent.toLowerCase().includes('price') ||
+                                 messageContent.toLowerCase().includes('from') ||
+                                 messageContent.toLowerCase().includes('china') ||
+                                 messageContent.toLowerCase().includes('europe') ||
+                                 messageContent.toLowerCase().includes('usa');
+      
+      if (hasShippingKeywords && !aiResponse.toLowerCase().includes('detailed quote')) {
         aiResponse += "\n\n💡 **Would you like a detailed quote with carrier options?** Click the calculator button below for a comprehensive quote with live rates from major shipping lines!";
       }
       
@@ -355,7 +367,9 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
                       <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
                       {message.role === 'assistant' && (
                         message.content.toLowerCase().includes('calculator') || 
-                        message.content.toLowerCase().includes('detailed quote')
+                        message.content.toLowerCase().includes('detailed quote') ||
+                        message.content.toLowerCase().includes('click the calculator') ||
+                        message.content.toLowerCase().includes('comprehensive quote')
                       ) && (
                         <div className="mt-3 pt-3 border-t border-gray-200">
                           <Button
