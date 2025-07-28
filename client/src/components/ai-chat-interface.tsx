@@ -172,8 +172,10 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
         }
       };
 
+      console.log('📊 Generated detailed quote:', detailedQuote);
       setCurrentQuote(detailedQuote);
       setShowQuoteDisplay(true);
+      console.log('✅ Quote display should now be visible');
     } catch (error) {
       console.error('Error generating quote:', error);
     }
@@ -500,18 +502,20 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
         )}
       </Card>
       
-      {/* Quote Display Modal */}
+      {/* Quote Display - Positioned below chat dialog */}
       {showQuoteDisplay && currentQuote && (
-        <QuoteDisplay
-          quote={currentQuote}
-          isVisible={showQuoteDisplay}
-          onClose={() => setShowQuoteDisplay(false)}
-          onBookShipment={(carrier: string) => {
-            console.log('Booking with carrier:', carrier);
-            setShowQuoteDisplay(false);
-            // Add booking logic here
-          }}
-        />
+        <div className="mt-4">
+          <QuoteDisplay
+            quote={currentQuote}
+            isVisible={showQuoteDisplay}
+            onClose={() => setShowQuoteDisplay(false)}
+            onBookShipment={(carrier: string) => {
+              console.log('Booking with carrier:', carrier);
+              setShowQuoteDisplay(false);
+              // Add booking logic here
+            }}
+          />
+        </div>
       )}
     </div>
   );
