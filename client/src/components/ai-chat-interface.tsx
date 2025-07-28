@@ -86,23 +86,32 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
     try {
       console.log('🔍 Extracting shipping details from:', messageContent);
 
-      // Map chat locations to actual port IDs from the database
-      const getOriginPortId = (msg: string) => {
+      // Map chat locations to actual port CODES from the database
+      const getOriginPortCode = (msg: string) => {
         const lower = msg.toLowerCase();
-        if (lower.includes('new york') || lower.includes('usa') || lower.includes('america')) return 'port_new_york';
-        if (lower.includes('los angeles')) return 'port_los_angeles';
-        if (lower.includes('china') || lower.includes('shanghai')) return 'port_shanghai';
-        if (lower.includes('europe') || lower.includes('germany') || lower.includes('hamburg')) return 'port_hamburg';
-        if (lower.includes('india') || lower.includes('mumbai')) return 'port_mumbai';
-        return 'port_shanghai'; // default
+        if (lower.includes('new york') || lower.includes('usa') || lower.includes('america')) return 'USNYC'; // New York, USA
+        if (lower.includes('los angeles')) return 'USLAX'; // Los Angeles, USA  
+        if (lower.includes('china') || lower.includes('shanghai')) return 'CNSHA'; // Shanghai, China
+        if (lower.includes('europe') || lower.includes('germany') || lower.includes('hamburg')) return 'DEHAM'; // Hamburg, Germany
+        if (lower.includes('india') || lower.includes('mumbai')) return 'INMUN'; // Mumbai, India
+        return 'CNSHA'; // default to Shanghai
       };
 
-      const getDestinationPortId = (msg: string) => {
+      const getDestinationPortCode = (msg: string) => {
         const lower = msg.toLowerCase();
-        if (lower.includes('cape town')) return 'port_cape_town';
-        if (lower.includes('durban')) return 'port_durban';
-        if (lower.includes('johannesburg')) return 'dest_johannesburg';
-        return 'port_cape_town'; // default
+        if (lower.includes('cape town')) return 'ZACPT'; // Cape Town
+        if (lower.includes('durban')) return 'ZADUR'; // Durban
+        if (lower.includes('port elizabeth') || lower.includes('gqeberha')) return 'ZAPEZ'; // Port Elizabeth
+        return 'ZACPT'; // default to Cape Town
+      };
+
+      const getFinalDestinationName = (msg: string) => {
+        const lower = msg.toLowerCase();
+        if (lower.includes('cape town')) return 'Cape Town, Western Cape';
+        if (lower.includes('durban')) return 'Durban, KwaZulu-Natal';
+        if (lower.includes('johannesburg')) return 'Johannesburg, Gauteng';
+        if (lower.includes('pretoria')) return 'Pretoria, Gauteng';
+        return 'Cape Town, Western Cape'; // default
       };
 
       const getContainerType = (msg: string) => {
@@ -121,11 +130,11 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
 
       const getCargoType = (msg: string) => {
         const lower = msg.toLowerCase();
-        if (lower.includes('electronics')) return 'cargo_electronics';
-        if (lower.includes('shoes') || lower.includes('footwear')) return 'cargo_footwear';
-        if (lower.includes('machinery')) return 'cargo_machinery';
-        if (lower.includes('textiles') || lower.includes('clothing')) return 'cargo_textiles';
-        return 'cargo_electronics';
+        if (lower.includes('electronics')) return 'Electronics';
+        if (lower.includes('shoes') || lower.includes('footwear')) return 'Textiles & Clothing';
+        if (lower.includes('machinery')) return 'General Cargo';
+        if (lower.includes('textiles') || lower.includes('clothing')) return 'Textiles & Clothing';
+        return 'General Cargo'; // default
       };
 
       const getIncoterm = (msg: string) => {
@@ -139,9 +148,9 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
 
       // Create the same quote request structure as manual calculator
       const quoteRequest = {
-        originPort: getOriginPortId(messageContent),
-        destinationPort: getDestinationPortId(messageContent),
-        finalDestination: getDestinationPortId(messageContent),
+        originPort: getOriginPortCode(messageContent),
+        destinationPort: getDestinationPortCode(messageContent),
+        finalDestination: getFinalDestinationName(messageContent),
         containerType: getContainerType(messageContent),
         cargoType: getCargoType(messageContent),
         incoterm: getIncoterm(messageContent),
