@@ -86,61 +86,165 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
   // Extract helper functions
   const getOriginPortCode = (msg: string) => {
     const lower = msg.toLowerCase();
-    if (lower.includes('new york') || lower.includes('usa') || lower.includes('america')) return 'USNYC'; // New York, USA
-    if (lower.includes('los angeles')) return 'USLAX'; // Los Angeles, USA  
-    if (lower.includes('china') || lower.includes('shanghai')) return 'CNSHA'; // Shanghai, China
-    if (lower.includes('europe') || lower.includes('germany') || lower.includes('hamburg')) return 'DEHAM'; // Hamburg, Germany
-    if (lower.includes('india') || lower.includes('mumbai')) return 'INMUN'; // Mumbai, India
-    return ''; // no default
+    // Major US ports
+    if (lower.includes('new york') || lower.includes('ny')) return 'USNYC';
+    if (lower.includes('los angeles') || lower.includes('la')) return 'USLAX';
+    if (lower.includes('long beach')) return 'USLGB';
+    if (lower.includes('seattle')) return 'USSEA';
+    if (lower.includes('oakland')) return 'USOAK';
+    if (lower.includes('usa') || lower.includes('america')) return 'USNYC'; // Default to New York for USA
+    
+    // Major Chinese ports
+    if (lower.includes('shanghai')) return 'CNSHA';
+    if (lower.includes('shenzhen') || lower.includes('yantian')) return 'CNSZX';
+    if (lower.includes('ningbo')) return 'CNNGB';
+    if (lower.includes('qingdao')) return 'CNTAO';
+    if (lower.includes('tianjin')) return 'CNTSN';
+    if (lower.includes('china') && !lower.includes('specific')) return 'CNSHA'; // Default to Shanghai for China
+    
+    // European ports
+    if (lower.includes('hamburg') || lower.includes('germany')) return 'DEHAM';
+    if (lower.includes('rotterdam') || lower.includes('netherlands')) return 'NLRTM';
+    if (lower.includes('antwerp') || lower.includes('belgium')) return 'BEANR';
+    if (lower.includes('felixstowe') || lower.includes('uk') || lower.includes('england')) return 'GBFXT';
+    if (lower.includes('europe') && !lower.includes('specific')) return 'DEHAM'; // Default to Hamburg for Europe
+    
+    // Other major ports
+    if (lower.includes('singapore')) return 'SGSIN';
+    if (lower.includes('hong kong')) return 'HKHKG';
+    if (lower.includes('busan') || lower.includes('korea')) return 'KRPUS';
+    if (lower.includes('tokyo') || lower.includes('japan')) return 'JPTYO';
+    if (lower.includes('mumbai') || lower.includes('india')) return 'INMUN';
+    
+    return '';
   };
 
   const getDestinationPortCode = (msg: string) => {
     const lower = msg.toLowerCase();
-    if (lower.includes('cape town')) return 'ZACPT'; // Cape Town
-    if (lower.includes('durban')) return 'ZADUR'; // Durban
-    if (lower.includes('port elizabeth') || lower.includes('gqeberha')) return 'ZAPEZ'; // Port Elizabeth
-    return ''; // no default
+    if (lower.includes('cape town') || lower.includes('cpt')) return 'ZACPT';
+    if (lower.includes('durban') || lower.includes('dbn')) return 'ZADUR';
+    if (lower.includes('port elizabeth') || lower.includes('gqeberha') || lower.includes('pe')) return 'ZAPEZ';
+    if (lower.includes('mossel bay')) return 'ZAMOB';
+    if (lower.includes('east london')) return 'ZAELS';
+    // Default to Durban if South Africa is mentioned but no specific port
+    if (lower.includes('south africa') && !lower.includes('specific')) return 'ZADUR';
+    return '';
   };
 
   const getFinalDestinationName = (msg: string) => {
     const lower = msg.toLowerCase();
-    if (lower.includes('cape town')) return 'Cape Town, Western Cape';
-    if (lower.includes('durban')) return 'Durban, KwaZulu-Natal';
-    if (lower.includes('johannesburg')) return 'Johannesburg, Gauteng';
-    if (lower.includes('pretoria')) return 'Pretoria, Gauteng';
-    return ''; // no default
+    if (lower.includes('cape town') || lower.includes('cpt')) return 'Cape Town, Western Cape';
+    if (lower.includes('durban') || lower.includes('dbn')) return 'Durban, KwaZulu-Natal';
+    if (lower.includes('johannesburg') || lower.includes('joburg') || lower.includes('jozi')) return 'Johannesburg, Gauteng';
+    if (lower.includes('pretoria') || lower.includes('pta')) return 'Pretoria, Gauteng';
+    if (lower.includes('port elizabeth') || lower.includes('gqeberha') || lower.includes('pe')) return 'Port Elizabeth, Eastern Cape';
+    if (lower.includes('bloemfontein')) return 'Bloemfontein, Free State';
+    if (lower.includes('east london')) return 'East London, Eastern Cape';
+    if (lower.includes('polokwane')) return 'Polokwane, Limpopo';
+    if (lower.includes('nelspruit') || lower.includes('mbombela')) return 'Nelspruit, Mpumalanga';
+    if (lower.includes('kimberley')) return 'Kimberley, Northern Cape';
+    if (lower.includes('mafikeng')) return 'Mafikeng, North West';
+    if (lower.includes('pietermaritzburg')) return 'Pietermaritzburg, KwaZulu-Natal';
+    return '';
   };
 
   const getContainerType = (msg: string) => {
     const lower = msg.toLowerCase();
-    if (lower.includes('40ft') || lower.includes('40 ft')) return '40ft';
-    if (lower.includes('20ft') || lower.includes('20 ft')) return '20ft';
-    return ''; // no default
+    // Container size variations
+    if (lower.includes('40ft') || lower.includes('40 ft') || lower.includes('forty foot') || lower.includes('40-foot')) return '40ft';
+    if (lower.includes('40ft-hc') || lower.includes('40 hc') || lower.includes('high cube') || lower.includes('hc')) return '40ft-hc';
+    if (lower.includes('20ft') || lower.includes('20 ft') || lower.includes('twenty foot') || lower.includes('20-foot')) return '20ft';
+    if (lower.includes('partial') || lower.includes('shared') || lower.includes('lcl') || lower.includes('less than container')) return 'partial';
+    
+    // Default based on context clues
+    if (lower.includes('large') || lower.includes('big')) return '40ft';
+    if (lower.includes('small') || lower.includes('few items')) return '20ft';
+    
+    return '';
   };
 
   const getCargoValue = (msg: string) => {
     const lower = msg.toLowerCase();
-    const valueMatch = lower.match(/(\d+[,\d]*)\s*(?:usd|dollars?|\$)/);
+    
+    // USD formats
+    const usdMatch = lower.match(/\$(\d+[,\d]*)|(\d+[,\d]*)\s*(?:usd|dollars?)/);
+    if (usdMatch) {
+      const value = usdMatch[1] || usdMatch[2];
+      return parseInt(value.replace(/,/g, ''));
+    }
+    
+    // Rand formats (convert to USD approximation)
+    const randMatch = lower.match(/r(\d+[,\d]*)|(\d+[,\d]*)\s*(?:rand|zar)/);
+    if (randMatch) {
+      const value = randMatch[1] || randMatch[2];
+      const randValue = parseInt(value.replace(/,/g, ''));
+      return Math.round(randValue / 18); // Approximate USD conversion
+    }
+    
+    // General number patterns for value
+    const valueMatch = lower.match(/(?:worth|value|cost)\s*(?:of\s*)?(?:\$|r)?(\d+[,\d]*)/);
     if (valueMatch) return parseInt(valueMatch[1].replace(/,/g, ''));
-    return 0; // no default
+    
+    // Common value ranges mentioned
+    if (lower.includes('thousand')) {
+      const numMatch = lower.match(/(\d+)\s*thousand/);
+      if (numMatch) return parseInt(numMatch[1]) * 1000;
+    }
+    
+    return 0;
   };
 
   const getCargoType = (msg: string) => {
     const lower = msg.toLowerCase();
-    if (lower.includes('electronics')) return 'Electronics';
-    if (lower.includes('shoes') || lower.includes('footwear')) return 'Textiles & Clothing';
-    if (lower.includes('machinery')) return 'General Cargo';
-    if (lower.includes('textiles') || lower.includes('clothing')) return 'Textiles & Clothing';
-    return ''; // no default
+    
+    // Electronics & Technology
+    if (lower.includes('electronics') || lower.includes('phones') || lower.includes('computers') || 
+        lower.includes('laptops') || lower.includes('tablets') || lower.includes('gadgets')) return 'electronics';
+    
+    // Textiles & Clothing
+    if (lower.includes('shoes') || lower.includes('footwear') || lower.includes('clothing') || 
+        lower.includes('textiles') || lower.includes('apparel') || lower.includes('garments') ||
+        lower.includes('fashion') || lower.includes('shirts') || lower.includes('pants')) return 'textiles';
+    
+    // Machinery & Equipment
+    if (lower.includes('machinery') || lower.includes('equipment') || lower.includes('tools') || 
+        lower.includes('industrial') || lower.includes('motor') || lower.includes('engine')) return 'machinery';
+    
+    // Food & Agricultural
+    if (lower.includes('food') || lower.includes('agricultural') || lower.includes('grain') || 
+        lower.includes('coffee') || lower.includes('tea') || lower.includes('spices')) return 'food';
+    
+    // Medical & Healthcare
+    if (lower.includes('medical') || lower.includes('pharmaceutical') || lower.includes('healthcare') || 
+        lower.includes('medicine') || lower.includes('drugs')) return 'medical';
+    
+    // Automotive
+    if (lower.includes('automotive') || lower.includes('car parts') || lower.includes('vehicle') || 
+        lower.includes('auto')) return 'automotive';
+    
+    // Furniture & Home
+    if (lower.includes('furniture') || lower.includes('home goods') || lower.includes('appliances')) return 'furniture';
+    
+    // Default to general cargo
+    return 'general';
   };
 
   const getIncoterm = (msg: string) => {
     const lower = msg.toLowerCase();
-    if (lower.includes('fob')) return 'FOB';
-    if (lower.includes('cif')) return 'CIF';
-    if (lower.includes('ddp')) return 'DDP';
-    if (lower.includes('exw')) return 'EXW';
-    return ''; // no default
+    
+    // Exact matches
+    if (lower.includes('fob') || lower.includes('free on board')) return 'FOB';
+    if (lower.includes('cif') || lower.includes('cost insurance freight')) return 'CIF';
+    if (lower.includes('ddp') || lower.includes('delivered duty paid')) return 'DDP';
+    if (lower.includes('exw') || lower.includes('ex works')) return 'EXW';
+    
+    // Context-based detection
+    if (lower.includes('seller pays shipping') || lower.includes('door to door')) return 'DDP';
+    if (lower.includes('buyer arranges shipping') || lower.includes('pick up from factory')) return 'EXW';
+    if (lower.includes('insurance included') && lower.includes('freight')) return 'CIF';
+    if (lower.includes('free on board') || lower.includes('buyer pays from port')) return 'FOB';
+    
+    return '';
   };
 
 
@@ -257,56 +361,47 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
 
       // Extract shipping data and pass to calculator form
       if (onExtractedData && hasShippingKeywords) {
+        // Extract from the entire conversation context for better accuracy
+        const fullConversation = messages.map(m => m.content).concat(messageContent).join(' ');
         const extractedData: Partial<any> = {};
         
-        // Extract origin port
-        if (hasOrigin) {
-          extractedData.originPort = getOriginPortCode(messageContent);
+        const originCode = getOriginPortCode(fullConversation);
+        if (originCode) extractedData.originPort = originCode;
+        
+        const destCode = getDestinationPortCode(fullConversation);
+        if (destCode) {
+          extractedData.destinationPort = destCode;
+          const finalDest = getFinalDestinationName(fullConversation);
+          if (finalDest) extractedData.finalDestination = finalDest;
         }
         
-        // Extract destination
-        if (hasDestination) {
-          extractedData.destinationPort = getDestinationPortCode(messageContent);
-          extractedData.finalDestination = getFinalDestinationName(messageContent);
+        const container = getContainerType(fullConversation);
+        if (container) extractedData.containerType = container;
+        
+        const value = getCargoValue(fullConversation);
+        if (value > 0) extractedData.value = value;
+        
+        const incoterm = getIncoterm(fullConversation);
+        if (incoterm) extractedData.incoterm = incoterm;
+        
+        const cargoType = getCargoType(fullConversation);
+        if (cargoType) extractedData.cargoType = cargoType;
+        
+        // Extract weight if mentioned
+        const weightMatch = fullConversation.toLowerCase().match(/(\d+[,\d]*)\s*(?:kg|kilograms?|tons?)/);
+        if (weightMatch) {
+          const weight = parseInt(weightMatch[1].replace(/,/g, ''));
+          extractedData.weight = weight;
         }
         
-        // Extract container type
-        if (hasContainer) {
-          extractedData.containerType = getContainerType(messageContent);
-        }
+        console.log('🔍 Extracted data from conversation:', extractedData);
         
-        // Extract cargo value
-        if (hasValue) {
-          extractedData.value = getCargoValue(messageContent);
-        }
-        
-        // Extract incoterm
-        const incotermValue = getIncoterm(messageContent);
-        if (incotermValue) {
-          extractedData.incoterm = incotermValue;
-        }
-        
-        // Extract cargo type if mentioned
-        const cargoTypeValue = getCargoType(messageContent);
-        if (cargoTypeValue && cargoTypeValue !== 'General Cargo') {
-          extractedData.cargoType = cargoTypeValue;
-        }
-        
-        console.log('🔄 Passing extracted data to calculator form:', extractedData);
-        onExtractedData(extractedData);
-        
-        // Add message about auto-population
         if (Object.keys(extractedData).length > 0) {
-          setTimeout(() => {
-            const autoFillMessage: ChatMessage = {
-              id: (Date.now() + 2).toString(),
-              role: 'assistant',
-              content: "✅ I've auto-filled the calculator form with the information you provided. Please review and complete any missing fields to get your detailed quote!",
-              timestamp: new Date()
-            };
-            setMessages(prev => [...prev, autoFillMessage]);
-          }, 1500);
+          onExtractedData(extractedData);
         }
+        
+
+
       }
       
     } catch (error) {

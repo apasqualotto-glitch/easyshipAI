@@ -82,7 +82,37 @@ export function Homepage() {
 
   const handleAIChatExtraction = (extractedData: any) => {
     console.log('📝 AI Chat extracted:', extractedData);
-    setFormValues(extractedData);
+    
+    // Update form values with extracted data
+    setFormValues(prevValues => ({
+      ...prevValues,
+      ...extractedData
+    }));
+    
+    // Show toast notification for successful extraction
+    const fieldCount = Object.keys(extractedData).length;
+    if (fieldCount > 0) {
+      const fieldNames = Object.keys(extractedData).map(key => {
+        // Convert field names to user-friendly labels
+        const fieldLabels: Record<string, string> = {
+          originPort: 'Origin Port',
+          destinationPort: 'Destination Port',
+          containerType: 'Container Type',
+          finalDestination: 'Final Destination',
+          incoterm: 'Incoterm',
+          cargoValue: 'Cargo Value',
+          cargoType: 'Cargo Type',
+          weight: 'Weight'
+        };
+        return fieldLabels[key] || key;
+      }).join(', ');
+      
+      toast({
+        title: "✅ Form Auto-Populated!",
+        description: `Auto-filled: ${fieldNames}`,
+        duration: 4000,
+      });
+    }
   };
 
   const handleQuoteResult = (result: any) => {
