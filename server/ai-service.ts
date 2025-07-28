@@ -188,7 +188,7 @@ async function generateFallbackResponse(message: string, context: ChatContext): 
 
 Want me to explain how these affect your specific shipment? 
 
-**Would you like a detailed quote?** I can generate a comprehensive breakdown with live carrier rates from Maersk, MSC, and CMA CGM!`;
+**Would you like a detailed quote?** Click the calculator button below to get a comprehensive breakdown with live carrier rates from Maersk, MSC, and CMA CGM!`;
   }
   
   // Customs questions
@@ -204,7 +204,7 @@ Required documents include commercial invoice, bill of lading, and packing list.
 
 Need help with specific duty rates for your products? 
 
-**Would you like a detailed quote?** I can calculate exact SARS-compliant duties with a full cost breakdown!`;
+**Would you like a detailed quote?** Click the calculator button below to get exact SARS-compliant duties with a full cost breakdown!`;
   }
   
   // Shipping time questions
@@ -236,7 +236,7 @@ Need help with any specific document?`;
   }
 
   // Default response with numerical estimates
-  return `I'm ready to help with South African shipping!\n\n💰 **Current Rates:**\n• 20ft from China: R68,500\n• 40ft from China: R123,000\n• 20ft from Europe: R72,000\n• Partial shipments: R12,500\n\n🚛 All-inclusive: Sea freight + trucking + customs + VAT\n\n💡 Popular routes:\n• Shanghai → Durban\n• Hamburg → Cape Town\n• New York → Durban\n\n**Would you like a detailed quote?** Tell me your origin and I'll generate a comprehensive breakdown with carrier options!`;
+  return `I'm ready to help with South African shipping!\n\n💰 **Current Rates:**\n• 20ft from China: R68,500\n• 40ft from China: R123,000\n• 20ft from Europe: R72,000\n• Partial shipments: R12,500\n\n🚛 All-inclusive: Sea freight + trucking + customs + VAT\n\n💡 Popular routes:\n• Shanghai → Durban\n• Hamburg → Cape Town\n• New York → Durban\n\n**Would you like a detailed quote?** Click the calculator button below to get a comprehensive breakdown with carrier options!`;
 }
 
 /**

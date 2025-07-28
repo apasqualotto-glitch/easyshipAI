@@ -162,7 +162,7 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
       let aiResponse = data.response;
       if ((messageContent.toLowerCase().includes('quote') || messageContent.toLowerCase().includes('cost')) && 
           (messageContent.toLowerCase().includes('china') || messageContent.toLowerCase().includes('container'))) {
-        aiResponse += "\n\n💡 **Would you like a detailed quote with carrier options?** Use the calculator button below for a comprehensive quote with live rates from major shipping lines!";
+        aiResponse += "\n\n💡 **Would you like a detailed quote with carrier options?** Click the calculator button below for a comprehensive quote with live rates from major shipping lines!";
       }
       
       const assistantMessage: ChatMessage = {
@@ -317,7 +317,7 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
                             className="bg-blue-600 hover:bg-blue-700 text-white"
                           >
                             <Calculator className="h-4 w-4 mr-2" />
-                            Get Detailed Quote with Carriers
+                            Click for Detailed Quote
                           </Button>
                         </div>
                       )}
