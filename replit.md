@@ -9,6 +9,7 @@ FreightCalc SA is a full-stack web application that calculates comprehensive shi
 Preferred communication style: Simple, everyday language.
 Chat interface: Wider message bubbles for better readability and user experience.
 User-friendly guidance: Always tell users explicitly to "click the calculator" for detailed quotes - make buttons and actions crystal clear.
+Auto-quote generation: AI automatically fills manual calculator and displays detailed quotes below chat when sufficient information is provided (origin + destination + container type).
 
 ## System Architecture
 

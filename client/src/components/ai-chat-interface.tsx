@@ -83,68 +83,111 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
   }, [messages]);
 
   const generateQuote = async (messageContent: string) => {
-    // Extract shipping details from message for demo quote
-    const getOrigin = (msg: string) => {
-      const lower = msg.toLowerCase();
-      if (lower.includes('new york')) return 'New York, USA';
-      if (lower.includes('los angeles')) return 'Los Angeles, USA';
-      if (lower.includes('usa') || lower.includes('america')) return 'New York, USA';
-      if (lower.includes('china') || lower.includes('shanghai')) return 'Shanghai, China';
-      if (lower.includes('europe') || lower.includes('germany') || lower.includes('hamburg')) return 'Hamburg, Germany';
-      return 'Shanghai, China';
-    };
+    try {
+      // Extract shipping details from message
+      const getOriginPort = (msg: string) => {
+        const lower = msg.toLowerCase();
+        if (lower.includes('new york')) return '34'; // New York port ID
+        if (lower.includes('los angeles')) return '32'; // Los Angeles port ID
+        if (lower.includes('china') || lower.includes('shanghai')) return '1'; // Shanghai port ID
+        if (lower.includes('europe') || lower.includes('germany') || lower.includes('hamburg')) return '4'; // Hamburg port ID
+        return '1'; // default to Shanghai
+      };
 
-    const getContainerType = (msg: string) => {
-      const lower = msg.toLowerCase();
-      if (lower.includes('40ft') || lower.includes('40 ft')) return '40ft';
-      if (lower.includes('20ft') || lower.includes('20 ft')) return '20ft';
-      return '20ft';
-    };
+      const getDestinationPort = (msg: string) => {
+        const lower = msg.toLowerCase();
+        if (lower.includes('cape town')) return '10'; // Cape Town port ID
+        if (lower.includes('durban')) return '9'; // Durban port ID
+        return '10'; // default to Cape Town
+      };
 
-    // Extract cargo value from message
-    const getCargoValue = (msg: string) => {
-      const lower = msg.toLowerCase();
-      const valueMatch = lower.match(/(\d+)\s*(?:usd|dollars?|\$)/);
-      if (valueMatch) return parseInt(valueMatch[1]);
-      return 50000; // default
-    };
+      const getContainerType = (msg: string) => {
+        const lower = msg.toLowerCase();
+        if (lower.includes('40ft') || lower.includes('40 ft')) return '40ft';
+        if (lower.includes('20ft') || lower.includes('20 ft')) return '20ft';
+        return '20ft';
+      };
 
-    // Create demonstration quote using real-world pricing structure
-    const containerType = getContainerType(messageContent);
-    const origin = getOrigin(messageContent);
-    const cargoValue = getCargoValue(messageContent);
-    
-    // Calculate customs based on actual cargo value (approximate 20% duty + 15% VAT)
-    const customsDuty = Math.round(cargoValue * 18.5 * 0.2); // Convert USD to ZAR and apply 20% duty
-    const vatAmount = Math.round((cargoValue * 18.5 + customsDuty) * 0.15); // VAT on FOB + duties
-    
-    const baseQuote = {
-      breakdown: {
-        seaFreight: containerType === '40ft' ? 75000 : origin.includes('USA') ? 52000 : 48500,
-        trucking: containerType === '40ft' ? 12000 : 8500,
-        customs: customsDuty,
-        vat: vatAmount,
-        handling: containerType === '40ft' ? 4500 : 3200,
-        total: 0 // Will be calculated
-      },
-      route: {
-        origin: origin,
-        destination: 'Cape Town, South Africa',
-        containerType: containerType + ' Container'
-      },
-      incoterm: 'FOB',
-      totalDays: origin.includes('China') ? 28 : origin.includes('Europe') ? 21 : origin.includes('USA') ? 35 : 30
-    };
+      const getCargoValue = (msg: string) => {
+        const lower = msg.toLowerCase();
+        const valueMatch = lower.match(/(\d+)\s*(?:usd|dollars?|\$)/);
+        if (valueMatch) return parseInt(valueMatch[1]);
+        return 50000; // default
+      };
 
-    // Calculate total
-    baseQuote.breakdown.total = baseQuote.breakdown.seaFreight + 
-                               baseQuote.breakdown.trucking + 
-                               baseQuote.breakdown.customs + 
-                               baseQuote.breakdown.vat + 
-                               baseQuote.breakdown.handling;
+      const getCargoType = (msg: string) => {
+        const lower = msg.toLowerCase();
+        if (lower.includes('electronics')) return 'electronics';
+        if (lower.includes('shoes') || lower.includes('footwear')) return 'footwear';
+        if (lower.includes('machinery')) return 'machinery';
+        if (lower.includes('textiles') || lower.includes('clothing')) return 'textiles';
+        return 'electronics';
+      };
 
-    setCurrentQuote(baseQuote);
-    setShowQuoteDisplay(true);
+      // Use the actual API to get a real quote
+      const response = await fetch('/api/calculate-quote', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          originPort: getOriginPort(messageContent),
+          destinationPort: getDestinationPort(messageContent),
+          finalDestination: 'Cape Town',
+          containerType: getContainerType(messageContent),
+          cargoType: getCargoType(messageContent),
+          cargoValue: getCargoValue(messageContent),
+          cargoWeight: 15000,
+          weight: 15000,
+          value: getCargoValue(messageContent),
+          incoterm: 'FOB'
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.quote) {
+          setCurrentQuote(data.quote);
+          setShowQuoteDisplay(true);
+          return;
+        }
+      }
+
+      // Fallback to demo quote if API fails
+      const containerType = getContainerType(messageContent);
+      const cargoValue = getCargoValue(messageContent);
+      const customsDuty = Math.round(cargoValue * 18.5 * 0.2);
+      const vatAmount = Math.round((cargoValue * 18.5 + customsDuty) * 0.15);
+      
+      const fallbackQuote = {
+        breakdown: {
+          seaFreight: containerType === '40ft' ? 75000 : 48500,
+          trucking: containerType === '40ft' ? 12000 : 8500,
+          customs: customsDuty,
+          vat: vatAmount,
+          handling: containerType === '40ft' ? 4500 : 3200,
+          total: 0
+        },
+        route: {
+          origin: 'Shanghai, China',
+          destination: 'Cape Town, South Africa',
+          containerType: containerType + ' Container'
+        },
+        incoterm: 'FOB',
+        totalDays: 28
+      };
+
+      fallbackQuote.breakdown.total = fallbackQuote.breakdown.seaFreight + 
+                                     fallbackQuote.breakdown.trucking + 
+                                     fallbackQuote.breakdown.customs + 
+                                     fallbackQuote.breakdown.vat + 
+                                     fallbackQuote.breakdown.handling;
+
+      setCurrentQuote(fallbackQuote);
+      setShowQuoteDisplay(true);
+    } catch (error) {
+      console.error('Error generating quote:', error);
+    }
   };
 
   const sendMessage = async (messageContent: string) => {
@@ -208,7 +251,7 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
 
       setMessages(prev => [...prev, assistantMessage]);
       
-      // Auto-generate quote for detailed shipping requests with sufficient information
+      // Check if AI has enough information to auto-generate detailed quote
       const hasOrigin = messageContent.toLowerCase().includes('from') || 
                        messageContent.toLowerCase().includes('china') || 
                        messageContent.toLowerCase().includes('europe') || 
@@ -226,18 +269,25 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
                           messageContent.toLowerCase().includes('20ft') || 
                           messageContent.toLowerCase().includes('40ft') ||
                           messageContent.toLowerCase().includes('20 ft') || 
-                          messageContent.toLowerCase().includes('40 ft');
+                          messageContent.toLowerCase().includes('40 ft') ||
+                          messageContent.toLowerCase().includes('ship');
       
       const hasValue = messageContent.toLowerCase().includes('value') || 
                       messageContent.toLowerCase().includes('usd') || 
                       messageContent.toLowerCase().includes('$') ||
                       messageContent.toLowerCase().includes('fob');
       
-      // Auto-generate quote if message has origin, destination, and container info
-      if ((hasOrigin && hasDestination && hasContainer) || 
-          messageContent.toLowerCase().includes('quote') ||
-          (messageContent.toLowerCase().includes('ship') && hasContainer)) {
-        await generateQuote(messageContent);
+      // Auto-generate detailed quote if AI has sufficient shipping information
+      const hasSufficientInfo = (hasOrigin && hasDestination && hasContainer) || 
+                               (hasOrigin && hasContainer && hasValue) ||
+                               messageContent.toLowerCase().includes('detailed quote') ||
+                               messageContent.toLowerCase().includes('calculate quote');
+      
+      if (hasSufficientInfo) {
+        // Add small delay to let the message appear first
+        setTimeout(() => {
+          generateQuote(messageContent);
+        }, 500);
       }
       
     } catch (error) {
