@@ -32,9 +32,10 @@ import { useState, useEffect } from "react";
 interface CalculatorFormProps {
   onQuoteUpdate: (data: QuoteRequest) => void;
   onQuoteResult: (result: any) => void;
+  initialValues?: Partial<QuoteRequest>;
 }
 
-export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: CalculatorFormProps) {
+export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialValues }: CalculatorFormProps) {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [useLiveRates, setUseLiveRates] = useState(false);
@@ -120,6 +121,31 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult }: Calcula
       onQuoteUpdate(watchedValues);
     }
   }, [watchedValues, onQuoteUpdate]);
+
+  // Update form values when initialValues change (from AI chat)
+  useEffect(() => {
+    if (initialValues && Object.keys(initialValues).length > 0) {
+      console.log('📝 Updating form with AI extracted values:', initialValues);
+      
+      // Set each field that has a value
+      Object.entries(initialValues).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          form.setValue(key as keyof QuoteRequest, value as any, { 
+            shouldValidate: true,
+            shouldDirty: true,
+            shouldTouch: true 
+          });
+        }
+      });
+      
+      // Show toast notification
+      toast({
+        title: "Form auto-populated! 🚀",
+        description: "I've filled in the information from your chat. Please complete any missing fields.",
+        duration: 4000,
+      });
+    }
+  }, [initialValues, form, toast]);
 
   const onSubmit = (data: QuoteRequest) => {
     // Include customs tariff information if selected

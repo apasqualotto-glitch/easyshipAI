@@ -16,6 +16,7 @@ export default function Calculator() {
   const [quoteData, setQuoteData] = useState<QuoteRequest | null>(null);
   const [quoteResult, setQuoteResult] = useState<any>(null);
   const [carrierComparison, setCarrierComparison] = useState<any>(null);
+  const [formValues, setFormValues] = useState<Partial<QuoteRequest>>({});
 
   const handleQuoteUpdate = (data: QuoteRequest) => {
     setQuoteData(data);
@@ -27,6 +28,12 @@ export default function Calculator() {
     if (quoteData) {
       fetchCarrierComparison(quoteData);
     }
+  };
+
+  // Callback to receive extracted data from AI chat
+  const handleAIChatExtraction = (extractedData: Partial<QuoteRequest>) => {
+    console.log('📝 AI Chat extracted:', extractedData);
+    setFormValues(extractedData);
   };
 
   const fetchCarrierComparison = async (data: QuoteRequest) => {
@@ -50,8 +57,11 @@ export default function Calculator() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* AI Chat Interface */}
-      <AIChatInterface context="calculator" />
+      {/* AI Chat Interface with form auto-population */}
+      <AIChatInterface 
+        context="calculator" 
+        onExtractedData={handleAIChatExtraction}
+      />
       
       <Header />
       
@@ -63,6 +73,7 @@ export default function Calculator() {
             <CalculatorForm 
               onQuoteUpdate={handleQuoteUpdate}
               onQuoteResult={handleQuoteResult}
+              initialValues={formValues}
             />
           </div>
           
