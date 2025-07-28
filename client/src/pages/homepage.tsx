@@ -83,7 +83,7 @@ const STATS = [
 export function Homepage() {
   const [activeFeature, setActiveFeature] = useState<number | null>(null);
   const [chatMessage, setChatMessage] = useState("");
-  const [showChatDialog, setShowChatDialog] = useState(true);
+
 
 
   const handleQuickChat = () => {
@@ -103,19 +103,10 @@ export function Homepage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       
       {/* Prominent Chat Dialog Box */}
-      {showChatDialog && (
-        <section className="pt-24 pb-8 px-4">
+      <section className="pt-24 pb-8 px-4">
           <div className="max-w-4xl mx-auto">
             <Card className="bg-white shadow-xl border-0 mb-8">
-              <CardHeader className="text-center pb-4 relative">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowChatDialog(false)}
-                  className="absolute top-2 right-2 h-8 w-8 p-0 text-gray-400 hover:text-gray-600"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+              <CardHeader className="text-center pb-4">
                 <div className="flex justify-center mb-2">
                   <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
                     <Sparkles className="h-6 w-6 text-white" />
@@ -168,7 +159,6 @@ export function Homepage() {
           </Card>
         </div>
       </section>
-      )}
 
       {/* Alternative: Manual Calculator Section */}
       <section className="pb-12 px-4">
