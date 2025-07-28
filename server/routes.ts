@@ -990,7 +990,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // AI Chat Endpoint for EasyShip AI Assistant
   const chatRequestSchema = z.object({
     message: z.string().min(1),
-    context: z.string().optional(),
+    context: z.union([
+      z.string(),
+      z.object({
+        page: z.string().optional(),
+        userType: z.string().optional()
+      })
+    ]).optional(),
     conversationHistory: z.array(z.object({
       role: z.enum(['user', 'assistant']),
       content: z.string()
@@ -1003,8 +1009,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Extract context information
       const context = {
-        page: validatedData.context || 'general',
-        userType: 'first_time' as const, // Default to first-time user
+        page: typeof validatedData.context === 'string' 
+          ? validatedData.context 
+          : validatedData.context?.page || 'general',
+        userType: (typeof validatedData.context === 'object' 
+          ? validatedData.context?.userType 
+          : 'first_time') as 'first_time' | 'experienced' | 'business',
       };
 
       // Generate AI response using the AI service
