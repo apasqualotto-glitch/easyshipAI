@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { AIChatInterface } from "@/components/ai-chat-interface";
 import CalculatorForm from "@/components/calculator-form";
 import { QuoteDisplay } from "@/components/quote-display";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Ship,
   Calculator,
@@ -76,6 +77,7 @@ const STATS = [
 ];
 
 export function Homepage() {
+  const { toast } = useToast();
   const [formValues, setFormValues] = useState<any>({});
   const [quoteResult, setQuoteResult] = useState<any>(null);
   const [showQuoteDisplay, setShowQuoteDisplay] = useState(false);
@@ -84,7 +86,7 @@ export function Homepage() {
     console.log('📝 AI Chat extracted:', extractedData);
     
     // Update form values with extracted data
-    setFormValues(prevValues => ({
+    setFormValues((prevValues: any) => ({
       ...prevValues,
       ...extractedData
     }));

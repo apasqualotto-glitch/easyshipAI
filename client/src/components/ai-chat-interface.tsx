@@ -385,7 +385,20 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
         if (incoterm) extractedData.incoterm = incoterm;
         
         const cargoType = getCargoType(fullConversation);
-        if (cargoType) extractedData.cargoType = cargoType;
+        if (cargoType) {
+          extractedData.cargoType = cargoType;
+          
+          // Add a message to help with HS code selection
+          setTimeout(() => {
+            const hsCodeHelpMessage: ChatMessage = {
+              id: (Date.now() + 3).toString(),
+              role: 'assistant',
+              content: `📦 **I noticed you're shipping ${cargoType}.** To get the most accurate customs calculation:\n\n• Use the cargo search field to find your specific product's HS code\n• Type keywords like "${cargoType === 'textiles' ? 'running shoes' : cargoType === 'electronics' ? 'smartphones' : cargoType}" to see options\n• The HS code determines your exact duty rate (varies from 0% to 45%)\n\nWould you like me to help you find the right HS code for your specific items?`,
+              timestamp: new Date()
+            };
+            setMessages(prev => [...prev, hsCodeHelpMessage]);
+          }, 2000);
+        }
         
         // Extract weight if mentioned
         const weightMatch = fullConversation.toLowerCase().match(/(\d+[,\d]*)\s*(?:kg|kilograms?|tons?)/);

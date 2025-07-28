@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import { Truck, Ship, Zap, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -38,7 +39,7 @@ interface CalculatorFormProps {
 export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialValues }: CalculatorFormProps) {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
-  const [useLiveRates, setUseLiveRates] = useState(false);
+  const [useLiveRates, setUseLiveRates] = useState(true); // Always use live rates by default
   const [selectedCustomsTariff, setSelectedCustomsTariff] = useState<CustomsTariff | null>(null);
   const [originPortOpen, setOriginPortOpen] = useState(false);
   const [selectedOriginPort, setSelectedOriginPort] = useState("");
@@ -575,31 +576,28 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
             </div>
           </div>
 
-          {/* Live Shipping Rates Toggle */}
-          <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
+          {/* Live Shipping Rates - Always Enabled */}
+          <div className="bg-green-50 p-4 rounded-lg border-2 border-green-200">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="flex items-center space-x-2">
-                  <Zap className="h-5 w-5 text-blue-600" />
-                  <span className="font-medium text-blue-800">Live Carrier Rates</span>
+                  <Zap className="h-5 w-5 text-green-600" />
+                  <span className="font-medium text-green-800">Live Carrier Rates Enabled</span>
                 </div>
-                <Switch
-                  checked={useLiveRates}
-                  onCheckedChange={setUseLiveRates}
-                />
+                <Badge className="bg-green-100 text-green-800 border-green-200">Active</Badge>
               </div>
-              <div className="text-sm text-blue-700">
-                {useLiveRates ? "Using real-time rates from Maersk" : "Using rate estimates"}
+              <div className="text-sm text-green-700">
+                Getting real-time rates from all major carriers
               </div>
             </div>
             
-            <div className="mt-3 text-sm text-blue-600">
+            <div className="mt-3 text-sm text-green-600">
               <div className="flex items-start space-x-2">
-                <span className="material-icons text-blue-500 text-sm mt-0.5 flex-shrink-0">info</span>
+                <span className="material-icons text-green-500 text-sm mt-0.5 flex-shrink-0">check_circle</span>
                 <div>
-                  <p className="font-medium mb-1">Live Rates Integration</p>
+                  <p className="font-medium mb-1">All Carrier Options Included</p>
                   <p className="text-xs leading-relaxed">
-                    Get real-time shipping rates directly from carrier systems. May take slightly longer to calculate but provides the most accurate pricing.
+                    Comparing real-time rates from Maersk, MSC, CMA CGM, and other major shipping lines to get you the best price and transit time.
                   </p>
                 </div>
               </div>
