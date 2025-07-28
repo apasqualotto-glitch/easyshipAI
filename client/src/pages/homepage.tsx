@@ -119,6 +119,78 @@ export function Homepage() {
             </Button>
           </div>
 
+          {/* AI Assistant Dialogue Box */}
+          <div className="max-w-4xl mx-auto mb-16">
+            <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 shadow-lg">
+              <CardHeader className="text-center">
+                <div className="flex justify-center mb-4">
+                  <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center">
+                    <MessageSquare className="h-8 w-8 text-white" />
+                  </div>
+                </div>
+                <CardTitle className="text-2xl text-blue-800">Meet Your AI Shipping Assistant</CardTitle>
+                <CardDescription className="text-lg text-blue-700">
+                  Get instant help with container shipping questions - designed for first-time importers
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-semibold text-blue-800 mb-3">Ask me anything like:</h4>
+                    <ul className="space-y-2 text-blue-700">
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                        "What's the difference between FOB and CIF pricing?"
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                        "How do I calculate customs duties for electronics?"
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                        "What documents do I need for importing to South Africa?"
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                        "Should I use a 20ft or 40ft container for my shipment?"
+                      </li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-blue-800 mb-3">Perfect for first-time shippers who need:</h4>
+                    <ul className="space-y-2 text-blue-700">
+                      <li className="flex items-start gap-2">
+                        <Users className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                        Plain language explanations of shipping terms
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <BookOpen className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                        Step-by-step guidance through the import process
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <Shield className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                        SARS compliance and customs regulation help
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <TrendingUp className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                        Cost optimization tips and container selection advice
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+                <div className="text-center mt-6">
+                  <Button 
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    onClick={() => document.querySelector('.fixed')?.scrollIntoView({ behavior: 'smooth' })}
+                  >
+                    <MessageSquare className="mr-2 h-4 w-4" />
+                    Start Chatting Now
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
           {/* Trust Indicators */}
           <div className="flex flex-wrap justify-center items-center gap-8 text-gray-500 mb-16">
             <div className="flex items-center gap-2">

@@ -101,6 +101,25 @@ The application is designed for easy migration from in-memory storage to Postgre
 
 ## Recent Changes
 
+- **UI ENHANCEMENT: AI Assistant Dialogue Box on Homepage** - July 28, 2025
+  - Added prominent AI assistant dialogue box with first-time shipper examples on homepage
+  - Clear examples of questions the AI can answer: FOB vs CIF, customs duties, import documents, container selection
+  - Highlighted benefits for first-time shippers: plain language explanations, step-by-step guidance, SARS compliance
+  - Enhanced user onboarding with direct chat integration and clear call-to-action
+  - Verified all calculator form inputs are properly connected to API for accurate freight pricing
+
+- **VERIFICATION: Complete Form-to-API Connection Audit** - July 28, 2025
+  - Confirmed all 13 form inputs properly connected to quote calculation API
+  - Origin/destination ports affect sea freight and trucking costs correctly
+  - Container type determines pricing tiers (20ft/40ft/40ft-hc/partial shipment)
+  - Weight validation against container limits implemented
+  - Cargo value directly impacts customs duty calculations
+  - Incoterm selection affects cost distribution (FOB/CIF/DDP/EXW)
+  - Advanced customs search with HS codes properly integrated
+  - Live carrier rates toggle switches API endpoints correctly
+  - Partial shipment fields (volume, dimensions) affect LCL pricing
+  - Quote validation endpoint prevents data inconsistencies
+
 - **MAJOR EXPANSION: EasyShip AI - Complete Platform Transformation** - July 26, 2025
   - **NEW: AI-Powered Chat Interface** - Added conversational AI assistant using Anthropic Claude on every page
   - **NEW: Homepage with Clear CTA** - Professional landing page designed for first-time importers
