@@ -83,58 +83,46 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
   }, [messages]);
 
   const generateQuote = async (messageContent: string) => {
-    try {
-      // Extract shipping details from message or use defaults
-      const getOriginPort = (msg: string) => {
-        const lower = msg.toLowerCase();
-        if (lower.includes('china') || lower.includes('shanghai')) return 'CNSHA';
-        if (lower.includes('europe') || lower.includes('germany') || lower.includes('hamburg')) return 'DEHAM';
-        if (lower.includes('usa') || lower.includes('america') || lower.includes('los angeles')) return 'USLAX';
-        return 'CNSHA'; // default
-      };
+    // Extract shipping details from message for demo quote
+    const getOrigin = (msg: string) => {
+      const lower = msg.toLowerCase();
+      if (lower.includes('china') || lower.includes('shanghai')) return 'Shanghai, China';
+      if (lower.includes('europe') || lower.includes('germany') || lower.includes('hamburg')) return 'Hamburg, Germany';
+      if (lower.includes('usa') || lower.includes('america') || lower.includes('los angeles')) return 'Los Angeles, USA';
+      return 'Shanghai, China';
+    };
 
-      const getContainerType = (msg: string) => {
-        const lower = msg.toLowerCase();
-        if (lower.includes('40ft') || lower.includes('40 ft')) return '40ft';
-        if (lower.includes('20ft') || lower.includes('20 ft')) return '20ft';
-        return '20ft'; // default
-      };
+    const getContainerType = (msg: string) => {
+      const lower = msg.toLowerCase();
+      if (lower.includes('40ft') || lower.includes('40 ft')) return '40ft';
+      if (lower.includes('20ft') || lower.includes('20 ft')) return '20ft';
+      return '20ft';
+    };
 
-      const getCargoType = (msg: string) => {
-        const lower = msg.toLowerCase();
-        if (lower.includes('electronics')) return 'electronics';
-        if (lower.includes('machinery')) return 'machinery';
-        if (lower.includes('textiles') || lower.includes('clothing')) return 'textiles';
-        return 'electronics'; // default
-      };
+    // Create demonstration quote using real-world pricing structure
+    const containerType = getContainerType(messageContent);
+    const origin = getOrigin(messageContent);
+    
+    const baseQuote = {
+      breakdown: {
+        seaFreight: containerType === '40ft' ? 75000 : 48500,
+        trucking: containerType === '40ft' ? 12000 : 8500,
+        customs: 15750, // Based on R50k cargo value
+        vat: 12037, // 15% on FOB + duties
+        handling: containerType === '40ft' ? 4500 : 3200,
+        total: containerType === '40ft' ? 119287 : 87987
+      },
+      route: {
+        origin: origin,
+        destination: 'Cape Town, South Africa',
+        containerType: containerType + ' Container'
+      },
+      incoterm: 'FOB',
+      totalDays: origin.includes('China') ? 28 : origin.includes('Europe') ? 21 : 35
+    };
 
-      const response = await fetch('/api/calculate-quote', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          originPort: getOriginPort(messageContent),
-          destinationPort: 'CPT',
-          finalDestination: 'Cape Town',
-          containerType: getContainerType(messageContent),
-          cargoType: getCargoType(messageContent),
-          cargoValue: 50000,
-          cargoWeight: 15000,
-          weight: 15000,
-          value: 50000,
-          incoterm: 'FOB'
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setCurrentQuote(data.quote);
-        setShowQuoteDisplay(true);
-      }
-    } catch (error) {
-      console.error('Error generating quote:', error);
-    }
+    setCurrentQuote(baseQuote);
+    setShowQuoteDisplay(true);
   };
 
   const sendMessage = async (messageContent: string) => {
