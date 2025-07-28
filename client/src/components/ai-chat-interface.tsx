@@ -301,7 +301,7 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
       const hasDestination = getDestinationPortId(fullConversation) !== '';
       const hasContainer = getContainerType(fullConversation) !== '';
       const hasValue = getCargoValue(fullConversation) > 0;
-      const hasCargo = getCargoType(fullConversation) !== '';
+      const hasCargo = getCargoType(fullConversation) !== '' && getCargoType(fullConversation) !== 'general';
       
       const hasSufficientInfo = hasOrigin && hasDestination;
       const isCompleteShippingRequest = hasSufficientInfo && (hasContainer || hasValue);
@@ -588,10 +588,10 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
                               const extractedData: Partial<any> = {};
                               
                               // Extract all available information
-                              const originCode = getOriginPortCode(allMessages);
+                              const originCode = getOriginPortId(allMessages);
                               if (originCode) extractedData.originPort = originCode;
                               
-                              const destCode = getDestinationPortCode(allMessages);
+                              const destCode = getDestinationPortId(allMessages);
                               if (destCode) {
                                 extractedData.destinationPort = destCode;
                                 extractedData.finalDestination = getFinalDestinationName(allMessages);

@@ -114,8 +114,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const originPorts = await storage.getOriginPorts();
       const destinationPorts = await storage.getDestinationPorts();
       
-      const originPort = originPorts.find(p => p.code === validatedData.originPort);
-      const destinationPort = destinationPorts.find(p => p.code === validatedData.destinationPort);
+      const originPort = originPorts.find(p => p.id === validatedData.originPort || p.code === validatedData.originPort);
+      const destinationPort = destinationPorts.find(p => p.id === validatedData.destinationPort || p.code === validatedData.destinationPort);
       
       if (!originPort || !destinationPort) {
         return res.status(400).json({ message: "Invalid port selection" });
@@ -128,29 +128,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get destination for trucking costs
-      const destination = await storage.getDestination(validatedData.finalDestination);
+      const destinations = await storage.getDestinations();
+      const destination = destinations.find(d => 
+        d.name === validatedData.finalDestination || 
+        d.name.toLowerCase().includes(validatedData.finalDestination.toLowerCase()) ||
+        validatedData.finalDestination.toLowerCase().includes(d.name.toLowerCase())
+      );
       if (!destination) {
         return res.status(400).json({ message: "Invalid final destination" });
       }
 
       // Get cargo type for duty calculation - be flexible with advanced customs lookup
-      let cargoType = await storage.getCargoType(validatedData.cargoType);
+      const cargoTypes = await storage.getCargoTypes();
+      let cargoType = cargoTypes.find(ct => 
+        ct.name === validatedData.cargoType || 
+        ct.name.toLowerCase().includes(validatedData.cargoType.toLowerCase()) ||
+        validatedData.cargoType.toLowerCase().includes(ct.name.toLowerCase())
+      );
+      
       if (!cargoType) {
-        // If using advanced customs tariff, try to find a matching cargo type or use a default
-        if (validatedData.customsTariff) {
-          cargoType = await storage.getCargoType("Other") || await storage.getCargoType("General Cargo");
-          if (!cargoType) {
-            // Create a temporary cargo type for calculation purposes
-            cargoType = {
-              id: "temp",
-              name: validatedData.cargoType,
-              dutyRate: 0.15, // Default fallback rate
-              additionalFees: 1000
-            };
-          }
-        } else {
-          return res.status(400).json({ message: "Invalid cargo type" });
-        }
+        // Use a default cargo type if not found
+        cargoType = cargoTypes.find(ct => ct.name === "General Cargo") || 
+                   cargoTypes.find(ct => ct.name === "Other") ||
+                   {
+                     id: "temp",
+                     name: validatedData.cargoType,
+                     dutyRate: 0.15,
+                     additionalFees: 2000
+                   };
       }
 
       // Calculate base sea freight cost
@@ -641,8 +646,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const originPorts = await storage.getOriginPorts();
       const destinationPorts = await storage.getDestinationPorts();
       
-      const originExists = originPorts.find(p => p.code === validatedData.originPort);
-      const destinationExists = destinationPorts.find(p => p.code === validatedData.destinationPort);
+      const originExists = originPorts.find(p => p.id === validatedData.originPort || p.code === validatedData.originPort);
+      const destinationExists = destinationPorts.find(p => p.id === validatedData.destinationPort || p.code === validatedData.destinationPort);
       
       if (!originExists) {
         validationResults.errors.push(`Origin port ${validatedData.originPort} not found`);

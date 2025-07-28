@@ -106,15 +106,16 @@ The application is designed for easy migration from in-memory storage to Postgre
 
 ## Recent Changes
 
-- **CRITICAL FIX: Port Extraction & Chat Estimates Working!** - July 28, 2025
+- **CRITICAL FIX: Port Extraction & Chat Estimates Fully Working!** - July 28, 2025
   - **Fixed Port ID Mapping**: "New York to Cape Town" now correctly extracts origin port ID "34" and destination port ID "10"
-  - **Real-Time Chat Estimates**: AI now provides instant cost estimates during conversation while form is being filled
-  - **Live Calculations**: Chat shows R65,000+ estimates with sea freight, trucking, customs & VAT breakdown
+  - **Real-Time Chat Estimates**: AI provides instant cost estimates (R65,000+) during conversation 
+  - **Live Quote API**: Both ID and code port lookups work - USNYC→ZACPT generates R227,865 quote
   - **Smart Extraction**: Correctly maps Shanghai→1, Hamburg→4, New York→34, Durban→9, Cape Town→10
-  - **Interactive Estimates**: Every shipping conversation now includes immediate cost estimates in chat
-  - **Enhanced Detection**: Improved natural language understanding for origins, destinations, container types
-  - **Form Auto-Population**: AI chat extracts shipping details and auto-fills calculator form fields with correct port IDs
-  - **Toast Notifications**: User feedback when form fields are populated from AI extraction with success messages
+  - **Interactive Estimates**: Every shipping conversation includes immediate cost estimates in chat
+  - **Enhanced Detection**: Natural language understanding extracts origins, destinations, container types
+  - **Form Auto-Population**: AI chat extracts shipping details and auto-fills calculator form fields
+  - **Toast Notifications**: User feedback when form fields are populated from AI extraction
+  - **Get Detailed Quote Button**: Fixed function name errors and button now works correctly
 
 - **NEW FEATURE: AI Chat Auto-Populates Manual Calculator Form** - July 28, 2025
   - **Seamless Integration**: AI chat extracts shipping details and auto-fills calculator form fields in real-time
