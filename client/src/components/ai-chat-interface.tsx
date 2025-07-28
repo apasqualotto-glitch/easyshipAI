@@ -273,31 +273,6 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
       // Add calculator suggestion for relevant shipping queries
       let aiResponse = data.response;
       
-      // Add detailed quote offer for shipping-related messages
-      const hasShippingKeywords = messageContent.toLowerCase().includes('ship') ||
-                                 messageContent.toLowerCase().includes('container') ||
-                                 messageContent.toLowerCase().includes('freight') ||
-                                 messageContent.toLowerCase().includes('quote') ||
-                                 messageContent.toLowerCase().includes('cost') ||
-                                 messageContent.toLowerCase().includes('price') ||
-                                 messageContent.toLowerCase().includes('from') ||
-                                 messageContent.toLowerCase().includes('china') ||
-                                 messageContent.toLowerCase().includes('europe') ||
-                                 messageContent.toLowerCase().includes('usa');
-      
-      if (hasShippingKeywords && !aiResponse.toLowerCase().includes('detailed quote')) {
-        aiResponse += "\n\n💡 **Would you like a detailed quote with carrier options?** Click the calculator button below for a comprehensive quote with live rates from major shipping lines!";
-      }
-      
-      const assistantMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: aiResponse,
-        timestamp: new Date()
-      };
-
-      setMessages(prev => [...prev, assistantMessage]);
-      
       // Check if AI has enough information to auto-generate detailed quote
       const hasOrigin = messageContent.toLowerCase().includes('from') || 
                        messageContent.toLowerCase().includes('china') || 
@@ -330,13 +305,37 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
                                messageContent.toLowerCase().includes('detailed quote') ||
                                messageContent.toLowerCase().includes('calculate quote');
       
-      // Always try to extract quote information from AI responses and user messages
-      const shouldGenerateQuote = hasSufficientInfo || 
-                                 aiResponse.toLowerCase().includes('quote') ||
-                                 aiResponse.toLowerCase().includes('cost') ||
-                                 aiResponse.toLowerCase().includes('shipping') ||
+      // Check if message looks like a complete shipping request
+      const isCompleteShippingRequest = hasOrigin && hasDestination && 
+                                       (hasContainer || messageContent.toLowerCase().includes('ship'));
+
+      // Add detailed quote offer for shipping-related messages
+      const hasShippingKeywords = messageContent.toLowerCase().includes('ship') ||
+                                 messageContent.toLowerCase().includes('container') ||
+                                 messageContent.toLowerCase().includes('freight') ||
                                  messageContent.toLowerCase().includes('quote') ||
-                                 messageContent.toLowerCase().includes('ship');
+                                 messageContent.toLowerCase().includes('cost') ||
+                                 messageContent.toLowerCase().includes('price') ||
+                                 messageContent.toLowerCase().includes('from') ||
+                                 messageContent.toLowerCase().includes('china') ||
+                                 messageContent.toLowerCase().includes('europe') ||
+                                 messageContent.toLowerCase().includes('usa');
+      
+      // Add note about detailed quote for complete requests
+      if (isCompleteShippingRequest || hasSufficientInfo) {
+        aiResponse += "\n\n📊 **Generating your detailed quote now...** It will appear below with full cost breakdown and carrier options.";
+      } else if (hasShippingKeywords && !aiResponse.toLowerCase().includes('detailed quote')) {
+        aiResponse += "\n\n💡 **Need a detailed quote?** Provide your origin, destination, and container type, and I'll generate a comprehensive quote with live rates!";
+      }
+      
+      const assistantMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: aiResponse,
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
       
       console.log('Quote generation check:', {
         hasOrigin,
@@ -344,19 +343,17 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
         hasContainer,
         hasValue,
         hasSufficientInfo,
-        shouldGenerateQuote,
+        isCompleteShippingRequest,
         messageContent: messageContent.toLowerCase().substring(0, 50) + '...'
       });
 
-      if (shouldGenerateQuote) {
+      // Auto-generate quote for complete shipping requests
+      if (isCompleteShippingRequest || hasSufficientInfo) {
         console.log('✅ Triggering automatic quote generation');
-        // Use AI response content to extract better shipping details
-        const fullContext = messageContent + " " + aiResponse;
-        setTimeout(() => {
-          generateQuote(fullContext);
-        }, 1000); // Slightly longer delay to let AI response fully appear
+        // Generate quote immediately when we have enough info
+        generateQuote(messageContent);
       } else {
-        console.log('❌ Quote generation not triggered');
+        console.log('❌ Not enough information for automatic quote generation');
       }
       
     } catch (error) {
@@ -485,19 +482,24 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
                     )}>
                       <p className="text-base whitespace-pre-wrap leading-relaxed">{message.content}</p>
                       {message.role === 'assistant' && (
-                        message.content.toLowerCase().includes('calculator') || 
-                        message.content.toLowerCase().includes('detailed quote') ||
-                        message.content.toLowerCase().includes('click the calculator') ||
-                        message.content.toLowerCase().includes('comprehensive quote')
-                      ) && (
+                        message.content.toLowerCase().includes('shipping') || 
+                        message.content.toLowerCase().includes('quote') ||
+                        message.content.toLowerCase().includes('container') ||
+                        message.content.toLowerCase().includes('cost') ||
+                        message.content.toLowerCase().includes('price')
+                      ) && !showQuoteDisplay && (
                         <div className="mt-3 pt-3 border-t border-gray-200">
                           <Button
                             size="sm"
-                            onClick={() => generateQuote(message.content)}
+                            onClick={() => {
+                              // Try to extract info from conversation context
+                              const allMessages = messages.map(m => m.content).join(' ');
+                              generateQuote(allMessages);
+                            }}
                             className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2"
                           >
                             <Calculator className="h-4 w-4 mr-2" />
-                            Click for Detailed Quote
+                            Get Detailed Quote
                           </Button>
                         </div>
                       )}
