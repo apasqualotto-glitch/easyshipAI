@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { AIChatInterface } from "@/components/ai-chat-interface";
+
 import { 
   Ship,
   Calculator,
@@ -87,18 +87,9 @@ export function Homepage() {
 
 
   const handleQuickChat = () => {
-    if (!chatMessage.trim()) return;
-    
-    // Store the message temporarily and open the chat interface
-    sessionStorage.setItem('pendingChatMessage', chatMessage);
-    
-    // Trigger the chat interface to expand and use the message
-    const event = new CustomEvent('openChatWithMessage', { 
-      detail: { message: chatMessage } 
-    });
-    window.dispatchEvent(event);
-    
+    // For now, just clear the message since AI chat is not connected
     setChatMessage("");
+    alert("AI chat requires an API key to be configured. Please use the manual calculator below for now.");
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -110,8 +101,6 @@ export function Homepage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      {/* AI Chat Interface - Always Available */}
-      <AIChatInterface context="homepage" />
       
       {/* Prominent Chat Dialog Box */}
       {showChatDialog && (
