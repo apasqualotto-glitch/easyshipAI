@@ -19,7 +19,8 @@ import {
   BookOpen,
   MessageSquare,
   Send,
-  Sparkles
+  Sparkles,
+  X
 } from "lucide-react";
 
 const FEATURES = [
@@ -82,6 +83,7 @@ const STATS = [
 export function Homepage() {
   const [activeFeature, setActiveFeature] = useState<number | null>(null);
   const [chatMessage, setChatMessage] = useState("");
+  const [showChatDialog, setShowChatDialog] = useState(true);
 
 
   const handleQuickChat = () => {
@@ -112,20 +114,29 @@ export function Homepage() {
       <AIChatInterface context="homepage" />
       
       {/* Prominent Chat Dialog Box */}
-      <section className="pt-24 pb-8 px-4">
-        <div className="max-w-4xl mx-auto">
-          <Card className="bg-white shadow-xl border-0 mb-8">
-            <CardHeader className="text-center pb-4">
-              <div className="flex justify-center mb-2">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
-                  <Sparkles className="h-6 w-6 text-white" />
+      {showChatDialog && (
+        <section className="pt-24 pb-8 px-4">
+          <div className="max-w-4xl mx-auto">
+            <Card className="bg-white shadow-xl border-0 mb-8">
+              <CardHeader className="text-center pb-4 relative">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowChatDialog(false)}
+                  className="absolute top-2 right-2 h-8 w-8 p-0 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+                <div className="flex justify-center mb-2">
+                  <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
+                    <Sparkles className="h-6 w-6 text-white" />
+                  </div>
                 </div>
-              </div>
-              <CardTitle className="text-xl text-gray-900">Ask EasyShip AI anything about container shipping</CardTitle>
-              <CardDescription className="text-gray-600">
-                Get instant answers about customs, incoterms, costs, and shipping procedures
-              </CardDescription>
-            </CardHeader>
+                <CardTitle className="text-xl text-gray-900">Ask EasyShip AI anything about container shipping</CardTitle>
+                <CardDescription className="text-gray-600">
+                  Get instant answers about customs, incoterms, costs, and shipping procedures
+                </CardDescription>
+              </CardHeader>
             <CardContent className="pt-0">
               <div className="relative">
                 <Input
@@ -168,6 +179,7 @@ export function Homepage() {
           </Card>
         </div>
       </section>
+      )}
 
       {/* Alternative: Manual Calculator Section */}
       <section className="pb-12 px-4">
