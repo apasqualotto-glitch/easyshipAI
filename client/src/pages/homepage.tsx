@@ -90,16 +90,8 @@ interface ChatMessage {
 export function Homepage() {
   const [activeFeature, setActiveFeature] = useState<number | null>(null);
   const [chatMessage, setChatMessage] = useState("");
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
-    {
-      id: '1',
-      role: 'assistant',
-      content: "👋 **Welcome to EasyShip AI!** I'm your personal shipping assistant for container imports to South Africa.\n\n**I can help you with:**\n• Instant shipping quotes with accurate costs\n• Customs duties and SARS compliance\n• Documentation requirements\n• Incoterms explanations (FOB, CIF, etc.)\n• Carrier selection and booking guidance\n\n**Try asking:** \"Get a quote from Shanghai to Johannesburg\" or click the quick buttons below!",
-      timestamp: new Date()
-    }
-  ]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isChatExpanded, setIsChatExpanded] = useState(false);
   const chatMessagesRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when new messages arrive
@@ -124,7 +116,6 @@ export function Homepage() {
     setChatMessages(prev => [...prev, userMessage]);
     setChatMessage("");
     setIsLoading(true);
-    setIsChatExpanded(true);
     
     try {
       const response = await fetch('/api/chat', {
@@ -187,42 +178,44 @@ export function Homepage() {
       <section className="pt-24 pb-8 px-4">
           <div className="max-w-4xl mx-auto">
             <Card className="bg-white shadow-xl border-0 mb-8">
-              <CardHeader 
-                className="text-center pb-4 cursor-pointer hover:bg-gray-50 transition-colors"
-                onClick={() => setIsChatExpanded(!isChatExpanded)}
-              >
-                <div className="flex justify-center mb-3">
-                  <div className="w-14 h-14 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
-                    <Sparkles className="h-7 w-7 text-white" />
+              <CardHeader className="text-center pb-3">
+                <div className="flex justify-center mb-2">
+                  <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
+                    <Sparkles className="h-6 w-6 text-white" />
                   </div>
                 </div>
-                <CardTitle className="text-2xl text-gray-900 mb-2">EasyShip AI Assistant</CardTitle>
-                <CardDescription className="text-gray-600 text-base">
+                <CardTitle className="text-xl text-gray-900 mb-1">EasyShip AI Assistant</CardTitle>
+                <CardDescription className="text-gray-600 text-sm">
                   Your personal guide for container shipping to South Africa
                 </CardDescription>
-                
-                {/* First-time user guidance */}
-                {!isChatExpanded && (
-                  <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="text-sm text-blue-800">
-                      <div className="font-semibold mb-1">👋 First time importing?</div>
-                      <div className="text-xs text-blue-700">
-                        I'll guide you through quotes, customs, and documentation step-by-step!
-                      </div>
-                    </div>
-                  </div>
-                )}
               </CardHeader>
             <CardContent className="pt-0">
               
-              {/* Chat Messages */}
-              {isChatExpanded && (
-                <div 
-                  ref={chatMessagesRef}
-                  className="mb-4 border rounded-lg bg-gray-50 max-h-80 overflow-y-auto"
-                >
-                  <div className="p-4 space-y-4">
-                    {chatMessages.map((msg, index) => (
+              {/* Chat Messages - Clean dialog box */}
+              <div 
+                ref={chatMessagesRef}
+                className="mb-4 border rounded-lg bg-gray-50 min-h-[300px] max-h-80 overflow-y-auto"
+              >
+                <div className="p-4 space-y-4">
+                  {chatMessages.length === 0 ? (
+                    <div className="flex justify-start">
+                      <div className="bg-white border border-gray-200 px-4 py-3 rounded-2xl rounded-bl-md shadow-sm max-w-md">
+                        <div className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">
+                          👋 **Welcome to EasyShip AI!** I'm your personal shipping assistant for container imports to South Africa.
+
+**I can help you with:**
+• Instant shipping quotes with accurate costs
+• Customs duties and SARS compliance  
+• Documentation requirements
+• Incoterms explanations (FOB, CIF, etc.)
+• Carrier selection and booking guidance
+
+**Try asking:** "Get a quote from Shanghai to Johannesburg" or use the buttons below!
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    chatMessages.map((msg, index) => (
                       <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                         <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-sm ${
                           msg.role === 'user' 
@@ -238,170 +231,129 @@ export function Homepage() {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="h-7 px-3 text-xs bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+                                  className="h-6 px-2 text-xs bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
                                   onClick={() => setChatMessage("Use the calculator for detailed quote")}
                                 >
-                                  📊 Use Calculator
+                                  📊 Calculator
                                 </Button>
                               )}
                               {msg.content.includes('shipping') && (
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="h-7 px-3 text-xs bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+                                  className="h-6 px-2 text-xs bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
                                   onClick={() => setChatMessage("What documents do I need?")}
                                 >
-                                  📋 Documents Needed
+                                  📋 Documents
                                 </Button>
                               )}
                               {(msg.content.includes('customs') || msg.content.includes('duties')) && (
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="h-7 px-3 text-xs bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
+                                  className="h-6 px-2 text-xs bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
                                   onClick={() => setChatMessage("Explain customs duties in detail")}
                                 >
-                                  🛃 Learn About Duties
+                                  🛃 Duties
                                 </Button>
                               )}
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="h-7 px-3 text-xs bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100"
+                                className="h-6 px-2 text-xs bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100"
                                 onClick={() => setChatMessage("What else can you help me with?")}
                               >
-                                💡 More Help
+                                💡 Help
                               </Button>
                             </div>
                           )}
                         </div>
                       </div>
-                    ))}
-                    {isLoading && (
-                      <div className="flex justify-start">
-                        <div className="bg-white border border-gray-200 px-4 py-3 rounded-lg shadow-sm">
-                          <div className="flex items-center space-x-3">
-                            <div className="flex space-x-1">
-                              <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
-                              <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
-                              <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
-                            </div>
-                            <span className="text-sm text-gray-600 font-medium">EasyShip AI is typing...</span>
+                    ))
+                  )}
+                  {isLoading && (
+                    <div className="flex justify-start">
+                      <div className="bg-white border border-gray-200 px-4 py-3 rounded-lg shadow-sm">
+                        <div className="flex items-center space-x-3">
+                          <div className="flex space-x-1">
+                            <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+                            <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
+                            <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
                           </div>
+                          <span className="text-sm text-gray-600 font-medium">EasyShip AI is typing...</span>
                         </div>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
               
-              <div className="space-y-3">
-                {/* Suggested Prompts for First-Time Users */}
-                {!isChatExpanded && (
-                  <div className="space-y-3">
-                    <div className="text-center">
-                      <p className="text-sm text-gray-600 font-medium mb-2">👆 Click to get started, or try these common questions:</p>
-                    </div>
-                    
-                    {/* Primary Action Buttons */}
-                    <div className="grid grid-cols-2 gap-2">
-                      <Button
-                        variant="outline"
-                        className="h-12 px-4 text-sm bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 flex flex-col items-center justify-center"
-                        onClick={() => {
-                          setChatMessage("Get a shipping quote from China to South Africa");
-                          setIsChatExpanded(true);
-                        }}
-                      >
-                        <div className="text-lg mb-1">📦</div>
-                        <div className="text-xs">Get Shipping Quote</div>
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="h-12 px-4 text-sm bg-green-50 border-green-200 text-green-700 hover:bg-green-100 flex flex-col items-center justify-center"
-                        onClick={() => {
-                          setChatMessage("Estimate customs duties for electronics");
-                          setIsChatExpanded(true);
-                        }}
-                      >
-                        <div className="text-lg mb-1">🛃</div>
-                        <div className="text-xs">Estimate Customs</div>
-                      </Button>
-                    </div>
-                    
-                    {/* Secondary Quick Options */}
-                    <div className="flex flex-wrap gap-2 justify-center">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 px-3 text-xs text-purple-700 hover:bg-purple-50"
-                        onClick={() => {
-                          setChatMessage("What documents do I need for importing?");
-                          setIsChatExpanded(true);
-                        }}
-                      >
-                        📋 Required Documents
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 px-3 text-xs text-orange-700 hover:bg-orange-50"
-                        onClick={() => {
-                          setChatMessage("Explain FOB vs CIF - which is better?");
-                          setIsChatExpanded(true);
-                        }}
-                      >
-                        💰 FOB vs CIF
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 px-3 text-xs text-teal-700 hover:bg-teal-50"
-                        onClick={() => {
-                          setChatMessage("How long does shipping take from China?");
-                          setIsChatExpanded(true);
-                        }}
-                      >
-                        ⏱️ Transit Times
-                      </Button>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Contextual Help for Active Input */}
-                {chatMessage.length > 0 && !isChatExpanded && (
-                  <div className="mb-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                    <div className="text-xs text-gray-600">
-                      <div className="font-medium mb-1">💡 Tip: Be specific for better results!</div>
-                      <div>Include: origin, destination, cargo type, and value for accurate quotes</div>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Chat Input */}
-                <div className="relative">
-                  <Input
-                    value={chatMessage}
-                    onChange={(e) => setChatMessage(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder={isChatExpanded ? "Type your message..." : "Ask me: What's the difference between FOB and CIF? or How much to ship from China?"}
-                    className={`pr-12 transition-all duration-200 bg-white border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 ${
-                      isChatExpanded ? 'h-12 text-base' : 'h-14 text-lg'
-                    }`}
-                    disabled={isLoading}
-                  />
+              {/* Chat Input */}
+              <div className="relative mb-4">
+                <Input
+                  value={chatMessage}
+                  onChange={(e) => setChatMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Type your message..."
+                  className="pr-12 h-12 text-base bg-white border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                  disabled={isLoading}
+                />
+                <Button
+                  onClick={handleQuickChat}
+                  disabled={!chatMessage.trim() || isLoading}
+                  className="absolute right-2 top-2 h-8 w-8 bg-blue-600 hover:bg-blue-700"
+                >
+                  {isLoading ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                  ) : (
+                    <Send className="h-3 w-3" />
+                  )}
+                </Button>
+              </div>
+              
+              {/* Quick Suggestions - Compact and Clean */}
+              <div className="border-t pt-3">
+                <div className="text-xs text-gray-600 text-center mb-3">Try asking:</div>
+                <div className="flex flex-wrap gap-1.5 justify-center">
                   <Button
-                    onClick={handleQuickChat}
-                    disabled={!chatMessage.trim() || isLoading}
-                    className={`absolute right-2 bg-blue-600 hover:bg-blue-700 transition-all duration-200 ${
-                      isChatExpanded ? 'top-2 h-8 w-8' : 'top-3 h-8 w-8'
-                    }`}
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-xs text-blue-700 hover:bg-blue-50 border border-blue-200"
+                    onClick={() => setChatMessage("Get a shipping quote from China to South Africa")}
                   >
-                    {isLoading ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
-                    ) : (
-                      <Send className="h-3 w-3" />
-                    )}
+                    📦 Quote
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-xs text-green-700 hover:bg-green-50 border border-green-200"
+                    onClick={() => setChatMessage("Estimate customs duties for electronics")}
+                  >
+                    🛃 Customs
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-xs text-purple-700 hover:bg-purple-50 border border-purple-200"
+                    onClick={() => setChatMessage("What documents do I need?")}
+                  >
+                    📋 Documents
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-xs text-orange-700 hover:bg-orange-50 border border-orange-200"
+                    onClick={() => setChatMessage("Explain FOB vs CIF")}
+                  >
+                    💰 FOB vs CIF
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-xs text-teal-700 hover:bg-teal-50 border border-teal-200"
+                    onClick={() => setChatMessage("How long does shipping take?")}
+                  >
+                    ⏱️ Transit
                   </Button>
                 </div>
               </div>
