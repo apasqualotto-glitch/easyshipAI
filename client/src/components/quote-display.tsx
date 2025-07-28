@@ -87,7 +87,12 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
 
   if (!isVisible) return null;
 
-  const formatCurrency = (amount: number) => `R${amount.toLocaleString()}`;
+  const formatCurrency = (amount: number | undefined) => {
+    if (amount === undefined || amount === null || isNaN(amount)) {
+      return 'R0';
+    }
+    return `R${Math.round(amount).toLocaleString()}`;
+  };
 
   const getPriceColor = (rating: string) => {
     switch (rating) {
@@ -116,7 +121,7 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                 Detailed Shipping Quote
               </h2>
               <p className="text-gray-600 dark:text-gray-400 mt-1">
-                {quote.route.origin} → {quote.route.destination} • {quote.route.containerType} Container
+                {quote.route?.origin || 'Origin'} → {quote.route?.destination || 'Destination'} • {quote.route?.containerType || 'Container'}
               </p>
             </div>
             <Button variant="outline" onClick={onClose}>
@@ -144,7 +149,7 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                     <Ship className="h-4 w-4 text-blue-600" />
                     <span className="text-sm">Sea Freight</span>
                   </div>
-                  <span className="font-medium">{formatCurrency(quote.breakdown.seaFreight)}</span>
+                  <span className="font-medium">{formatCurrency(quote.breakdown?.seaFreight)}</span>
                 </div>
                 
                 <div className="flex justify-between items-center">
@@ -152,7 +157,7 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                     <Truck className="h-4 w-4 text-green-600" />
                     <span className="text-sm">Trucking</span>
                   </div>
-                  <span className="font-medium">{formatCurrency(quote.breakdown.trucking)}</span>
+                  <span className="font-medium">{formatCurrency(quote.breakdown?.trucking)}</span>
                 </div>
                 
                 <div className="flex justify-between items-center">
@@ -160,7 +165,7 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                     <FileText className="h-4 w-4 text-orange-600" />
                     <span className="text-sm">Customs Duties</span>
                   </div>
-                  <span className="font-medium">{formatCurrency(quote.breakdown.customs)}</span>
+                  <span className="font-medium">{formatCurrency(quote.breakdown?.customs)}</span>
                 </div>
                 
                 <div className="flex justify-between items-center">
@@ -168,7 +173,7 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                     <DollarSign className="h-4 w-4 text-purple-600" />
                     <span className="text-sm">VAT (15%)</span>
                   </div>
-                  <span className="font-medium">{formatCurrency(quote.breakdown.vat)}</span>
+                  <span className="font-medium">{formatCurrency(quote.breakdown?.vat)}</span>
                 </div>
                 
                 <div className="flex justify-between items-center">
@@ -176,7 +181,7 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                     <Package className="h-4 w-4 text-gray-600" />
                     <span className="text-sm">Handling Fees</span>
                   </div>
-                  <span className="font-medium">{formatCurrency(quote.breakdown.handling)}</span>
+                  <span className="font-medium">{formatCurrency(quote.breakdown?.handling)}</span>
                 </div>
                 
                 <Separator />
@@ -184,18 +189,18 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                 <div className="flex justify-between items-center text-lg font-bold">
                   <span>Total Cost</span>
                   <span className="text-blue-600 dark:text-blue-400">
-                    {formatCurrency(quote.breakdown.total)}
+                    {formatCurrency(quote.breakdown?.total)}
                   </span>
                 </div>
                 
                 <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                   <div className="flex items-center gap-1">
                     <Clock className="h-3 w-3" />
-                    <span>Estimated transit: {quote.totalDays} days</span>
+                    <span>Estimated transit: {quote.totalDays || 'N/A'} days</span>
                   </div>
                   <div className="flex items-center gap-1 mt-1">
                     <MapPin className="h-3 w-3" />
-                    <span>Incoterm: {quote.incoterm}</span>
+                    <span>Incoterm: {quote.incoterm || 'FOB'}</span>
                   </div>
                 </div>
               </CardContent>
