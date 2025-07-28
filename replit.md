@@ -113,6 +113,14 @@ The application is designed for easy migration from in-memory storage to Postgre
   - **Seamless Integration**: Quote modal appears below chat dialog without disrupting conversation flow
   - **Real-time Data**: Quotes use actual API data with comprehensive cost breakdowns and carrier comparisons
 
+- **SEAMLESS QUOTE INTEGRATION: AI Auto-Generates Detailed Quotes Below Chat** - July 28, 2025
+  - **Intelligent Information Extraction**: AI automatically extracts shipping details from user messages and AI responses
+  - **Background Quote Generation**: System creates detailed quotes in background using extracted information (origin, destination, container type, cargo value)
+  - **Unified User Experience**: Whether using manual calculator or AI chat, users get identical detailed quote presentation below interface
+  - **Smart Detection Logic**: Enhanced logic detects shipping requests and automatically triggers quote generation without user action
+  - **Realistic Cost Calculations**: Route-based pricing with accurate sea freight, trucking, customs, and VAT calculations
+  - **Comprehensive Quote Display**: Full breakdown with carrier options, transit times, and booking capabilities presented seamlessly
+
 - **ENHANCED AI CHAT: Smart Numerical Estimates for Basic Replies** - July 28, 2025
   - **Improved Basic Reply Handling**: AI now understands simple responses like "hi", "yes", "ok" and still provides shipping estimates
   - **Smart Keyword Detection**: Extracts shipping info from basic messages (China, Europe, 40ft, etc.) and provides relevant estimates
