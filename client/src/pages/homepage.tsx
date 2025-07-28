@@ -94,12 +94,15 @@ export function Homepage() {
   const [isLoading, setIsLoading] = useState(false);
   const chatMessagesRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-scroll to bottom when new messages arrive - Enhanced
   useEffect(() => {
     if (chatMessagesRef.current) {
-      chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
+      const scrollElement = chatMessagesRef.current;
+      scrollElement.scrollTop = scrollElement.scrollHeight;
+      // Smooth scroll behavior for better UX
+      scrollElement.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }
-  }, [chatMessages]);
+  }, [chatMessages, isLoading]);
 
 
 
@@ -155,7 +158,7 @@ export function Homepage() {
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: "Sorry, I'm having trouble connecting right now. Please try the manual calculator below for instant quotes.",
+        content: "I'm having connection issues right now. Please try again in a moment or use the manual calculator below for instant quotes.",
         timestamp: new Date()
       };
       setChatMessages(prev => [...prev, errorMessage]);
@@ -200,17 +203,20 @@ export function Homepage() {
                   {chatMessages.length === 0 ? (
                     <div className="flex justify-start">
                       <div className="bg-white border border-gray-200 px-3 sm:px-4 py-2 sm:py-3 rounded-2xl rounded-bl-md shadow-sm max-w-full sm:max-w-md">
-                        <div className="text-xs sm:text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">
-                          👋 **Welcome to EasyShip AI!** I'm your personal shipping assistant for container imports to South Africa.
-
-**I can help you with:**
-• Instant shipping quotes with accurate costs
-• Customs duties and SARS compliance  
-• Documentation requirements
-• Incoterms explanations (FOB, CIF, etc.)
-• Carrier selection and booking guidance
-
-**Try asking:** "Get a quote from Shanghai to Johannesburg" or use the buttons below!
+                        <div className="text-xs sm:text-sm text-gray-900 leading-relaxed">
+                          <div className="font-semibold mb-2">👋 Welcome to EasyShip AI!</div>
+                          <div className="mb-3">I'm your personal shipping assistant for container imports to South Africa.</div>
+                          
+                          <div className="mb-2 font-medium">I can help you with:</div>
+                          <div className="space-y-1 text-xs sm:text-sm mb-3">
+                            <div>• Instant shipping quotes with accurate costs</div>
+                            <div>• Customs duties and SARS compliance</div>
+                            <div>• Documentation requirements</div>
+                            <div>• Incoterms explanations (FOB, CIF, etc.)</div>
+                            <div>• Carrier selection and booking guidance</div>
+                          </div>
+                          
+                          <div className="text-blue-600 font-medium">Try asking: "Get a quote from Shanghai to Johannesburg" or use the buttons below!</div>
                         </div>
                       </div>
                     </div>
