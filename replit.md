@@ -11,6 +11,7 @@ Chat interface: Wider message bubbles for better readability and user experience
 User-friendly guidance: Always tell users explicitly to "click the calculator" for detailed quotes - make buttons and actions crystal clear.
 Form auto-population: AI chat extracts shipping information from conversation and automatically fills the manual calculator form fields below, allowing users to complete missing fields and get quotes through the calculator system.
 Layout preference: Calculator form should be fully visible below chat interface, not hidden or requiring button clicks to access.
+Homepage design: AI chat interface at top, manual calculator form always visible below, allowing seamless auto-population of form fields from chat conversations.
 
 ## System Architecture
 

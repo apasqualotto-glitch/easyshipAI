@@ -65,7 +65,7 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
     {
       id: '1',
       role: 'assistant',
-      content: context === "calculator" 
+      content: context === "homepage" || context === "calculator" 
         ? "👋 Hi! I'm your shipping assistant. Tell me about your shipment (like 'I need to ship shoes from New York to Cape Town') and I'll automatically fill in the calculator form below for you!"
         : "👋 Welcome to EasyShip AI! I'm here to help you understand container shipping, customs, and Incoterms in simple terms. What would you like to know?",
       timestamp: new Date()
@@ -360,9 +360,9 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
         <CardHeader 
           className={cn(
             "transition-colors pb-3",
-            context === "calculator" ? "" : "cursor-pointer hover:bg-gray-50"
+            context === "calculator" || context === "homepage" ? "" : "cursor-pointer hover:bg-gray-50"
           )}
-          onClick={() => context !== "calculator" && setIsExpanded(!isExpanded)}
+          onClick={() => context !== "calculator" && context !== "homepage" && setIsExpanded(!isExpanded)}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -372,7 +372,7 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
               <div>
                 <CardTitle className="text-lg font-semibold text-gray-900">EasyShip AI Assistant</CardTitle>
                 <p className="text-sm text-gray-600">
-                  {context === "calculator" 
+                  {context === "homepage" || context === "calculator" 
                     ? "Chat with me and I'll auto-fill the calculator form below" 
                     : "Get help with shipping, customs, and Incoterms"}
                 </p>
@@ -383,10 +383,12 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
                 <div className="w-2 h-2 bg-green-600 rounded-full mr-1"></div>
                 Online
               </Badge>
-              {isExpanded ? (
-                <ChevronUp className="h-5 w-5 text-gray-500" />
-              ) : (
-                <ChevronDown className="h-5 w-5 text-gray-500" />
+              {context !== "calculator" && context !== "homepage" && (
+                isExpanded ? (
+                  <ChevronUp className="h-5 w-5 text-gray-500" />
+                ) : (
+                  <ChevronDown className="h-5 w-5 text-gray-500" />
+                )
               )}
             </div>
           </div>
@@ -421,10 +423,10 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
               </div>
             )}
 
-            {/* Chat Messages - Shorter height on calculator page */}
+            {/* Chat Messages - Shorter height on calculator/homepage */}
             <ScrollArea className={cn(
               "mb-4",
-              context === "calculator" ? "h-64" : "h-96"
+              context === "calculator" || context === "homepage" ? "h-64" : "h-96"
             )}>
               <div className="space-y-4 px-2">
                 {messages.map((message) => (
@@ -543,7 +545,7 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
             </form>
 
             <div className="mt-3 text-xs text-gray-500 text-center">
-              {context === "calculator" 
+              {context === "homepage" || context === "calculator" 
                 ? "💡 Tip: Tell me your shipping details like 'ship electronics from China to Cape Town' and I'll auto-fill the form"
                 : "💡 Tip: Ask specific questions like 'What documents do I need?' or 'Explain FOB pricing'"}
             </div>
