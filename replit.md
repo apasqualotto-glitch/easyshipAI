@@ -101,15 +101,16 @@ The application is designed for easy migration from in-memory storage to Postgre
 
 ## Recent Changes
 
-- **MAJOR ENHANCEMENT: Conversational AI Quote Generation with Information Gathering** - July 28, 2025
-  - Created proper ChatGPT-style chat interface with conversation history and message bubbles
-  - Enhanced AI service to proactively guide users through providing missing quote information
-  - Intelligent information extraction: cargo type, value, container size, origin/destination
-  - Conversational follow-up questions ask for missing details (e.g., "What's the value of your goods?")
-  - Hand-holding approach guides first-time shippers through complex shipping requirements
-  - Auto-scroll chat messages and "Thinking..." loading indicators for natural chat experience
-  - Real shipping cost estimates with smart fallback when information incomplete
-  - AI agent now engages users conversationally instead of providing generic responses
+- **MAJOR UX ENHANCEMENT: Professional Chat Interface with Visual Feedback** - July 28, 2025
+  - **Enhanced Chat Bubbles**: Modern rounded message design with proper user/AI styling and shadows
+  - **Animated Typing Indicator**: 3-dot bouncing animation with "EasyShip AI is typing..." text
+  - **Quick Action Buttons**: Context-aware buttons appear on AI responses (📊 Use Calculator, 📋 Documents, 🛃 Customs)
+  - **Smart Input Interface**: Dynamic input sizing and quick access buttons for common requests
+  - **Conversational AI Responses**: Enhanced with real cost examples, emojis, and structured formatting
+  - **Responsive Design**: Clean mobile-friendly interface with smooth transitions and hover effects
+  - **One-Click Actions**: Pre-filled buttons for "Get Quote", "Documents", "Incoterms", "Customs"
+  - **Professional Formatting**: AI responses now include cost breakdowns, timelines, and next steps
+  - **Auto-scroll Chat**: Automatically scrolls to newest messages for natural conversation flow
 
 - **CRITICAL FIX: AI Chat API Validation and Error Resolution** - July 28, 2025
   - Fixed Zod validation errors preventing chat functionality

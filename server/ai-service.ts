@@ -136,17 +136,27 @@ async function generateFallbackResponse(message: string, context: ChatContext): 
   
   // Incoterms questions
   if (lowerMessage.includes('fob') || lowerMessage.includes('cif') || lowerMessage.includes('incoterm')) {
-    return `Great question about Incoterms! Here's a quick overview:
+    return `Great question about Incoterms! These determine who pays for what:
 
-**FOB (Free on Board)**: You pay for shipping from the port. The supplier covers costs to get goods to their local port, then you handle the rest.
+**💰 Cost Impact Example (Shanghai → Durban):**
 
-**CIF (Cost, Insurance, Freight)**: The supplier pays for shipping and insurance to your destination port. You handle customs and final delivery.
+**FOB**: ~R118,000 total *(You arrange shipping)*
+• You pay: Sea freight + insurance + customs + trucking
+• Supplier pays: Factory to port in China
 
-**EXW (Ex Works)**: You arrange everything from the supplier's location.
+**CIF**: ~R69,000 total *(Saves R49,000!)*  
+• Supplier pays: Factory to Durban port + shipping + insurance
+• You pay: Customs duties + trucking to final destination
 
-**DDP (Delivered Duty Paid)**: Supplier handles everything including customs duties.
+**EXW**: ~R123,000 total *(Most expensive)*
+• You arrange everything from supplier's factory
 
-For detailed explanations with examples, check out our Guides section! Would you like me to explain any specific Incoterm?`;
+**DDP**: ~R68,000 total *(Supplier handles all)*
+• Supplier pays everything including SA customs duties
+
+**🎯 Recommendation**: CIF or DDP usually saves money for first-time importers!
+
+Want me to explain how these affect your specific shipment?`;
   }
   
   // Customs questions
@@ -262,27 +272,33 @@ For the most accurate quote, I'll need to know:
 Use our shipping calculator for instant quotes with SARS-compliant customs calculations. The calculator covers major routes and provides detailed cost breakdowns including duties and VAT.`;
     }
 
-    // Generate a sample quote response
-    return `Here's an estimated quote for shipping ${locations.cargo || 'cargo'} from ${locations.origin} to ${locations.destination}:
+    // Generate a detailed quote response with conversational tone
+    const cargoDescription = locations.cargo || 'cargo';
+    return `Perfect! Here's your estimated quote for shipping ${cargoDescription}:
 
 🚢 **${originPort.name} → ${destinationPort.name}**
 
-**20ft Container (FCL):**
-• Sea freight: ~R45,000 - R55,000
-• Trucking to final destination: ~R8,000 - R12,000
-• Customs duties: Varies by product type
-• VAT (15%): Applied to FOB value + duties
+**💰 Cost Breakdown:**
+• **20ft Container**: ~R53,000 total
+  - Sea freight: R45,000 - R55,000
+  - Trucking: R8,000 - R12,000
+  - Customs duties: Varies by product
+  - VAT (15%): On FOB value + duties
 
-**40ft Container (FCL):**
-• Sea freight: ~R60,000 - R75,000
-• Trucking: ~R10,000 - R15,000
-• Customs duties: Varies by product type
+• **40ft Container**: ~R70,000 total
+  - Sea freight: R60,000 - R75,000  
+  - Trucking: R10,000 - R15,000
+  - Customs duties: Varies by product
 
-**Transit time**: 25-35 days port-to-port + customs clearance
+**⏱️ Timeline**: 25-35 days port-to-port + 2-5 days customs
 
-For an exact quote with customs calculations, use our calculator with your specific cargo details. The calculator provides SARS-compliant estimates and handles all duty calculations automatically!
+**💡 Next Steps:**
+To get exact pricing with customs calculations, I'll need:
+• **Cargo value** (in USD) - determines your duties
+• **Product type** - affects duty rates (0% to 45%)
+• **Preferred Incoterm** - FOB saves ~R20,000 vs CIF
 
-Would you like help with any specific part of the shipping process?`;
+Want me to walk you through these details for a precise quote?`;
 
   } catch (error) {
     console.error('Error generating quote response:', error);

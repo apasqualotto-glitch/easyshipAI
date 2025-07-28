@@ -210,23 +210,71 @@ export function Homepage() {
                   className="mb-4 border rounded-lg bg-gray-50 max-h-80 overflow-y-auto"
                 >
                   <div className="p-4 space-y-4">
-                    {chatMessages.map((msg) => (
+                    {chatMessages.map((msg, index) => (
                       <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                        <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-sm ${
                           msg.role === 'user' 
-                            ? 'bg-blue-600 text-white' 
-                            : 'bg-white border border-gray-200 text-gray-900'
+                            ? 'bg-blue-600 text-white rounded-br-md' 
+                            : 'bg-white border border-gray-200 text-gray-900 rounded-bl-md'
                         }`}>
-                          <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
+                          <div className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</div>
+                          
+                          {/* Quick Action Buttons for AI responses */}
+                          {msg.role === 'assistant' && index === chatMessages.length - 1 && (
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {msg.content.includes('quote') && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 px-3 text-xs bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+                                  onClick={() => setChatMessage("Use the calculator for detailed quote")}
+                                >
+                                  📊 Use Calculator
+                                </Button>
+                              )}
+                              {msg.content.includes('shipping') && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 px-3 text-xs bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+                                  onClick={() => setChatMessage("What documents do I need?")}
+                                >
+                                  📋 Documents Needed
+                                </Button>
+                              )}
+                              {(msg.content.includes('customs') || msg.content.includes('duties')) && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 px-3 text-xs bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
+                                  onClick={() => setChatMessage("Explain customs duties in detail")}
+                                >
+                                  🛃 Learn About Duties
+                                </Button>
+                              )}
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 px-3 text-xs bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100"
+                                onClick={() => setChatMessage("What else can you help me with?")}
+                              >
+                                💡 More Help
+                              </Button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}
                     {isLoading && (
                       <div className="flex justify-start">
-                        <div className="bg-white border border-gray-200 px-4 py-2 rounded-lg">
-                          <div className="flex items-center space-x-2">
-                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent"></div>
-                            <span className="text-sm text-gray-600">Thinking...</span>
+                        <div className="bg-white border border-gray-200 px-4 py-3 rounded-lg shadow-sm">
+                          <div className="flex items-center space-x-3">
+                            <div className="flex space-x-1">
+                              <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
+                              <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
+                              <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
+                            </div>
+                            <span className="text-sm text-gray-600 font-medium">EasyShip AI is typing...</span>
                           </div>
                         </div>
                       </div>
@@ -235,49 +283,85 @@ export function Homepage() {
                 </div>
               )}
               
-              <div className="relative">
-                <Input
-                  value={chatMessage}
-                  onChange={(e) => setChatMessage(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="Ask me: What's the difference between FOB and CIF? or How much to ship from China?"
-                  className="pr-12 h-14 text-lg bg-gray-50 border-gray-200 focus:bg-white"
-                  disabled={isLoading}
-                />
-                <Button
-                  onClick={handleQuickChat}
-                  disabled={!chatMessage.trim() || isLoading}
-                  className="absolute right-2 top-2 h-10 w-10 p-0 bg-blue-600 hover:bg-blue-700"
-                >
-                  {isLoading ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
-                  ) : (
-                    <Send className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-              
-              {/* Quick suggestion buttons */}
-              {!isChatExpanded && (
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {[
-                    "Calculate shipping from Shanghai to Johannesburg",
-                    "What documents do I need for importing?", 
-                    "Explain FOB vs CIF pricing",
-                    "How do customs duties work?"
-                  ].map((suggestion, index) => (
+              <div className="space-y-3">
+                {/* Quick Action Buttons */}
+                {!isChatExpanded && (
+                  <div className="flex flex-wrap gap-2">
                     <Button
-                      key={index}
                       variant="outline"
                       size="sm"
-                      className="text-xs text-blue-700 border-blue-200 hover:bg-blue-50"
-                      onClick={() => setChatMessage(suggestion)}
+                      className="h-8 px-3 text-xs bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+                      onClick={() => {
+                        setChatMessage("Quote for 20ft container from Shanghai to Johannesburg");
+                        setIsChatExpanded(true);
+                      }}
                     >
-                      {suggestion}
+                      📦 Get Quote
                     </Button>
-                  ))}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 px-3 text-xs bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+                      onClick={() => {
+                        setChatMessage("What documents do I need for importing?");
+                        setIsChatExpanded(true);
+                      }}
+                    >
+                      📋 Documents
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 px-3 text-xs bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
+                      onClick={() => {
+                        setChatMessage("Explain FOB vs CIF pricing");
+                        setIsChatExpanded(true);
+                      }}
+                    >
+                      💰 Incoterms
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 px-3 text-xs bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100"
+                      onClick={() => {
+                        setChatMessage("How do customs duties work?");
+                        setIsChatExpanded(true);
+                      }}
+                    >
+                      🛃 Customs
+                    </Button>
+                  </div>
+                )}
+                
+                {/* Chat Input */}
+                <div className="relative">
+                  <Input
+                    value={chatMessage}
+                    onChange={(e) => setChatMessage(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder={isChatExpanded ? "Type your message..." : "Ask me: What's the difference between FOB and CIF? or How much to ship from China?"}
+                    className={`pr-12 transition-all duration-200 bg-white border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 ${
+                      isChatExpanded ? 'h-12 text-base' : 'h-14 text-lg'
+                    }`}
+                    disabled={isLoading}
+                  />
+                  <Button
+                    onClick={handleQuickChat}
+                    disabled={!chatMessage.trim() || isLoading}
+                    className={`absolute right-2 bg-blue-600 hover:bg-blue-700 transition-all duration-200 ${
+                      isChatExpanded ? 'top-2 h-8 w-8' : 'top-3 h-8 w-8'
+                    }`}
+                  >
+                    {isLoading ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                    ) : (
+                      <Send className="h-3 w-3" />
+                    )}
+                  </Button>
                 </div>
-              )}
+              </div>
+
             </CardContent>
           </Card>
         </div>
