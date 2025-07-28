@@ -155,12 +155,13 @@ The application is designed for easy migration from in-memory storage to Postgre
   - **Performance Optimizations**: Efficient React hooks and state management for smooth user experience
   - **Comparison Documentation**: Created detailed analysis comparing simple vs enterprise chat implementations
 
-- **CRITICAL FIX: AI Chat API Validation and Error Resolution** - July 28, 2025
-  - Fixed Zod validation errors preventing chat functionality
-  - Enhanced API to accept both string and object context formats
-  - Improved error handling and fallback response system
-  - Removed floating AI interface to focus user experience on main chat dialog
-  - Chat interface now makes direct API calls and displays intelligent responses
+- **CRITICAL FIX: AI Chat "No Access" Message Resolved** - July 28, 2025
+  - Fixed AI service generating incorrect "I don't have direct access to calculator tool" messages
+  - Updated system prompt to position AI as integrated shipping assistant, not separate tool
+  - Added response filtering to prevent unhelpful access denial messages
+  - Enhanced AI responses to always provide shipping guidance and mention quote generation
+  - AI now correctly tells users detailed quotes will appear below chat interface
+  - Unified user experience where AI seamlessly integrates with quote generation system
 
 - **UI ENHANCEMENT: AI Assistant Dialogue Box on Homepage** - July 28, 2025
   - Added prominent AI assistant dialogue box with first-time shipper examples on homepage

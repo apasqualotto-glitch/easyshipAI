@@ -56,6 +56,13 @@ RESTRICTIONS:
 - Don't make promises about shipping times or costs - these can vary
 - If you don't know something specific, admit it and suggest reliable sources
 - Keep responses focused and actionable
+- NEVER say you "don't have access" to tools or calculators - you ARE the shipping assistant
+- ALWAYS provide helpful shipping guidance and estimates when asked
+
+KEY INTEGRATION POINTS:
+- When users ask for quotes, provide estimates AND tell them a detailed quote will appear below the chat
+- For shipping requests with origin + destination + container info, mention that a detailed quote is being generated
+- Position yourself as the integrated AI assistant, not separate from the platform
 
 Remember: Your goal is to make shipping feel less overwhelming and more accessible.`;
 
@@ -108,10 +115,18 @@ export async function generateChatResponse(
     });
 
     // Extract text content from response
-    const textContent = response.content
+    let textContent = response.content
       .filter(content => content.type === 'text')
       .map(content => content.text)
       .join('');
+
+    // Filter out any unhelpful messages about not having access to tools
+    if (textContent.toLowerCase().includes("don't have direct access") || 
+        textContent.toLowerCase().includes("unfortunately, i don't have access") ||
+        textContent.toLowerCase().includes("i don't have access to")) {
+      // Generate a helpful shipping response instead
+      return await generateFallbackResponse(message, context);
+    }
 
     return textContent || "I'm having trouble generating a response right now. Please try asking your question again, or feel free to explore our shipping calculator!";
 
@@ -188,7 +203,7 @@ async function generateFallbackResponse(message: string, context: ChatContext): 
 
 Want me to explain how these affect your specific shipment? 
 
-**Would you like a detailed quote?** Click the calculator button below to get a comprehensive breakdown with live carrier rates from Maersk, MSC, and CMA CGM!`;
+**Want a detailed quote?** I can create one for you right now! Just provide your origin, destination, container type, and cargo value, and I'll generate a comprehensive breakdown with live carrier rates from Maersk, MSC, and CMA CGM.`;
   }
   
   // Customs questions
@@ -204,7 +219,7 @@ Required documents include commercial invoice, bill of lading, and packing list.
 
 Need help with specific duty rates for your products? 
 
-**Would you like a detailed quote?** Click the calculator button below to get exact SARS-compliant duties with a full cost breakdown!`;
+**Want exact SARS-compliant duties?** I can calculate them for you! Provide your cargo details and I'll generate a detailed breakdown with customs duties, VAT, and all costs.`;
   }
   
   // Shipping time questions
@@ -236,7 +251,7 @@ Need help with any specific document?`;
   }
 
   // Default response with numerical estimates
-  return `I'm ready to help with South African shipping!\n\n💰 **Current Rates:**\n• 20ft from China: R68,500\n• 40ft from China: R123,000\n• 20ft from Europe: R72,000\n• Partial shipments: R12,500\n\n🚛 All-inclusive: Sea freight + trucking + customs + VAT\n\n💡 Popular routes:\n• Shanghai → Durban\n• Hamburg → Cape Town\n• New York → Durban\n\n**Would you like a detailed quote?** Click the calculator button below to get a comprehensive breakdown with carrier options!`;
+  return `I'm ready to help with South African shipping!\n\n💰 **Current Rates:**\n• 20ft from China: R68,500\n• 40ft from China: R123,000\n• 20ft from Europe: R72,000\n• Partial shipments: R12,500\n\n🚛 All-inclusive: Sea freight + trucking + customs + VAT\n\n💡 Popular routes:\n• Shanghai → Durban\n• Hamburg → Cape Town\n• New York → Durban\n\n**Need a detailed quote?** I can generate one instantly! Just tell me your origin, destination, and container type, and I'll create a comprehensive breakdown with carrier options and exact costs.`;
 }
 
 /**
