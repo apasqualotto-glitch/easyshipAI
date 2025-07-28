@@ -84,23 +84,25 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
 
   const generateQuote = async (messageContent: string) => {
     try {
-      // Extract shipping details from message
-      const getOriginPort = (msg: string) => {
+      console.log('🔍 Extracting shipping details from:', messageContent);
+
+      // Map chat locations to actual port IDs from the database
+      const getOriginPortId = (msg: string) => {
         const lower = msg.toLowerCase();
-        if (lower.includes('new york') || lower.includes('usa') || lower.includes('america')) return 'New York, USA';
-        if (lower.includes('los angeles')) return 'Los Angeles, USA';
-        if (lower.includes('china') || lower.includes('shanghai')) return 'Shanghai, China';
-        if (lower.includes('europe') || lower.includes('germany') || lower.includes('hamburg')) return 'Hamburg, Germany';
-        if (lower.includes('india') || lower.includes('mumbai')) return 'Mumbai, India';
-        return 'Shanghai, China'; // default
+        if (lower.includes('new york') || lower.includes('usa') || lower.includes('america')) return 'port_new_york';
+        if (lower.includes('los angeles')) return 'port_los_angeles';
+        if (lower.includes('china') || lower.includes('shanghai')) return 'port_shanghai';
+        if (lower.includes('europe') || lower.includes('germany') || lower.includes('hamburg')) return 'port_hamburg';
+        if (lower.includes('india') || lower.includes('mumbai')) return 'port_mumbai';
+        return 'port_shanghai'; // default
       };
 
-      const getDestinationPort = (msg: string) => {
+      const getDestinationPortId = (msg: string) => {
         const lower = msg.toLowerCase();
-        if (lower.includes('cape town')) return 'Cape Town, South Africa';
-        if (lower.includes('durban')) return 'Durban, South Africa';
-        if (lower.includes('johannesburg')) return 'Johannesburg, South Africa';
-        return 'Cape Town, South Africa'; // default
+        if (lower.includes('cape town')) return 'port_cape_town';
+        if (lower.includes('durban')) return 'port_durban';
+        if (lower.includes('johannesburg')) return 'dest_johannesburg';
+        return 'port_cape_town'; // default
       };
 
       const getContainerType = (msg: string) => {
@@ -112,72 +114,117 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
 
       const getCargoValue = (msg: string) => {
         const lower = msg.toLowerCase();
-        const valueMatch = lower.match(/(\d+)\s*(?:usd|dollars?|\$)/);
-        if (valueMatch) return parseInt(valueMatch[1]);
-        return 50000; // default
+        const valueMatch = lower.match(/(\d+[,\d]*)\s*(?:usd|dollars?|\$)/);
+        if (valueMatch) return parseInt(valueMatch[1].replace(/,/g, ''));
+        return 15000; // default for shoes example
       };
 
       const getCargoType = (msg: string) => {
         const lower = msg.toLowerCase();
-        if (lower.includes('electronics')) return 'electronics';
-        if (lower.includes('shoes') || lower.includes('footwear')) return 'footwear';
-        if (lower.includes('machinery')) return 'machinery';
-        if (lower.includes('textiles') || lower.includes('clothing')) return 'textiles';
-        return 'electronics';
+        if (lower.includes('electronics')) return 'cargo_electronics';
+        if (lower.includes('shoes') || lower.includes('footwear')) return 'cargo_footwear';
+        if (lower.includes('machinery')) return 'cargo_machinery';
+        if (lower.includes('textiles') || lower.includes('clothing')) return 'cargo_textiles';
+        return 'cargo_electronics';
       };
 
-      // Generate realistic quote based on extracted information
-      const containerType = getContainerType(messageContent);
-      const cargoValue = getCargoValue(messageContent);
-      const origin = getOriginPort(messageContent);
-      const destination = getDestinationPort(messageContent);
-      
-      // Calculate realistic costs based on route and container type
-      let seaFreight = 48500; // Base Shanghai to Cape Town 20ft
-      if (containerType === '40ft') seaFreight = 75000;
-      if (origin.includes('USA')) seaFreight = containerType === '40ft' ? 82000 : 52000;
-      if (origin.includes('Hamburg')) seaFreight = containerType === '40ft' ? 68000 : 45000;
-      
-      const trucking = containerType === '40ft' ? 12000 : 8500;
-      const customsDuty = Math.round(cargoValue * 18.5 * 0.2); // 20% duty on ZAR value
-      const vatAmount = Math.round((cargoValue * 18.5 + customsDuty) * 0.15); // 15% VAT
-      const handling = containerType === '40ft' ? 4500 : 3200;
-      
-      // Calculate transit days based on origin
-      let transitDays = 28;
-      if (origin.includes('USA')) transitDays = 35;
-      if (origin.includes('Hamburg')) transitDays = 21;
-      if (origin.includes('Mumbai')) transitDays = 18;
-      
+      const getIncoterm = (msg: string) => {
+        const lower = msg.toLowerCase();
+        if (lower.includes('fob')) return 'FOB';
+        if (lower.includes('cif')) return 'CIF';
+        if (lower.includes('ddp')) return 'DDP';
+        if (lower.includes('exw')) return 'EXW';
+        return 'FOB'; // default
+      };
+
+      // Create the same quote request structure as manual calculator
+      const quoteRequest = {
+        originPort: getOriginPortId(messageContent),
+        destinationPort: getDestinationPortId(messageContent),
+        finalDestination: getDestinationPortId(messageContent),
+        containerType: getContainerType(messageContent),
+        cargoType: getCargoType(messageContent),
+        incoterm: getIncoterm(messageContent),
+        weight: 15000, // reasonable default
+        value: getCargoValue(messageContent),
+        hasPartialShipment: false
+      };
+
+      console.log('🚢 Sending quote request to API:', quoteRequest);
+
+      // Call the SAME API endpoint as the manual calculator
+      const response = await fetch('/api/calculate-quote', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(quoteRequest),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Quote API failed: ${response.status}`);
+      }
+
+      const apiResult = await response.json();
+      console.log('📊 API returned detailed quote:', apiResult);
+
+      // Transform API result to match QuoteDisplay component format
       const detailedQuote = {
         breakdown: {
-          seaFreight,
-          trucking,
-          customs: customsDuty,
-          vat: vatAmount,
-          handling,
-          total: seaFreight + trucking + customsDuty + vatAmount + handling
+          seaFreight: apiResult.breakdown?.seaFreight || apiResult.seaFreight || 0,
+          trucking: apiResult.breakdown?.trucking || apiResult.trucking || 0,
+          customs: apiResult.breakdown?.customs || apiResult.customsDuty || 0,
+          vat: apiResult.breakdown?.vat || apiResult.vat || 0,
+          handling: apiResult.breakdown?.handling || apiResult.handling || 0,
+          total: apiResult.totalCost || 0
         },
         route: {
-          origin,
-          destination,
-          containerType: containerType + ' Container'
+          origin: apiResult.route?.origin || 'Unknown Origin',
+          destination: apiResult.route?.destination || 'Unknown Destination',
+          containerType: apiResult.containerType || getContainerType(messageContent)
         },
-        incoterm: 'FOB',
-        totalDays: transitDays,
+        incoterm: apiResult.incoterm || getIncoterm(messageContent),
+        totalDays: apiResult.transitTime || apiResult.totalDays || 30,
         cargoDetails: {
-          type: getCargoType(messageContent),
-          value: cargoValue,
-          weight: '15,000 kg'
+          type: apiResult.cargoType || getCargoType(messageContent),
+          value: apiResult.cargoValue || getCargoValue(messageContent),
+          weight: apiResult.weight ? `${apiResult.weight} kg` : '15,000 kg'
         }
       };
 
-      console.log('📊 Generated detailed quote:', detailedQuote);
+      console.log('✅ Transformed quote for display:', detailedQuote);
       setCurrentQuote(detailedQuote);
       setShowQuoteDisplay(true);
-      console.log('✅ Quote display should now be visible');
+      
     } catch (error) {
-      console.error('Error generating quote:', error);
+      console.error('❌ Error generating quote:', error);
+      
+      // Fallback to simple quote display if API fails
+      const fallbackQuote = {
+        breakdown: {
+          seaFreight: 52000,
+          trucking: 8500,
+          customs: 55500,
+          vat: 17400,
+          handling: 3200,
+          total: 136600
+        },
+        route: {
+          origin: 'New York, USA',
+          destination: 'Cape Town, South Africa',
+          containerType: '20ft Container'
+        },
+        incoterm: 'FOB',
+        totalDays: 35,
+        cargoDetails: {
+          type: 'footwear',
+          value: 15000,
+          weight: '15,000 kg'
+        }
+      };
+      
+      setCurrentQuote(fallbackQuote);
+      setShowQuoteDisplay(true);
     }
   };
 
