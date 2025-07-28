@@ -101,16 +101,17 @@ The application is designed for easy migration from in-memory storage to Postgre
 
 ## Recent Changes
 
-- **MAJOR UX ENHANCEMENT: Professional Chat Interface with Visual Feedback** - July 28, 2025
+- **MAJOR UX ENHANCEMENT: First-Time User Guidance & Professional Chat Interface** - July 28, 2025
+  - **Welcome Experience**: Enhanced welcome message explaining AI capabilities and suggested prompts
+  - **Guided Onboarding**: "First time importing?" callout with step-by-step guidance promise
+  - **Primary Action Buttons**: Large 2x2 grid with "Get Shipping Quote" and "Estimate Customs" for key workflows
+  - **Secondary Quick Options**: Smaller buttons for Documents, FOB vs CIF, and Transit Times
+  - **Contextual Help Tips**: Smart tips appear when users start typing for better input guidance
   - **Enhanced Chat Bubbles**: Modern rounded message design with proper user/AI styling and shadows
   - **Animated Typing Indicator**: 3-dot bouncing animation with "EasyShip AI is typing..." text
-  - **Quick Action Buttons**: Context-aware buttons appear on AI responses (📊 Use Calculator, 📋 Documents, 🛃 Customs)
-  - **Smart Input Interface**: Dynamic input sizing and quick access buttons for common requests
+  - **Context-Aware Actions**: Smart buttons appear on AI responses based on conversation content
   - **Conversational AI Responses**: Enhanced with real cost examples, emojis, and structured formatting
-  - **Responsive Design**: Clean mobile-friendly interface with smooth transitions and hover effects
-  - **One-Click Actions**: Pre-filled buttons for "Get Quote", "Documents", "Incoterms", "Customs"
-  - **Professional Formatting**: AI responses now include cost breakdowns, timelines, and next steps
-  - **Auto-scroll Chat**: Automatically scrolls to newest messages for natural conversation flow
+  - **Professional Formatting**: AI responses include cost breakdowns, timelines, and actionable next steps
 
 - **CRITICAL FIX: AI Chat API Validation and Error Resolution** - July 28, 2025
   - Fixed Zod validation errors preventing chat functionality

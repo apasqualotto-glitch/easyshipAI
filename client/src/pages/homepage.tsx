@@ -94,7 +94,7 @@ export function Homepage() {
     {
       id: '1',
       role: 'assistant',
-      content: "👋 Hi! I'm here to help with container shipping to South Africa. Ask me about costs, customs, documentation, or get instant quotes!",
+      content: "👋 **Welcome to EasyShip AI!** I'm your personal shipping assistant for container imports to South Africa.\n\n**I can help you with:**\n• Instant shipping quotes with accurate costs\n• Customs duties and SARS compliance\n• Documentation requirements\n• Incoterms explanations (FOB, CIF, etc.)\n• Carrier selection and booking guidance\n\n**Try asking:** \"Get a quote from Shanghai to Johannesburg\" or click the quick buttons below!",
       timestamp: new Date()
     }
   ]);
@@ -191,15 +191,27 @@ export function Homepage() {
                 className="text-center pb-4 cursor-pointer hover:bg-gray-50 transition-colors"
                 onClick={() => setIsChatExpanded(!isChatExpanded)}
               >
-                <div className="flex justify-center mb-2">
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
-                    <Sparkles className="h-6 w-6 text-white" />
+                <div className="flex justify-center mb-3">
+                  <div className="w-14 h-14 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
+                    <Sparkles className="h-7 w-7 text-white" />
                   </div>
                 </div>
-                <CardTitle className="text-xl text-gray-900">Ask EasyShip AI anything about container shipping</CardTitle>
-                <CardDescription className="text-gray-600">
-                  Get instant answers about customs, incoterms, costs, and shipping procedures
+                <CardTitle className="text-2xl text-gray-900 mb-2">EasyShip AI Assistant</CardTitle>
+                <CardDescription className="text-gray-600 text-base">
+                  Your personal guide for container shipping to South Africa
                 </CardDescription>
+                
+                {/* First-time user guidance */}
+                {!isChatExpanded && (
+                  <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="text-sm text-blue-800">
+                      <div className="font-semibold mb-1">👋 First time importing?</div>
+                      <div className="text-xs text-blue-700">
+                        I'll guide you through quotes, customs, and documentation step-by-step!
+                      </div>
+                    </div>
+                  </div>
+                )}
               </CardHeader>
             <CardContent className="pt-0">
               
@@ -284,53 +296,85 @@ export function Homepage() {
               )}
               
               <div className="space-y-3">
-                {/* Quick Action Buttons */}
+                {/* Suggested Prompts for First-Time Users */}
                 {!isChatExpanded && (
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 px-3 text-xs bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
-                      onClick={() => {
-                        setChatMessage("Quote for 20ft container from Shanghai to Johannesburg");
-                        setIsChatExpanded(true);
-                      }}
-                    >
-                      📦 Get Quote
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 px-3 text-xs bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
-                      onClick={() => {
-                        setChatMessage("What documents do I need for importing?");
-                        setIsChatExpanded(true);
-                      }}
-                    >
-                      📋 Documents
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 px-3 text-xs bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
-                      onClick={() => {
-                        setChatMessage("Explain FOB vs CIF pricing");
-                        setIsChatExpanded(true);
-                      }}
-                    >
-                      💰 Incoterms
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 px-3 text-xs bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100"
-                      onClick={() => {
-                        setChatMessage("How do customs duties work?");
-                        setIsChatExpanded(true);
-                      }}
-                    >
-                      🛃 Customs
-                    </Button>
+                  <div className="space-y-3">
+                    <div className="text-center">
+                      <p className="text-sm text-gray-600 font-medium mb-2">👆 Click to get started, or try these common questions:</p>
+                    </div>
+                    
+                    {/* Primary Action Buttons */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        variant="outline"
+                        className="h-12 px-4 text-sm bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 flex flex-col items-center justify-center"
+                        onClick={() => {
+                          setChatMessage("Get a shipping quote from China to South Africa");
+                          setIsChatExpanded(true);
+                        }}
+                      >
+                        <div className="text-lg mb-1">📦</div>
+                        <div className="text-xs">Get Shipping Quote</div>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="h-12 px-4 text-sm bg-green-50 border-green-200 text-green-700 hover:bg-green-100 flex flex-col items-center justify-center"
+                        onClick={() => {
+                          setChatMessage("Estimate customs duties for electronics");
+                          setIsChatExpanded(true);
+                        }}
+                      >
+                        <div className="text-lg mb-1">🛃</div>
+                        <div className="text-xs">Estimate Customs</div>
+                      </Button>
+                    </div>
+                    
+                    {/* Secondary Quick Options */}
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-3 text-xs text-purple-700 hover:bg-purple-50"
+                        onClick={() => {
+                          setChatMessage("What documents do I need for importing?");
+                          setIsChatExpanded(true);
+                        }}
+                      >
+                        📋 Required Documents
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-3 text-xs text-orange-700 hover:bg-orange-50"
+                        onClick={() => {
+                          setChatMessage("Explain FOB vs CIF - which is better?");
+                          setIsChatExpanded(true);
+                        }}
+                      >
+                        💰 FOB vs CIF
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-3 text-xs text-teal-700 hover:bg-teal-50"
+                        onClick={() => {
+                          setChatMessage("How long does shipping take from China?");
+                          setIsChatExpanded(true);
+                        }}
+                      >
+                        ⏱️ Transit Times
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Contextual Help for Active Input */}
+                {chatMessage.length > 0 && !isChatExpanded && (
+                  <div className="mb-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="text-xs text-gray-600">
+                      <div className="font-medium mb-1">💡 Tip: Be specific for better results!</div>
+                      <div>Include: origin, destination, cargo type, and value for accurate quotes</div>
+                    </div>
                   </div>
                 )}
                 
