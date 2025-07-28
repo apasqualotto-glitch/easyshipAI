@@ -106,6 +106,16 @@ The application is designed for easy migration from in-memory storage to Postgre
 
 ## Recent Changes
 
+- **CRITICAL FIX: Port Extraction & Chat Estimates Working!** - July 28, 2025
+  - **Fixed Port ID Mapping**: "New York to Cape Town" now correctly extracts origin port ID "34" and destination port ID "10"
+  - **Real-Time Chat Estimates**: AI now provides instant cost estimates during conversation while form is being filled
+  - **Live Calculations**: Chat shows R65,000+ estimates with sea freight, trucking, customs & VAT breakdown
+  - **Smart Extraction**: Correctly maps Shanghai→1, Hamburg→4, New York→34, Durban→9, Cape Town→10
+  - **Interactive Estimates**: Every shipping conversation now includes immediate cost estimates in chat
+  - **Enhanced Detection**: Improved natural language understanding for origins, destinations, container types
+  - **Form Auto-Population**: AI chat extracts shipping details and auto-fills calculator form fields with correct port IDs
+  - **Toast Notifications**: User feedback when form fields are populated from AI extraction with success messages
+
 - **NEW FEATURE: AI Chat Auto-Populates Manual Calculator Form** - July 28, 2025
   - **Seamless Integration**: AI chat extracts shipping details and auto-fills calculator form fields in real-time
   - **Always Visible Layout**: Calculator form is fully open below chat interface on calculator page

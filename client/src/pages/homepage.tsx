@@ -102,7 +102,7 @@ export function Homepage() {
           containerType: 'Container Type',
           finalDestination: 'Final Destination',
           incoterm: 'Incoterm',
-          cargoValue: 'Cargo Value',
+          value: 'Cargo Value',
           cargoType: 'Cargo Type',
           weight: 'Weight'
         };
@@ -110,9 +110,15 @@ export function Homepage() {
       }).join(', ');
       
       toast({
-        title: "✅ Form Auto-Populated!",
-        description: `Auto-filled: ${fieldNames}`,
+        title: "Form Auto-Filled! ✓",
+        description: `Updated: ${fieldNames}`,
         duration: 4000,
+      });
+      
+      console.log('Form auto-filled:', {
+        extractedData,
+        fieldCount,
+        fieldNames
       });
     }
   };

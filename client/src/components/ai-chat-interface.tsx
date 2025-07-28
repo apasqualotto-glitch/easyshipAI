@@ -83,51 +83,63 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
     scrollToBottom();
   }, [messages]);
 
+  // Port code to ID mapping based on database
+  const portCodeToId: Record<string, string> = {
+    'CNSHA': '1',   // Shanghai
+    'CNNGB': '2',   // Ningbo
+    'CNTXG': '3',   // Tianjin
+    'CNSZX': '16',  // Shenzhen
+    'CNQIN': '17',  // Qingdao
+    'DEHAM': '4',   // Hamburg
+    'NLRTM': '5',   // Rotterdam
+    'GBFXT': '6',   // Felixstowe
+    'BEANR': '20',  // Antwerp
+    'INMUN': '7',   // Mumbai
+    'SGSIN': '8',   // Singapore
+    'USLAX': '32',  // Los Angeles
+    'USNYC': '34',  // New York
+    'ZACPT': '10',  // Cape Town
+    'ZADUR': '9',   // Durban
+    'ZAPEZ': '11',  // Port Elizabeth
+  };
+
   // Extract helper functions
-  const getOriginPortCode = (msg: string) => {
+  const getOriginPortId = (msg: string) => {
     const lower = msg.toLowerCase();
     // Major US ports
-    if (lower.includes('new york') || lower.includes('ny')) return 'USNYC';
-    if (lower.includes('los angeles') || lower.includes('la')) return 'USLAX';
-    if (lower.includes('long beach')) return 'USLGB';
-    if (lower.includes('seattle')) return 'USSEA';
-    if (lower.includes('oakland')) return 'USOAK';
-    if (lower.includes('usa') || lower.includes('america')) return 'USNYC'; // Default to New York for USA
+    if (lower.includes('new york') || lower.includes('ny')) return '34';
+    if (lower.includes('los angeles') || lower.includes('la')) return '32';
+    if (lower.includes('usa') || lower.includes('america')) return '34'; // Default to New York for USA
     
     // Major Chinese ports
-    if (lower.includes('shanghai')) return 'CNSHA';
-    if (lower.includes('shenzhen') || lower.includes('yantian')) return 'CNSZX';
-    if (lower.includes('ningbo')) return 'CNNGB';
-    if (lower.includes('qingdao')) return 'CNTAO';
-    if (lower.includes('tianjin')) return 'CNTSN';
-    if (lower.includes('china') && !lower.includes('specific')) return 'CNSHA'; // Default to Shanghai for China
+    if (lower.includes('shanghai')) return '1';
+    if (lower.includes('shenzhen') || lower.includes('yantian')) return '16';
+    if (lower.includes('ningbo')) return '2';
+    if (lower.includes('qingdao')) return '17';
+    if (lower.includes('tianjin')) return '3';
+    if (lower.includes('china') && !lower.includes('specific')) return '1'; // Default to Shanghai for China
     
     // European ports
-    if (lower.includes('hamburg') || lower.includes('germany')) return 'DEHAM';
-    if (lower.includes('rotterdam') || lower.includes('netherlands')) return 'NLRTM';
-    if (lower.includes('antwerp') || lower.includes('belgium')) return 'BEANR';
-    if (lower.includes('felixstowe') || lower.includes('uk') || lower.includes('england')) return 'GBFXT';
-    if (lower.includes('europe') && !lower.includes('specific')) return 'DEHAM'; // Default to Hamburg for Europe
+    if (lower.includes('hamburg') || lower.includes('germany')) return '4';
+    if (lower.includes('rotterdam') || lower.includes('netherlands')) return '5';
+    if (lower.includes('antwerp') || lower.includes('belgium')) return '20';
+    if (lower.includes('felixstowe') || lower.includes('uk') || lower.includes('england')) return '6';
+    if (lower.includes('europe') && !lower.includes('specific')) return '4'; // Default to Hamburg for Europe
     
     // Other major ports
-    if (lower.includes('singapore')) return 'SGSIN';
-    if (lower.includes('hong kong')) return 'HKHKG';
-    if (lower.includes('busan') || lower.includes('korea')) return 'KRPUS';
-    if (lower.includes('tokyo') || lower.includes('japan')) return 'JPTYO';
-    if (lower.includes('mumbai') || lower.includes('india')) return 'INMUN';
+    if (lower.includes('singapore')) return '8';
+    if (lower.includes('mumbai') || lower.includes('india')) return '7';
     
     return '';
   };
 
-  const getDestinationPortCode = (msg: string) => {
+  const getDestinationPortId = (msg: string) => {
     const lower = msg.toLowerCase();
-    if (lower.includes('cape town') || lower.includes('cpt')) return 'ZACPT';
-    if (lower.includes('durban') || lower.includes('dbn')) return 'ZADUR';
-    if (lower.includes('port elizabeth') || lower.includes('gqeberha') || lower.includes('pe')) return 'ZAPEZ';
-    if (lower.includes('mossel bay')) return 'ZAMOB';
-    if (lower.includes('east london')) return 'ZAELS';
+    if (lower.includes('cape town') || lower.includes('cpt')) return '10';
+    if (lower.includes('durban') || lower.includes('dbn')) return '9';
+    if (lower.includes('port elizabeth') || lower.includes('gqeberha') || lower.includes('pe')) return '11';
     // Default to Durban if South Africa is mentioned but no specific port
-    if (lower.includes('south africa') && !lower.includes('specific')) return 'ZADUR';
+    if (lower.includes('south africa') && !lower.includes('specific')) return '9';
     return '';
   };
 
@@ -282,44 +294,50 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
 
       const data = await response.json();
       
+      // Enhanced shipping detection and estimation
+      const fullConversation = messages.map(m => m.content).concat(messageContent).join(' ');
+      
+      const hasOrigin = getOriginPortId(fullConversation) !== '';
+      const hasDestination = getDestinationPortId(fullConversation) !== '';
+      const hasContainer = getContainerType(fullConversation) !== '';
+      const hasValue = getCargoValue(fullConversation) > 0;
+      const hasCargo = getCargoType(fullConversation) !== '';
+      
+      const hasSufficientInfo = hasOrigin && hasDestination;
+      const isCompleteShippingRequest = hasSufficientInfo && (hasContainer || hasValue);
+      
+      // Generate quick estimate for chat if we have origin and destination
+      let estimateText = "";
+      if (hasOrigin && hasDestination) {
+        const originId = getOriginPortId(fullConversation);
+        const destId = getDestinationPortId(fullConversation);
+        const containerType = getContainerType(fullConversation) || '20ft';
+        const cargoValue = getCargoValue(fullConversation) || 25000;
+        const cargoType = getCargoType(fullConversation) || 'general';
+        
+        // Quick calculation based on common routes
+        const routeEstimates: Record<string, Record<string, number>> = {
+          '1': { '9': 48500, '10': 51000, '11': 49500 }, // Shanghai
+          '4': { '9': 42000, '10': 40000, '11': 43000 }, // Hamburg  
+          '34': { '9': 40000, '10': 43000, '11': 41000 }, // New York
+        };
+        
+        const seaFreight = routeEstimates[originId]?.[destId] || 45000;
+        const containerMultiplier = containerType === '40ft' ? 1.3 : containerType === '40ft-hc' ? 1.35 : 1;
+        const adjustedSeaFreight = Math.round(seaFreight * containerMultiplier);
+        
+        const trucking = destId === '10' ? 1000 : destId === '9' ? 1000 : 6000; // Cape Town/Durban vs inland
+        const customsDuty = Math.round(cargoValue * (cargoType === 'textiles' ? 0.45 : cargoType === 'electronics' ? 0.20 : 0.15));
+        const vat = Math.round((cargoValue + customsDuty) * 0.15);
+        const handling = 3500;
+        
+        const total = adjustedSeaFreight + trucking + customsDuty + vat + handling;
+        
+        estimateText = `\n\n💰 **Quick Estimate**: R${total.toLocaleString()} total\n• Sea freight (${containerType}): R${adjustedSeaFreight.toLocaleString()}\n• Trucking: R${trucking.toLocaleString()}\n• Customs & VAT: R${(customsDuty + vat).toLocaleString()}\n• Handling: R${handling.toLocaleString()}`;
+      }
+
       // Add calculator suggestion for relevant shipping queries
-      let aiResponse = data.response;
-      
-      // Check if AI has enough information to auto-generate detailed quote
-      const hasOrigin = messageContent.toLowerCase().includes('from') || 
-                       messageContent.toLowerCase().includes('china') || 
-                       messageContent.toLowerCase().includes('europe') || 
-                       messageContent.toLowerCase().includes('usa') || 
-                       messageContent.toLowerCase().includes('new york') ||
-                       messageContent.toLowerCase().includes('shanghai') ||
-                       messageContent.toLowerCase().includes('hamburg');
-      
-      const hasDestination = messageContent.toLowerCase().includes('to') || 
-                            messageContent.toLowerCase().includes('cape town') || 
-                            messageContent.toLowerCase().includes('durban') || 
-                            messageContent.toLowerCase().includes('south africa');
-      
-      const hasContainer = messageContent.toLowerCase().includes('container') || 
-                          messageContent.toLowerCase().includes('20ft') || 
-                          messageContent.toLowerCase().includes('40ft') ||
-                          messageContent.toLowerCase().includes('20 ft') || 
-                          messageContent.toLowerCase().includes('40 ft') ||
-                          messageContent.toLowerCase().includes('ship');
-      
-      const hasValue = messageContent.toLowerCase().includes('value') || 
-                      messageContent.toLowerCase().includes('usd') || 
-                      messageContent.toLowerCase().includes('$') ||
-                      messageContent.toLowerCase().includes('fob');
-      
-      // Auto-generate detailed quote if AI has sufficient shipping information
-      const hasSufficientInfo = (hasOrigin && hasDestination && hasContainer) || 
-                               (hasOrigin && hasContainer && hasValue) ||
-                               messageContent.toLowerCase().includes('detailed quote') ||
-                               messageContent.toLowerCase().includes('calculate quote');
-      
-      // Check if message looks like a complete shipping request
-      const isCompleteShippingRequest = hasOrigin && hasDestination && 
-                                       (hasContainer || messageContent.toLowerCase().includes('ship'));
+      let aiResponse = data.response + estimateText;
 
       // Add detailed quote offer for shipping-related messages
       const hasShippingKeywords = messageContent.toLowerCase().includes('ship') ||
@@ -365,12 +383,12 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
         const fullConversation = messages.map(m => m.content).concat(messageContent).join(' ');
         const extractedData: Partial<any> = {};
         
-        const originCode = getOriginPortCode(fullConversation);
-        if (originCode) extractedData.originPort = originCode;
+        const originId = getOriginPortId(fullConversation);
+        if (originId) extractedData.originPort = originId;
         
-        const destCode = getDestinationPortCode(fullConversation);
-        if (destCode) {
-          extractedData.destinationPort = destCode;
+        const destId = getDestinationPortId(fullConversation);
+        if (destId) {
+          extractedData.destinationPort = destId;
           const finalDest = getFinalDestinationName(fullConversation);
           if (finalDest) extractedData.finalDestination = finalDest;
         }
