@@ -17,7 +17,8 @@ import {
   Ship,
   FileText,
   HelpCircle,
-  BookOpen
+  BookOpen,
+  Calculator
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -83,17 +84,41 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
 
   const generateQuote = async (messageContent: string) => {
     try {
+      // Extract shipping details from message or use defaults
+      const getOriginPort = (msg: string) => {
+        const lower = msg.toLowerCase();
+        if (lower.includes('china') || lower.includes('shanghai')) return 'CNSHA';
+        if (lower.includes('europe') || lower.includes('germany') || lower.includes('hamburg')) return 'DEHAM';
+        if (lower.includes('usa') || lower.includes('america') || lower.includes('los angeles')) return 'USLAX';
+        return 'CNSHA'; // default
+      };
+
+      const getContainerType = (msg: string) => {
+        const lower = msg.toLowerCase();
+        if (lower.includes('40ft') || lower.includes('40 ft')) return '40ft';
+        if (lower.includes('20ft') || lower.includes('20 ft')) return '20ft';
+        return '20ft'; // default
+      };
+
+      const getCargoType = (msg: string) => {
+        const lower = msg.toLowerCase();
+        if (lower.includes('electronics')) return 'electronics';
+        if (lower.includes('machinery')) return 'machinery';
+        if (lower.includes('textiles') || lower.includes('clothing')) return 'textiles';
+        return 'electronics'; // default
+      };
+
       const response = await fetch('/api/calculate-quote', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          originPort: 'shanghai',
-          destinationPort: 'durban',
-          finalDestination: 'johannesburg',
-          containerType: '20ft',
-          cargoType: 'electronics',
+          originPort: getOriginPort(messageContent),
+          destinationPort: 'CPT',
+          finalDestination: 'Cape Town',
+          containerType: getContainerType(messageContent),
+          cargoType: getCargoType(messageContent),
           cargoValue: 50000,
           cargoWeight: 15000,
           weight: 15000,
@@ -149,7 +174,7 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
       let aiResponse = data.response;
       if ((messageContent.toLowerCase().includes('quote') || messageContent.toLowerCase().includes('cost')) && 
           (messageContent.toLowerCase().includes('china') || messageContent.toLowerCase().includes('container'))) {
-        aiResponse += "\n\n💡 **Want a detailed quote with carrier options?** I can generate a comprehensive quote below with live rates from major shipping lines!";
+        aiResponse += "\n\n💡 **Want a detailed quote with carrier options?** Use the calculator button below for a comprehensive quote with live rates from major shipping lines!";
       }
       
       const assistantMessage: ChatMessage = {
@@ -293,6 +318,21 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
                         : "bg-gray-100 text-gray-900"
                     )}>
                       <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                      {message.role === 'assistant' && (
+                        message.content.toLowerCase().includes('calculator') || 
+                        message.content.toLowerCase().includes('detailed quote')
+                      ) && (
+                        <div className="mt-3 pt-3 border-t border-gray-200">
+                          <Button
+                            size="sm"
+                            onClick={() => generateQuote(message.content)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                          >
+                            <Calculator className="h-4 w-4 mr-2" />
+                            Get Detailed Quote with Carriers
+                          </Button>
+                        </div>
+                      )}
                       <p className={cn(
                         "text-xs mt-1 opacity-70",
                         message.role === 'user' ? "text-blue-100" : "text-gray-500"
