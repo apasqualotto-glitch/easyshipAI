@@ -86,10 +86,35 @@ export function Homepage() {
 
 
 
-  const handleQuickChat = () => {
-    // For now, just clear the message since AI chat is not connected
+  const handleQuickChat = async () => {
+    if (!chatMessage.trim()) return;
+    
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: chatMessage,
+          context: { page: 'homepage' },
+          conversationHistory: []
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Display the response - for now we'll show it in an alert, 
+        // but later this could be integrated with a proper chat interface
+        alert(`AI Response: ${data.response}`);
+      } else {
+        alert("Sorry, I'm having trouble connecting right now. Please try the manual calculator below.");
+      }
+    } catch (error) {
+      alert("Sorry, I'm having trouble connecting right now. Please try the manual calculator below.");
+    }
+    
     setChatMessage("");
-    alert("AI chat requires an API key to be configured. Please use the manual calculator below for now.");
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
