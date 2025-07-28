@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { storage } from './storage';
 
 /**
  * AI Service for EasyShip AI Chat Interface
@@ -118,15 +119,20 @@ export async function generateChatResponse(
     console.error('AI Service Error:', error);
     
     // Provide helpful fallback responses based on message content
-    return generateFallbackResponse(message, context);
+    return await generateFallbackResponse(message, context);
   }
 }
 
 /**
  * Generate helpful fallback responses when AI service is unavailable
  */
-function generateFallbackResponse(message: string, context: ChatContext): string {
+async function generateFallbackResponse(message: string, context: ChatContext): Promise<string> {
   const lowerMessage = message.toLowerCase();
+  
+  // Check if user is asking for a shipping quote
+  if (isQuoteRequest(lowerMessage)) {
+    return await generateQuoteResponse(message, context);
+  }
   
   // Incoterms questions
   if (lowerMessage.includes('fob') || lowerMessage.includes('cif') || lowerMessage.includes('incoterm')) {
@@ -196,6 +202,165 @@ Common topics I can assist with:
 • Cost breakdowns and duties
 
 Feel free to explore our shipping calculator for instant quotes, or browse our guides for detailed explanations. What specific shipping question can I help you with?`;
+}
+
+/**
+ * Check if the message is requesting a shipping quote
+ */
+function isQuoteRequest(message: string): boolean {
+  const quoteKeywords = [
+    'quote', 'cost', 'price', 'ship', 'shipping', 'container', 'from', 'to',
+    'how much', 'calculate', 'estimate'
+  ];
+  
+  return quoteKeywords.some(keyword => message.includes(keyword)) && 
+         (message.includes('from') || message.includes('to'));
+}
+
+/**
+ * Generate a shipping quote response for intelligent fallback
+ */
+async function generateQuoteResponse(message: string, context: ChatContext): Promise<string> {
+  try {
+    // Extract locations from the message
+    const locations = extractLocations(message);
+    
+    if (!locations.origin || !locations.destination) {
+      return `I'd be happy to help you get a shipping quote! I need a bit more information:
+
+• **Origin**: Where are you shipping from? (city and country)
+• **Destination**: Where in South Africa? (Johannesburg, Cape Town, Durban, etc.)
+• **Cargo**: What are you shipping and approximately how much?
+• **Container type**: 20ft, 40ft, or partial shipment?
+
+For example: "Quote for 20ft container of electronics from Shanghai, China to Johannesburg"
+
+Our calculator can provide instant quotes with customs duties included!`;
+    }
+
+    // Try to find matching ports
+    const originPorts = await storage.getOriginPorts();
+    const destinationPorts = await storage.getDestinationPorts();
+    
+    const originPort = findMatchingPort(originPorts, locations.origin);
+    const destinationPort = findMatchingPort(destinationPorts, locations.destination);
+    
+    if (!originPort || !destinationPort) {
+      return `I can help with a quote for shipping ${locations.cargo || 'cargo'} from ${locations.origin} to ${locations.destination}!
+
+For the most accurate quote, I'll need to know:
+• **Container type**: 20ft container, 40ft container, or partial shipment?
+• **Cargo value**: Approximate value in USD (for customs calculations)
+• **Cargo type**: Electronics, textiles, machinery, etc.
+
+Use our shipping calculator for instant quotes with SARS-compliant customs calculations. The calculator covers major routes and provides detailed cost breakdowns including duties and VAT.`;
+    }
+
+    // Generate a sample quote response
+    return `Here's an estimated quote for shipping ${locations.cargo || 'cargo'} from ${locations.origin} to ${locations.destination}:
+
+🚢 **${originPort.name} → ${destinationPort.name}**
+
+**20ft Container (FCL):**
+• Sea freight: ~R45,000 - R55,000
+• Trucking to final destination: ~R8,000 - R12,000
+• Customs duties: Varies by product type
+• VAT (15%): Applied to FOB value + duties
+
+**40ft Container (FCL):**
+• Sea freight: ~R60,000 - R75,000
+• Trucking: ~R10,000 - R15,000
+• Customs duties: Varies by product type
+
+**Transit time**: 25-35 days port-to-port + customs clearance
+
+For an exact quote with customs calculations, use our calculator with your specific cargo details. The calculator provides SARS-compliant estimates and handles all duty calculations automatically!
+
+Would you like help with any specific part of the shipping process?`;
+
+  } catch (error) {
+    console.error('Error generating quote response:', error);
+    return `I'd love to help with your shipping quote! For the most accurate pricing from ${extractBasicLocation(message)}, please use our shipping calculator where you can:
+
+• Select exact origin and destination ports
+• Choose container type (20ft/40ft/partial)
+• Get SARS-compliant customs duty calculations
+• Compare different Incoterms (FOB, CIF, etc.)
+
+The calculator provides instant quotes with full cost breakdowns including sea freight, trucking, duties, and VAT!`;
+  }
+}
+
+/**
+ * Extract origin and destination locations from message
+ */
+function extractLocations(message: string): { origin?: string; destination?: string; cargo?: string } {
+  const lowerMessage = message.toLowerCase();
+  
+  // Common patterns for locations
+  const fromMatch = lowerMessage.match(/from\s+([^,\s]+(?:\s+[^,\s]+)*?)(?:\s+to|\s*,|$)/);
+  const toMatch = lowerMessage.match(/to\s+([^,\s]+(?:\s+[^,\s]+)*?)(?:\s*,|$)/);
+  
+  // Extract cargo type
+  const cargoMatch = lowerMessage.match(/(?:container of|shipping)\s+([^,\s]+(?:\s+[^,\s]+)*?)(?:\s+from|\s+to|$)/);
+  
+  return {
+    origin: fromMatch?.[1]?.trim(),
+    destination: toMatch?.[1]?.trim(),
+    cargo: cargoMatch?.[1]?.trim()
+  };
+}
+
+/**
+ * Find matching port from list based on location string
+ */
+function findMatchingPort(ports: any[], location: string): any {
+  if (!location) return null;
+  
+  const lowerLocation = location.toLowerCase();
+  
+  // Direct name matches
+  for (const port of ports) {
+    if (port.name.toLowerCase().includes(lowerLocation) || 
+        lowerLocation.includes(port.name.toLowerCase())) {
+      return port;
+    }
+  }
+  
+  // Country/region matches
+  const locationMappings: Record<string, string[]> = {
+    'china': ['shanghai', 'ningbo', 'qingdao', 'tianjin'],
+    'usa': ['new york', 'los angeles', 'long beach'],
+    'europe': ['hamburg', 'rotterdam', 'antwerp'],
+    'india': ['mumbai', 'chennai', 'kolkata'],
+    'cape town': ['cape town'],
+    'johannesburg': ['johannesburg'],
+    'durban': ['durban']
+  };
+  
+  for (const [region, cities] of Object.entries(locationMappings)) {
+    if (lowerLocation.includes(region)) {
+      for (const city of cities) {
+        const port = ports.find(p => p.name.toLowerCase().includes(city));
+        if (port) return port;
+      }
+    }
+  }
+  
+  return null;
+}
+
+/**
+ * Extract basic location info when detailed extraction fails
+ */
+function extractBasicLocation(message: string): string {
+  const fromMatch = message.match(/from\s+([^,\s]+)/i);
+  const toMatch = message.match(/to\s+([^,\s]+)/i);
+  
+  if (fromMatch && toMatch) {
+    return `${fromMatch[1]} to ${toMatch[1]}`;
+  }
+  return 'your origin to South Africa';
 }
 
 /**
