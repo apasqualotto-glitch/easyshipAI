@@ -131,7 +131,7 @@ async function generateFallbackResponse(message: string, context: ChatContext): 
   
   // Check if user is asking for a shipping quote
   if (isQuoteRequest(lowerMessage)) {
-    return await generateQuoteResponse(message, context);
+    return await generateQuoteResponse(message, context, []);
   }
   
   // Incoterms questions
@@ -220,22 +220,28 @@ function isQuoteRequest(message: string): boolean {
 /**
  * Generate a shipping quote response for intelligent fallback
  */
-async function generateQuoteResponse(message: string, context: ChatContext): Promise<string> {
+async function generateQuoteResponse(message: string, context: ChatContext, conversationHistory: ChatMessage[] = []): Promise<string> {
   try {
-    // Extract locations from the message
+    // Extract locations and cargo info from the message
     const locations = extractLocations(message);
+    const cargoInfo = extractCargoInfo(message);
     
+    // Check what information we're missing for a complete quote
+    const missingInfo = [];
+    if (!locations.origin) missingInfo.push('origin');
+    if (!locations.destination) missingInfo.push('destination');
+    if (!cargoInfo.value) missingInfo.push('cargo_value');
+    if (!cargoInfo.type) missingInfo.push('cargo_type');
+    if (!cargoInfo.containerType) missingInfo.push('container_type');
+    
+    // If we're missing basic info, ask for it conversationally
     if (!locations.origin || !locations.destination) {
-      return `I'd be happy to help you get a shipping quote! I need a bit more information:
+      return generateBasicInfoRequest(locations, missingInfo);
+    }
 
-• **Origin**: Where are you shipping from? (city and country)
-• **Destination**: Where in South Africa? (Johannesburg, Cape Town, Durban, etc.)
-• **Cargo**: What are you shipping and approximately how much?
-• **Container type**: 20ft, 40ft, or partial shipment?
-
-For example: "Quote for 20ft container of electronics from Shanghai, China to Johannesburg"
-
-Our calculator can provide instant quotes with customs duties included!`;
+    // If we have locations but missing cargo details, ask for those
+    if (missingInfo.length > 0) {
+      return generateCargoInfoRequest(locations, cargoInfo, missingInfo);
     }
 
     // Try to find matching ports
@@ -289,6 +295,116 @@ Would you like help with any specific part of the shipping process?`;
 
 The calculator provides instant quotes with full cost breakdowns including sea freight, trucking, duties, and VAT!`;
   }
+}
+
+/**
+ * Generate basic info request when missing origin/destination
+ */
+function generateBasicInfoRequest(locations: any, missingInfo: string[]): string {
+  let response = "I'd love to help you get a shipping quote! ";
+  
+  if (!locations.origin && !locations.destination) {
+    response += "To get you an accurate quote, I need to know:\n\n";
+    response += "📍 **Where are you shipping from?** (e.g., Shanghai, China or New York, USA)\n";
+    response += "📍 **Where in South Africa?** (Johannesburg, Cape Town, or Durban)\n\n";
+    response += "Once I have these details, I can provide specific port-to-port pricing!";
+  } else if (!locations.origin) {
+    response += `Great! I see you want to ship to ${locations.destination}. \n\n`;
+    response += "📍 **Where are you shipping from?** (city and country)\n\n";
+    response += "This helps me find the best shipping routes and carriers for you.";
+  } else if (!locations.destination) {
+    response += `Perfect! Shipping from ${locations.origin}. \n\n`;
+    response += "📍 **Where in South Africa?** (Johannesburg, Cape Town, or Durban are our main ports)\n\n";
+    response += "Each port has different trucking costs to final destinations.";
+  }
+  
+  return response;
+}
+
+/**
+ * Generate cargo info request when missing details for customs calculation
+ */
+function generateCargoInfoRequest(locations: any, cargoInfo: any, missingInfo: string[]): string {
+  let response = `Great! Shipping from ${locations.origin} to ${locations.destination}. `;
+  
+  if (cargoInfo.type) {
+    response += `I see you're shipping ${cargoInfo.type}. `;
+  }
+  
+  response += "To calculate your customs duties and get an exact quote, I need a few more details:\n\n";
+  
+  if (missingInfo.includes('cargo_value')) {
+    response += "💰 **What's the approximate value of your goods?** (in USD)\n";
+    response += "   This determines your customs duties and VAT calculations\n\n";
+  }
+  
+  if (missingInfo.includes('container_type')) {
+    response += "📦 **Container size?**\n";
+    response += "   • 20ft container (small loads, ~28 tons max)\n";
+    response += "   • 40ft container (larger loads, ~26 tons max)\n";
+    response += "   • Partial shipment (share space, cheaper for small loads)\n\n";
+  }
+  
+  if (missingInfo.includes('cargo_type') && !cargoInfo.type) {
+    response += "📋 **What type of goods?** (electronics, textiles, machinery, etc.)\n";
+    response += "   Different products have different duty rates\n\n";
+  }
+  
+  response += "These details help me calculate your exact costs including SARS duties and VAT!";
+  return response;
+}
+
+/**
+ * Extract cargo information from message
+ */
+function extractCargoInfo(message: string): { 
+  type?: string; 
+  value?: string; 
+  containerType?: string;
+  weight?: string;
+} {
+  const lowerMessage = message.toLowerCase();
+  
+  // Extract cargo type
+  const cargoPatterns = [
+    /(?:container of|shipping)\s+([^,\s]+(?:\s+[^,\s]+)*?)(?:\s+from|\s+to|$)/,
+    /(?:import|importing)\s+([^,\s]+(?:\s+[^,\s]+)*?)(?:\s+from|\s+to|$)/,
+    /(electronics|textiles|machinery|furniture|clothes|shoes|toys|books|food)/
+  ];
+  
+  let cargoType;
+  for (const pattern of cargoPatterns) {
+    const match = lowerMessage.match(pattern);
+    if (match) {
+      cargoType = match[1]?.trim();
+      break;
+    }
+  }
+  
+  // Extract value
+  const valueMatch = lowerMessage.match(/(?:worth|value|cost)\s*[\$]?([0-9,]+)/);
+  const value = valueMatch?.[1];
+  
+  // Extract container type
+  let containerType;
+  if (lowerMessage.includes('20ft') || lowerMessage.includes('20 ft')) {
+    containerType = '20ft';
+  } else if (lowerMessage.includes('40ft') || lowerMessage.includes('40 ft')) {
+    containerType = '40ft';
+  } else if (lowerMessage.includes('partial') || lowerMessage.includes('lcl') || lowerMessage.includes('shared')) {
+    containerType = 'partial';
+  }
+  
+  // Extract weight
+  const weightMatch = lowerMessage.match(/([0-9,]+)\s*(?:kg|kilos|tons?|tonnes?)/);
+  const weight = weightMatch?.[1];
+  
+  return {
+    type: cargoType,
+    value: value,
+    containerType: containerType,
+    weight: weight
+  };
 }
 
 /**

@@ -101,15 +101,15 @@ The application is designed for easy migration from in-memory storage to Postgre
 
 ## Recent Changes
 
-- **MAJOR ENHANCEMENT: Intelligent AI Quote Generation System** - July 28, 2025
-  - Enhanced AI service to detect and respond to shipping quote requests
-  - Intelligent location extraction from natural language (e.g., "New York to Cape Town")
-  - Automatic port matching with fallback to regional suggestions
-  - Real shipping cost estimates for specific routes with container type recommendations
-  - Integrated quote responses include sea freight, trucking, customs duties, and transit times
-  - Smart fallback system asks for missing details when information is incomplete
-  - Seamless integration with existing shipping calculator for detailed quotes
-  - AI agent now provides actual value instead of generic responses for quote requests
+- **MAJOR ENHANCEMENT: Conversational AI Quote Generation with Information Gathering** - July 28, 2025
+  - Created proper ChatGPT-style chat interface with conversation history and message bubbles
+  - Enhanced AI service to proactively guide users through providing missing quote information
+  - Intelligent information extraction: cargo type, value, container size, origin/destination
+  - Conversational follow-up questions ask for missing details (e.g., "What's the value of your goods?")
+  - Hand-holding approach guides first-time shippers through complex shipping requirements
+  - Auto-scroll chat messages and "Thinking..." loading indicators for natural chat experience
+  - Real shipping cost estimates with smart fallback when information incomplete
+  - AI agent now engages users conversationally instead of providing generic responses
 
 - **CRITICAL FIX: AI Chat API Validation and Error Resolution** - July 28, 2025
   - Fixed Zod validation errors preventing chat functionality
