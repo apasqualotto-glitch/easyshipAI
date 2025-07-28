@@ -186,7 +186,7 @@ async function generateFallbackResponse(message: string, context: ChatContext): 
 
 **🎯 Recommendation**: CIF or DDP usually saves money for first-time importers!
 
-Want me to explain how these affect your specific shipment?`;
+Want me to explain how these affect your specific shipment? Or click the calculator button below for a detailed quote with carrier options!`;
   }
   
   // Customs questions
@@ -200,7 +200,7 @@ Want me to explain how these affect your specific shipment?`;
 
 Required documents include commercial invoice, bill of lading, and packing list. Our calculator provides SARS-compliant estimates!
 
-Need help with specific duty rates for your products?`;
+Need help with specific duty rates for your products? Use our calculator below for exact SARS-compliant duty calculations!`;
   }
   
   // Shipping time questions

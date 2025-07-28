@@ -101,6 +101,15 @@ The application is designed for easy migration from in-memory storage to Postgre
 
 ## Recent Changes
 
+- **NEW FEATURE: Detailed Quote Display with Carrier Options** - July 28, 2025
+  - **Visual Quote Component**: Created comprehensive quote display modal with cost breakdown and carrier comparison
+  - **Carrier Integration**: Added Maersk, MSC, and CMA CGM options with pricing, transit times, and service features
+  - **Auto-Quote Generation**: AI chat automatically triggers detailed quotes for relevant shipping requests
+  - **Calculator Suggestions**: AI responses now include suggestions to use calculator for full detailed quotes
+  - **Professional Presentation**: Quote display shows all costs, carrier options, and booking capabilities in visual format
+  - **Seamless Integration**: Quote modal appears below chat dialog without disrupting conversation flow
+  - **Real-time Data**: Quotes use actual API data with comprehensive cost breakdowns and carrier comparisons
+
 - **ENHANCED AI CHAT: Smart Numerical Estimates for Basic Replies** - July 28, 2025
   - **Improved Basic Reply Handling**: AI now understands simple responses like "hi", "yes", "ok" and still provides shipping estimates
   - **Smart Keyword Detection**: Extracts shipping info from basic messages (China, Europe, 40ft, etc.) and provides relevant estimates

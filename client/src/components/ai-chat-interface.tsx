@@ -5,6 +5,7 @@ import { Input } from "./ui/input";
 import { Badge } from "./ui/badge";
 import { ScrollArea } from "./ui/scroll-area";
 import { Separator } from "./ui/separator";
+import { QuoteDisplay } from "./quote-display";
 import { 
   MessageSquare, 
   Send, 
@@ -68,6 +69,8 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
   ]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showQuoteDisplay, setShowQuoteDisplay] = useState(false);
+  const [currentQuote, setCurrentQuote] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -77,6 +80,37 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  const generateQuote = async (messageContent: string) => {
+    try {
+      const response = await fetch('/api/calculate-quote', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          originPort: 'shanghai',
+          destinationPort: 'durban',
+          finalDestination: 'johannesburg',
+          containerType: '20ft',
+          cargoType: 'electronics',
+          cargoValue: 50000,
+          cargoWeight: 15000,
+          weight: 15000,
+          value: 50000,
+          incoterm: 'FOB'
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setCurrentQuote(data.quote);
+        setShowQuoteDisplay(true);
+      }
+    } catch (error) {
+      console.error('Error generating quote:', error);
+    }
+  };
 
   const sendMessage = async (messageContent: string) => {
     if (!messageContent.trim() || isLoading) return;
@@ -111,14 +145,29 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
 
       const data = await response.json();
       
+      // Add calculator suggestion for relevant shipping queries
+      let aiResponse = data.response;
+      if ((messageContent.toLowerCase().includes('quote') || messageContent.toLowerCase().includes('cost')) && 
+          (messageContent.toLowerCase().includes('china') || messageContent.toLowerCase().includes('container'))) {
+        aiResponse += "\n\n💡 **Want a detailed quote with carrier options?** I can generate a comprehensive quote below with live rates from major shipping lines!";
+      }
+      
       const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: data.response,
+        content: aiResponse,
         timestamp: new Date()
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+      
+      // Auto-generate quote for relevant shipping requests
+      if (messageContent.toLowerCase().includes('quote') || 
+          (messageContent.toLowerCase().includes('cost') && 
+           (messageContent.toLowerCase().includes('china') || messageContent.toLowerCase().includes('container')))) {
+        await generateQuote(messageContent);
+      }
+      
     } catch (error) {
       console.error('Chat error:', error);
       const errorMessage: ChatMessage = {
@@ -300,6 +349,20 @@ export function AIChatInterface({ className, context }: AIChatInterfaceProps) {
           </CardContent>
         )}
       </Card>
+      
+      {/* Quote Display Modal */}
+      {showQuoteDisplay && currentQuote && (
+        <QuoteDisplay
+          quote={currentQuote}
+          isVisible={showQuoteDisplay}
+          onClose={() => setShowQuoteDisplay(false)}
+          onBookShipment={(carrier: string) => {
+            console.log('Booking with carrier:', carrier);
+            setShowQuoteDisplay(false);
+            // Add booking logic here
+          }}
+        />
+      )}
     </div>
   );
 }
