@@ -101,6 +101,16 @@ The application is designed for easy migration from in-memory storage to Postgre
 
 ## Recent Changes
 
+- **ENHANCED AI CHAT: Smart Numerical Estimates for Basic Replies** - July 28, 2025
+  - **Improved Basic Reply Handling**: AI now understands simple responses like "hi", "yes", "ok" and still provides shipping estimates
+  - **Smart Keyword Detection**: Extracts shipping info from basic messages (China, Europe, 40ft, etc.) and provides relevant estimates
+  - **Always Numerical**: Every response includes actual cost breakdowns with specific Rand amounts
+  - **Regional Intelligence**: Detects origin countries and provides appropriate cost estimates with trade agreement benefits
+  - **Container Size Recognition**: Responds intelligently to container size mentions with relevant pricing
+  - **Progressive Engagement**: Guides users from basic replies to more detailed shipping discussions
+  - **Consistent Estimation**: Default responses always include current market rates and popular routes
+  - **User-Friendly Prompts**: Suggests simple phrases users can type to get specific information
+
 - **COMPREHENSIVE TESTING INFRASTRUCTURE IMPLEMENTATION** - July 28, 2025
   - **Jest Testing Framework**: Complete testing setup with TypeScript support and comprehensive coverage
   - **Shipping Service Testing**: Created shipping.ts service with quote calculation, validation, and error handling

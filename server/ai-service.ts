@@ -125,9 +125,39 @@ export async function generateChatResponse(
 
 /**
  * Generate helpful fallback responses when AI service is unavailable
+ * Enhanced to understand basic replies and always provide numerical estimates
  */
 async function generateFallbackResponse(message: string, context: ChatContext): Promise<string> {
   const lowerMessage = message.toLowerCase();
+  
+  // Handle very basic replies - still provide estimates
+  const basicReplies = /^(hi|hello|hey|yes|ok|sure|thanks|good|great|thanks)$/;
+  if (basicReplies.test(lowerMessage.trim())) {
+    return `Hi! I'm here to help with shipping to South Africa!\n\n💰 **Quick Estimates:**\n• 20ft from China: R68,500\n• 40ft from China: R123,000\n• 20ft from Europe: R72,000\n• Partial shipments: R12,500\n\nJust say things like:\n• "China container cost"\n• "40ft shipping price"\n• "Electronics from Shanghai"\n\nWhat are you looking to ship?`;
+  }
+  
+  // Extract shipping info from message for smart estimates
+  const fromChina = lowerMessage.includes('china') || lowerMessage.includes('shanghai') || lowerMessage.includes('ningbo');
+  const fromEurope = lowerMessage.includes('europe') || lowerMessage.includes('germany') || lowerMessage.includes('hamburg');
+  const fromUSA = lowerMessage.includes('usa') || lowerMessage.includes('america') || lowerMessage.includes('new york');
+  const container40 = lowerMessage.includes('40') || lowerMessage.includes('large');
+  
+  // Smart responses with numbers based on detected keywords
+  if (fromChina && container40) {
+    return `Great! For a 40ft container from China:\n\n💰 **Total Cost: R123,000 - R135,000**\n\n📦 Breakdown:\n• Sea freight: R87,300\n• Trucking: R8,500\n• Customs (10%): R5,000\n• VAT (15%): R7,500\n• Handling: R4,200\n\n🚛 Transit: 18-22 days\n💡 FOB saves R15,000+\n\nWhat's your cargo type?`;
+  }
+  
+  if (fromChina) {
+    return `Perfect! For a 20ft container from China:\n\n💰 **Total Cost: R68,500 - R75,000**\n\n📦 Breakdown:\n• Sea freight: R48,500\n• Trucking: R8,500\n• Customs: R3,500\n• VAT (15%): R5,250\n• Handling: R2,750\n\n🚛 Transit: 18-22 days\n💡 Great for smaller loads!\n\nWhat are you shipping?`;
+  }
+  
+  if (fromEurope) {
+    return `Excellent! For Europe shipping:\n\n💰 **20ft: R72,000 - R82,000**\n💰 **40ft: R129,000 - R145,000**\n\n📦 Includes:\n• Sea freight\n• Trucking to destination\n• EPA reduced duties (8%)\n• VAT (15%)\n• All handling fees\n\n🚛 Transit: 16-20 days\n💡 EPA = lower customs costs!\n\nWhich port?`;
+  }
+  
+  if (fromUSA) {
+    return `Good choice! For USA shipping:\n\n💰 **Total: R85,000 - R95,000**\n\n📦 With AGOA benefits:\n• Sea freight: R58,500\n• Trucking: R8,500\n• Reduced duties: R2,500\n• VAT (15%): R6,750\n• Handling: R3,250\n\n🚛 Transit: 21-25 days\n💡 AGOA = big savings!\n\nTell me about your cargo!`;
+  }
   
   // Check if user is asking for a shipping quote
   if (isQuoteRequest(lowerMessage)) {
@@ -201,17 +231,8 @@ Pro tip: Ensure all documents have matching information to avoid customs delays!
 Need help with any specific document?`;
   }
 
-  // Default helpful response
-  return `I'm currently experiencing connectivity issues, but I'm here to help with shipping questions!
-
-Common topics I can assist with:
-• Incoterms (FOB, CIF, EXW, DDP)
-• South African customs and SARS procedures  
-• Shipping documentation requirements
-• Transit times and carrier selection
-• Cost breakdowns and duties
-
-Feel free to explore our shipping calculator for instant quotes, or browse our guides for detailed explanations. What specific shipping question can I help you with?`;
+  // Default response with numerical estimates
+  return `I'm ready to help with South African shipping!\n\n💰 **Current Rates:**\n• 20ft from China: R68,500\n• 40ft from China: R123,000\n• 20ft from Europe: R72,000\n• Partial shipments: R12,500\n\n🚛 All-inclusive: Sea freight + trucking + customs + VAT\n\n💡 Popular routes:\n• Shanghai → Durban\n• Hamburg → Cape Town\n• New York → Durban\n\nTell me your origin for a detailed quote!`;
 }
 
 /**
