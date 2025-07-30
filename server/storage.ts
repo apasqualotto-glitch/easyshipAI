@@ -124,6 +124,15 @@ export class MemStorage implements IStorage {
       { id: "22", name: "Bremen, Germany", code: "DEBRE", country: "Germany", type: "origin" },
       { id: "23", name: "Valencia, Spain", code: "ESVLC", country: "Spain", type: "origin" },
       { id: "24", name: "Le Havre, France", code: "FRLEH", country: "France", type: "origin" },
+      { id: "41", name: "Barcelona, Spain", code: "ESBCN", country: "Spain", type: "origin" },
+      { id: "42", name: "Genoa, Italy", code: "ITGOA", country: "Italy", type: "origin" },
+      { id: "43", name: "Venice, Italy", code: "ITVCE", country: "Italy", type: "origin" },
+      { id: "44", name: "Piraeus, Greece", code: "GRPIR", country: "Greece", type: "origin" },
+      { id: "45", name: "Lisbon, Portugal", code: "PTLIS", country: "Portugal", type: "origin" },
+      { id: "46", name: "Gothenburg, Sweden", code: "SEGOT", country: "Sweden", type: "origin" },
+      { id: "47", name: "Copenhagen, Denmark", code: "DKCPH", country: "Denmark", type: "origin" },
+      { id: "48", name: "Gdansk, Poland", code: "PLGDN", country: "Poland", type: "origin" },
+      { id: "49", name: "Liverpool, UK", code: "GBLIV", country: "United Kingdom", type: "origin" },
       
       // Asia Pacific
       { id: "7", name: "Mumbai, India", code: "INMUN", country: "India", type: "origin" },
@@ -135,6 +144,17 @@ export class MemStorage implements IStorage {
       { id: "29", name: "Hong Kong", code: "HKHKG", country: "Hong Kong", type: "origin" },
       { id: "30", name: "Busan, South Korea", code: "KRPUS", country: "South Korea", type: "origin" },
       { id: "31", name: "Tokyo, Japan", code: "JPTYO", country: "Japan", type: "origin" },
+      { id: "50", name: "Yokohama, Japan", code: "JPYOK", country: "Japan", type: "origin" },
+      { id: "51", name: "Kobe, Japan", code: "JPUKB", country: "Japan", type: "origin" },
+      { id: "52", name: "Kaohsiung, Taiwan", code: "TWKHH", country: "Taiwan", type: "origin" },
+      { id: "53", name: "Taichung, Taiwan", code: "TWTXG", country: "Taiwan", type: "origin" },
+      { id: "54", name: "Jakarta, Indonesia", code: "IDJKT", country: "Indonesia", type: "origin" },
+      { id: "55", name: "Manila, Philippines", code: "PHMNL", country: "Philippines", type: "origin" },
+      { id: "56", name: "Ho Chi Minh City, Vietnam", code: "VNSGN", country: "Vietnam", type: "origin" },
+      { id: "57", name: "Haiphong, Vietnam", code: "VNHPH", country: "Vietnam", type: "origin" },
+      { id: "58", name: "Colombo, Sri Lanka", code: "LKCMB", country: "Sri Lanka", type: "origin" },
+      { id: "59", name: "Karachi, Pakistan", code: "PKKHI", country: "Pakistan", type: "origin" },
+      { id: "60", name: "Chittagong, Bangladesh", code: "BDCGP", country: "Bangladesh", type: "origin" },
       
       // Americas
       { id: "32", name: "Los Angeles, USA", code: "USLAX", country: "USA", type: "origin" },
@@ -144,10 +164,34 @@ export class MemStorage implements IStorage {
       { id: "40", name: "Houston, USA", code: "USHOU", country: "USA", type: "both" },
       { id: "36", name: "Vancouver, Canada", code: "CAVAN", country: "Canada", type: "origin" },
       { id: "37", name: "Santos, Brazil", code: "BRSSZ", country: "Brazil", type: "origin" },
+      { id: "61", name: "Seattle, USA", code: "USSEA", country: "USA", type: "origin" },
+      { id: "62", name: "Oakland, USA", code: "USOAK", country: "USA", type: "origin" },
+      { id: "63", name: "Norfolk, USA", code: "USNFK", country: "USA", type: "origin" },
+      { id: "64", name: "Charleston, USA", code: "USCHS", country: "USA", type: "origin" },
+      { id: "65", name: "Savannah, USA", code: "USSAV", country: "USA", type: "origin" },
+      { id: "66", name: "Montreal, Canada", code: "CAMTR", country: "Canada", type: "origin" },
+      { id: "67", name: "Halifax, Canada", code: "CAHFX", country: "Canada", type: "origin" },
+      { id: "68", name: "Rio de Janeiro, Brazil", code: "BRRIO", country: "Brazil", type: "origin" },
+      { id: "69", name: "Buenos Aires, Argentina", code: "ARBUE", country: "Argentina", type: "origin" },
+      { id: "70", name: "Valparaiso, Chile", code: "CLVAP", country: "Chile", type: "origin" },
+      { id: "71", name: "Cartagena, Colombia", code: "COCTG", country: "Colombia", type: "origin" },
+      { id: "72", name: "Veracruz, Mexico", code: "MXVER", country: "Mexico", type: "origin" },
+      { id: "73", name: "Manzanillo, Mexico", code: "MXZLO", country: "Mexico", type: "origin" },
       
       // Middle East & Africa
       { id: "38", name: "Jebel Ali, UAE", code: "AEJEA", country: "UAE", type: "origin" },
       { id: "39", name: "Casablanca, Morocco", code: "MACAS", country: "Morocco", type: "origin" },
+      { id: "74", name: "Port Said, Egypt", code: "EGPSD", country: "Egypt", type: "origin" },
+      { id: "75", name: "Alexandria, Egypt", code: "EGALY", country: "Egypt", type: "origin" },
+      { id: "76", name: "Sharjah, UAE", code: "AESHJ", country: "UAE", type: "origin" },
+      { id: "77", name: "King Abdullah Port, Saudi Arabia", code: "SAJED", country: "Saudi Arabia", type: "origin" },
+      { id: "78", name: "Shuwaikh, Kuwait", code: "KWSHW", country: "Kuwait", type: "origin" },
+      { id: "79", name: "Doha, Qatar", code: "QADOH", country: "Qatar", type: "origin" },
+      { id: "80", name: "Bandar Abbas, Iran", code: "IRBND", country: "Iran", type: "origin" },
+      { id: "81", name: "Lagos, Nigeria", code: "NGLOS", country: "Nigeria", type: "origin" },
+      { id: "82", name: "Tema, Ghana", code: "GHTEM", country: "Ghana", type: "origin" },
+      { id: "83", name: "Mombasa, Kenya", code: "KEMBA", country: "Kenya", type: "origin" },
+      { id: "84", name: "Dar es Salaam, Tanzania", code: "TZDAR", country: "Tanzania", type: "origin" },
       
       // South African ports (can be both origin for exports and destination for imports)
       { id: "9", name: "Durban", code: "ZADUR", country: "South Africa", type: "both" },
@@ -168,47 +212,66 @@ export class MemStorage implements IStorage {
     // Define SA destination port IDs
     const saDestinationPorts = ["9", "10", "11", "12", "13", "14", "15"]; // Durban, Cape Town, PE, Richards Bay, East London, Mossel Bay, Saldanha
     
-    // Define origin ports with base costs for each destination port
-    const originPortRoutes = [
-      // China ports - Updated July 2025 based on current market rates ($2,750 USD = ~R48,500 ZAR)
-      { portId: "1", baseCosts: { "9": 48500, "10": 51000, "11": 49500, "12": 47500, "13": 50000, "14": 52000, "15": 53000 }, transitDays: 20 }, // Shanghai
-      { portId: "2", baseCosts: { "9": 47500, "10": 50000, "11": 48500, "12": 46500, "13": 49000, "14": 51000, "15": 52000 }, transitDays: 22 }, // Ningbo
-      { portId: "3", baseCosts: { "9": 49500, "10": 52000, "11": 50500, "12": 48500, "13": 51000, "14": 53000, "15": 54000 }, transitDays: 24 }, // Tianjin
-      { portId: "16", baseCosts: { "9": 46500, "10": 49000, "11": 47500, "12": 45500, "13": 48000, "14": 50000, "15": 51000 }, transitDays: 19 }, // Shenzhen
-      { portId: "17", baseCosts: { "9": 48000, "10": 50500, "11": 49000, "12": 47000, "13": 49500, "14": 51500, "15": 52500 }, transitDays: 21 }, // Qingdao
+    // Generate routes from major origin ports to SA (simplified approach for large port database)
+    const majorOriginPorts = [
+      // China - top manufacturing ports
+      { portId: "1", cost: 48500, days: 20 }, // Shanghai
+      { portId: "2", cost: 47500, days: 22 }, // Ningbo
+      { portId: "16", cost: 46500, days: 19 }, // Shenzhen
+      { portId: "17", cost: 48000, days: 21 }, // Qingdao
+      { portId: "18", cost: 47000, days: 20 }, // Guangzhou
       
-      // Europe ports - Updated July 2025 market rates (typically lower than China routes)
-      { portId: "4", baseCosts: { "9": 42000, "10": 40000, "11": 43000, "12": 44000, "13": 44000, "14": 46000, "15": 38000 }, transitDays: 17 }, // Hamburg
-      { portId: "5", baseCosts: { "9": 43000, "10": 41000, "11": 44000, "12": 45000, "13": 45000, "14": 47000, "15": 39000 }, transitDays: 18 }, // Rotterdam
-      { portId: "6", baseCosts: { "9": 44000, "10": 42000, "11": 45000, "12": 46000, "13": 46000, "14": 48000, "15": 40000 }, transitDays: 19 }, // Felixstowe
-      { portId: "20", baseCosts: { "9": 42500, "10": 40500, "11": 43500, "12": 44500, "13": 44500, "14": 46500, "15": 38500 }, transitDays: 18 }, // Antwerp
+      // Europe - major hubs
+      { portId: "4", cost: 42000, days: 17 }, // Hamburg
+      { portId: "5", cost: 43000, days: 18 }, // Rotterdam
+      { portId: "6", cost: 44000, days: 19 }, // Felixstowe
+      { portId: "20", cost: 42500, days: 18 }, // Antwerp
+      { portId: "23", cost: 40000, days: 16 }, // Valencia
       
       // Asia Pacific
-      { portId: "7", baseCosts: { "9": 30000, "10": 32000, "11": 31000, "12": 29000, "13": 31500, "14": 33000, "15": 34000 }, transitDays: 14 }, // Mumbai
-      { portId: "8", baseCosts: { "9": 28000, "10": 30000, "11": 29000, "12": 27000, "13": 29500, "14": 31000, "15": 32000 }, transitDays: 12 }, // Singapore
-      { portId: "25", baseCosts: { "9": 29000, "10": 31000, "11": 30000, "12": 28000, "13": 30500, "14": 32000, "15": 33000 }, transitDays: 13 }, // Chennai
+      { portId: "7", cost: 30000, days: 14 }, // Mumbai
+      { portId: "8", cost: 28000, days: 12 }, // Singapore
+      { portId: "29", cost: 46000, days: 18 }, // Hong Kong
+      { portId: "30", cost: 47000, days: 19 }, // Busan
       
       // Americas
-      { portId: "32", baseCosts: { "9": 42000, "10": 45000, "11": 43000, "12": 44000, "13": 44000, "14": 46000, "15": 47000 }, transitDays: 28 }, // Los Angeles
-      { portId: "34", baseCosts: { "9": 40000, "10": 43000, "11": 41000, "12": 42000, "13": 42000, "14": 44000, "15": 45000 }, transitDays: 26 }, // New York
-      { portId: "40", baseCosts: { "9": 39000, "10": 42000, "11": 40000, "12": 41000, "13": 41000, "14": 43000, "15": 44000 }, transitDays: 24 }, // Houston
+      { portId: "32", cost: 42000, days: 28 }, // Los Angeles
+      { portId: "34", cost: 40000, days: 26 }, // New York
+      { portId: "40", cost: 39000, days: 24 }, // Houston
+      { portId: "61", cost: 43000, days: 29 }, // Seattle
       
       // Middle East
-      { portId: "38", baseCosts: { "9": 25000, "10": 27000, "11": 26000, "12": 24000, "13": 26500, "14": 28000, "15": 29000 }, transitDays: 10 }, // Jebel Ali
+      { portId: "38", cost: 25000, days: 10 }, // Jebel Ali
+      { portId: "77", cost: 26000, days: 11 }, // King Abdullah Port
     ];
     
+    // For other ports, use default costing
+    const defaultPortCosts = { cost: 35000, days: 18 };
+    
     let routeId = 1;
-    originPortRoutes.forEach(origin => {
+    
+    // Get all origin ports from the ports data
+    const allOriginPorts = portsData.filter(port => port.type === "origin" || port.type === "both");
+    
+    allOriginPorts.forEach(originPort => {
       saDestinationPorts.forEach(destId => {
-        const baseCost = origin.baseCosts[destId as keyof typeof origin.baseCosts] || 35000; // fallback cost
+        // Find specific cost data or use default
+        const specificData = majorOriginPorts.find(p => p.portId === originPort.id);
+        const baseCost = specificData ? specificData.cost : defaultPortCosts.cost;
+        const transitDays = specificData ? specificData.days : defaultPortCosts.days;
+        
+        // Add port-specific variations for different SA destinations
+        const costVariation = destId === "10" ? 1.05 : destId === "15" ? 1.1 : 1; // Cape Town +5%, Saldanha +10%
+        const adjustedCost = Math.round(baseCost * costVariation);
+        
         routesData.push({
           id: routeId.toString(),
-          originPortId: origin.portId,
+          originPortId: originPort.id,
           destinationPortId: destId,
-          seaFreightCost20ft: baseCost,
-          seaFreightCost40ft: Math.round(baseCost * 1.3),
-          seaFreightCost40ftHC: Math.round(baseCost * 1.35),
-          transitDays: origin.transitDays
+          seaFreightCost20ft: adjustedCost,
+          seaFreightCost40ft: Math.round(adjustedCost * 1.3),
+          seaFreightCost40ftHC: Math.round(adjustedCost * 1.35),
+          transitDays: transitDays
         });
         routeId++;
       });

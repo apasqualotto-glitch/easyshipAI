@@ -116,6 +116,16 @@ The application is designed for easy migration from in-memory storage to Postgre
   - **Authentic Quotes**: All cost breakdowns based on actual user-provided shipping parameters
   - **No Assumptions**: System never assumes default values for critical shipping information
 
+- **MASSIVE EXPANSION: Global Port Database** - July 30, 2025
+  - **75+ International Ports**: Expanded from 15 to 75+ ports covering all major shipping routes globally
+  - **Complete Coverage**: Added ports across China (7), Europe (13), Asia Pacific (14), Americas (13), Middle East & Africa (11)
+  - **New Countries**: Added Italy, Greece, Portugal, Sweden, Denmark, Poland, Taiwan, Indonesia, Philippines, Vietnam, and more
+  - **Searchable Interface**: Both origin and destination port selectors are fully searchable with real-time filtering
+  - **Smart Categorization**: Ports organized by geographic regions for easy navigation
+  - **Automatic Route Generation**: System generates routes from all new ports to South African destinations
+  - **Realistic Pricing**: Default and specific pricing for major trade routes with transit time calculations
+  - **Enhanced UX**: Port selection dropdowns show country codes and grouped by regions
+
 - **ENHANCED: AI Chat Auto-Fill Extraction for Import/Export** - July 30, 2025
   - **Improved Port Detection**: AI now correctly extracts both origin and destination ports for imports AND exports
   - **Houston Added**: Added Houston, USA as new port (ID: 40) for better US coverage

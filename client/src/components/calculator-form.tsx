@@ -259,7 +259,7 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
                         ))}
                       </CommandGroup>
                       <CommandGroup heading="Europe">
-                        {(originPorts as Port[]).filter(port => ["Germany", "Netherlands", "United Kingdom", "Belgium", "Spain", "France"].includes(port.country)).map((port) => (
+                        {(originPorts as Port[]).filter(port => ["Germany", "Netherlands", "United Kingdom", "Belgium", "Spain", "France", "Italy", "Greece", "Portugal", "Sweden", "Denmark", "Poland"].includes(port.country)).map((port) => (
                           <CommandItem
                             key={port.id}
                             value={port.name}
@@ -274,7 +274,7 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
                         ))}
                       </CommandGroup>
                       <CommandGroup heading="Asia Pacific">
-                        {(originPorts as Port[]).filter(port => ["India", "Singapore", "Malaysia", "Thailand", "Hong Kong", "South Korea", "Japan"].includes(port.country)).map((port) => (
+                        {(originPorts as Port[]).filter(port => ["India", "Singapore", "Malaysia", "Thailand", "Hong Kong", "South Korea", "Japan", "Taiwan", "Indonesia", "Philippines", "Vietnam", "Sri Lanka", "Pakistan", "Bangladesh"].includes(port.country)).map((port) => (
                           <CommandItem
                             key={port.id}
                             value={port.name}
@@ -289,7 +289,7 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
                         ))}
                       </CommandGroup>
                       <CommandGroup heading="Americas">
-                        {(originPorts as Port[]).filter(port => ["USA", "Canada", "Brazil"].includes(port.country)).map((port) => (
+                        {(originPorts as Port[]).filter(port => ["USA", "Canada", "Brazil", "Argentina", "Chile", "Colombia", "Mexico"].includes(port.country)).map((port) => (
                           <CommandItem
                             key={port.id}
                             value={port.name}
@@ -304,7 +304,7 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
                         ))}
                       </CommandGroup>
                       <CommandGroup heading="Middle East & Africa">
-                        {(originPorts as Port[]).filter(port => ["UAE", "Morocco"].includes(port.country)).map((port) => (
+                        {(originPorts as Port[]).filter(port => ["UAE", "Morocco", "Egypt", "Saudi Arabia", "Kuwait", "Qatar", "Iran", "Nigeria", "Ghana", "Kenya", "Tanzania"].includes(port.country)).map((port) => (
                           <CommandItem
                             key={port.id}
                             value={port.name}
