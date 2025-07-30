@@ -529,12 +529,12 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
                       key={index}
                       variant="outline"
                       size="sm"
-                      className="justify-start h-auto p-3 text-left hover:bg-blue-50 hover:border-blue-300"
+                      className="justify-start h-auto p-2 text-left hover:bg-blue-50 hover:border-blue-300"
                       onClick={() => handleQuickQuestion(item.question)}
                     >
-                      <item.icon className="h-4 w-4 mr-2 text-blue-600 flex-shrink-0" />
+                      <item.icon className="h-3 w-3 mr-2 text-blue-600 flex-shrink-0" />
                       <div>
-                        <div className="font-medium text-sm">{item.question}</div>
+                        <div className="font-medium text-xs">{item.question}</div>
                         <div className="text-xs text-gray-500">{item.category}</div>
                       </div>
                     </Button>
