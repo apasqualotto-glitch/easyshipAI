@@ -264,19 +264,27 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
     // Weight patterns in kg
     const kgMatch = lower.match(/(\d+[,\d]*)\s*(?:kg|kilograms?)/);
     if (kgMatch) {
-      return parseInt(kgMatch[1].replace(/,/g, ''));
+      const weight = parseInt(kgMatch[1].replace(/,/g, ''));
+      console.log(`🏋️ Extracted weight: ${weight} kg from "${kgMatch[0]}"`);
+      return weight;
     }
     
     // Weight patterns in tons (convert to kg)
     const tonMatch = lower.match(/(\d+[,\d]*)\s*(?:tons?|tonnes?)/);
     if (tonMatch) {
-      return parseInt(tonMatch[1].replace(/,/g, '')) * 1000;
+      const tons = parseInt(tonMatch[1].replace(/,/g, ''));
+      const weightInKg = tons * 1000;
+      console.log(`🏋️ Extracted weight: ${tons} tons = ${weightInKg} kg from "${tonMatch[0]}"`);
+      return weightInKg;
     }
     
     // Weight patterns in pounds (convert to kg)
     const lbMatch = lower.match(/(\d+[,\d]*)\s*(?:lbs?|pounds?)/);
     if (lbMatch) {
-      return Math.round(parseInt(lbMatch[1].replace(/,/g, '')) * 0.453592);
+      const pounds = parseInt(lbMatch[1].replace(/,/g, ''));
+      const weightInKg = Math.round(pounds * 0.453592);
+      console.log(`🏋️ Extracted weight: ${pounds} lbs = ${weightInKg} kg from "${lbMatch[0]}"`);
+      return weightInKg;
     }
     
     return 0;
@@ -511,13 +519,6 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
             };
             setMessages(prev => [...prev, hsCodeHelpMessage]);
           }, 2000);
-        }
-        
-        // Extract weight if mentioned
-        const weightMatch = fullConversation.toLowerCase().match(/(\d+[,\d]*)\s*(?:kg|kilograms?|tons?)/);
-        if (weightMatch) {
-          const weight = parseInt(weightMatch[1].replace(/,/g, ''));
-          extractedData.weight = weight;
         }
         
         console.log('🔍 Extracted data from conversation:', extractedData);
