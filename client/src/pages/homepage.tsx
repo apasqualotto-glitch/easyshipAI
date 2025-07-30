@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -81,6 +81,11 @@ export function Homepage() {
   const [formValues, setFormValues] = useState<any>({});
   const [quoteResult, setQuoteResult] = useState<any>(null);
   const [showQuoteDisplay, setShowQuoteDisplay] = useState(false);
+
+  // Ensure page starts at the top when component loads
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const handleAIChatExtraction = (extractedData: any) => {
     console.log('📝 AI Chat extracted:', extractedData);

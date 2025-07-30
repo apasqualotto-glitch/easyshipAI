@@ -106,6 +106,15 @@ The application is designed for easy migration from in-memory storage to Postgre
 
 ## Recent Changes
 
+- **CRITICAL UX FIX: Smooth Chat Experience Without Page Jumping** - July 30, 2025
+  - **Fixed Auto-Scroll Issue**: Removed automatic scrolling when user types or AI responds
+  - **Page Positioning**: Homepage now starts at top and stays there during chat interactions
+  - **Loading Indicators**: AI shows "Thinking..." animation while working instead of screen shifting
+  - **Stable Interface**: Chat interface remains at top while form stays visible below
+  - **No More Disruption**: Users can continue chatting without page jumping down
+  - **Professional UX**: Chat behaves like modern messaging apps with stable positioning
+  - **Enhanced Usability**: Form auto-population works smoothly without visual disruption
+
 - **CRITICAL FIX: Port Extraction & Chat Estimates Fully Working!** - July 28, 2025
   - **Fixed Port ID Mapping**: "New York to Cape Town" now correctly extracts origin port ID "34" and destination port ID "10"
   - **Real-Time Chat Estimates**: AI provides instant cost estimates (R65,000+) during conversation 

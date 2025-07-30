@@ -73,15 +73,10 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
   ]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  // Removed messagesEndRef to prevent auto-scrolling
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  // Remove auto-scroll to prevent page jumping
+  // Users can manually scroll if needed
 
   // Port code to ID mapping based on database
   const portCodeToId: Record<string, string> = {
@@ -648,7 +643,7 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
                   </div>
                 )}
               </div>
-              <div ref={messagesEndRef} />
+              {/* Removed auto-scroll reference */}
             </ScrollArea>
 
             {/* Message Input */}
