@@ -66,7 +66,7 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
       id: '1',
       role: 'assistant',
       content: context === "homepage" || context === "calculator" 
-        ? "👋 Hi! I'm your shipping assistant. Tell me about your shipment (like 'I need to ship shoes from New York to Cape Town') and I'll provide a comprehensive quote with full customs and VAT breakdown, then automatically fill in the calculator form below for more detailed quotes!"
+        ? "👋 Hi! I'm your shipping assistant. Tell me about your shipment and I'll provide a comprehensive quote with full customs and VAT breakdown, then automatically fill in the calculator form below for more detailed quotes!"
         : "👋 Welcome to EasyShip AI! I'm here to help you understand container shipping, customs, and Incoterms in simple terms. What would you like to know?",
       timestamp: new Date()
     }
