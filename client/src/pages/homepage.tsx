@@ -78,7 +78,6 @@ const STATS = [
 
 export function Homepage() {
   const { toast } = useToast();
-  const [formValues, setFormValues] = useState<any>({});
   const [quoteResult, setQuoteResult] = useState<any>(null);
   const [showQuoteDisplay, setShowQuoteDisplay] = useState(false);
 
@@ -87,46 +86,7 @@ export function Homepage() {
     window.scrollTo(0, 0);
   }, []);
 
-  const handleAIChatExtraction = (extractedData: any) => {
-    console.log('📝 AI Chat extracted:', extractedData);
-    
-    // Update form values with extracted data
-    setFormValues((prevValues: any) => ({
-      ...prevValues,
-      ...extractedData
-    }));
-    
-    // Show toast notification for successful extraction
-    const fieldCount = Object.keys(extractedData).length;
-    if (fieldCount > 0) {
-      const fieldNames = Object.keys(extractedData).map(key => {
-        // Convert field names to user-friendly labels
-        const fieldLabels: Record<string, string> = {
-          originPort: 'Origin Port',
-          destinationPort: 'Destination Port',
-          containerType: 'Container Type',
-          finalDestination: 'Final Destination',
-          incoterm: 'Incoterm',
-          value: 'Cargo Value',
-          cargoType: 'Cargo Type',
-          weight: 'Weight'
-        };
-        return fieldLabels[key] || key;
-      }).join(', ');
-      
-      toast({
-        title: "Form Auto-Filled! ✓",
-        description: `Updated: ${fieldNames}`,
-        duration: 4000,
-      });
-      
-      console.log('Form auto-filled:', {
-        extractedData,
-        fieldCount,
-        fieldNames
-      });
-    }
-  };
+
 
   const handleQuoteResult = (result: any) => {
     setQuoteResult(result);
@@ -159,7 +119,6 @@ export function Homepage() {
           <div className="mb-8">
             <AIChatInterface 
               context="homepage" 
-              onExtractedData={handleAIChatExtraction}
             />
           </div>
 
@@ -175,7 +134,6 @@ export function Homepage() {
               <CalculatorForm 
                 onQuoteUpdate={() => {}}
                 onQuoteResult={handleQuoteResult}
-                initialValues={formValues}
               />
             </CardContent>
           </Card>

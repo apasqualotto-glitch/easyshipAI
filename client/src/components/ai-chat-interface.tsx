@@ -66,7 +66,7 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
       id: '1',
       role: 'assistant',
       content: context === "homepage" || context === "calculator" 
-        ? "👋 Hi! I'm your shipping assistant. Tell me about your shipment (like 'I need to ship shoes from New York to Cape Town') and I'll automatically fill in the calculator form below for you!"
+        ? "👋 Hi! I'm your shipping assistant. Tell me about your shipment (like 'I need to ship shoes from New York to Cape Town') and I'll provide a comprehensive quote with full customs and VAT breakdown. For more detailed quotes with carrier options, please fill in the calculator form below."
         : "👋 Welcome to EasyShip AI! I'm here to help you understand container shipping, customs, and Incoterms in simple terms. What would you like to know?",
       timestamp: new Date()
     }
@@ -422,9 +422,7 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
         
         console.log('🔍 Extracted data from conversation:', extractedData);
         
-        if (Object.keys(extractedData).length > 0) {
-          onExtractedData(extractedData);
-        }
+        // Auto-fill functionality removed per user request
         
 
 
@@ -561,60 +559,13 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
                       </div>
                     )}
                     <div className={cn(
-                      "max-w-[85%] p-5 rounded-lg",
+                      "max-w-[95%] p-5 rounded-lg",
                       message.role === 'user' 
                         ? "bg-blue-600 text-white" 
                         : "bg-gray-100 text-gray-900"
                     )}>
                       <p className="text-base whitespace-pre-wrap leading-relaxed">{message.content}</p>
-                      {message.role === 'assistant' && (
-                        message.content.toLowerCase().includes('shipping') || 
-                        message.content.toLowerCase().includes('quote') ||
-                        message.content.toLowerCase().includes('container') ||
-                        message.content.toLowerCase().includes('cost') ||
-                        message.content.toLowerCase().includes('price')
-                      ) && (
-                        <div className="mt-3 pt-3 border-t border-gray-200">
-                          <Button
-                            size="sm"
-                            onClick={() => {
-                              // Extract and send data to form
-                              const allMessages = messages.map(m => m.content).join(' ');
-                              const extractedData: Partial<any> = {};
-                              
-                              // Extract all available information
-                              const originCode = getOriginPortId(allMessages);
-                              if (originCode) extractedData.originPort = originCode;
-                              
-                              const destCode = getDestinationPortId(allMessages);
-                              if (destCode) {
-                                extractedData.destinationPort = destCode;
-                                extractedData.finalDestination = getFinalDestinationName(allMessages);
-                              }
-                              
-                              const container = getContainerType(allMessages);
-                              if (container) extractedData.containerType = container;
-                              
-                              const value = getCargoValue(allMessages);
-                              if (value > 0) extractedData.value = value;
-                              
-                              const incoterm = getIncoterm(allMessages);
-                              if (incoterm) extractedData.incoterm = incoterm;
-                              
-                              const cargoType = getCargoType(allMessages);
-                              if (cargoType) extractedData.cargoType = cargoType;
-                              
-                              if (onExtractedData && Object.keys(extractedData).length > 0) {
-                                onExtractedData(extractedData);
-                              }
-                            }}
-                            className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2"
-                          >
-                            <Calculator className="h-4 w-4 mr-2" />
-                            Get Detailed Quote
-                          </Button>
-                        </div>
-                      )}
+
                       <p className={cn(
                         "text-xs mt-2 opacity-70",
                         message.role === 'user' ? "text-blue-100" : "text-gray-500"
@@ -667,7 +618,7 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
 
             <div className="mt-3 text-xs text-gray-500 text-center">
               {context === "homepage" || context === "calculator" 
-                ? "💡 Tip: Tell me your shipping details like 'ship electronics from China to Cape Town' and I'll auto-fill the form"
+                ? "💡 Tip: Tell me your shipping details like 'ship electronics from China to Cape Town' and I'll provide a comprehensive quote"
                 : "💡 Tip: Ask specific questions like 'What documents do I need?' or 'Explain FOB pricing'"}
             </div>
           </CardContent>

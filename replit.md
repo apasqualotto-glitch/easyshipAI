@@ -7,11 +7,12 @@ FreightCalc SA is a full-stack web application that calculates comprehensive shi
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
-Chat interface: Wider message bubbles for better readability and user experience.
-User-friendly guidance: Always tell users explicitly to "click the calculator" for detailed quotes - make buttons and actions crystal clear.
-Form auto-population: AI chat extracts shipping information from conversation and automatically fills the manual calculator form fields below, allowing users to complete missing fields and get quotes through the calculator system.
+Chat interface: Wider message bubbles (95% width) for better readability and user experience.
+User-friendly guidance: AI provides comprehensive quotes with full customs and VAT breakdowns in chat, then directs users to calculator form below for more detailed quotes.
+Form auto-population: REMOVED - AI no longer auto-fills form fields. Users manually enter data in calculator after getting comprehensive quotes in chat.
 Layout preference: Calculator form should be fully visible below chat interface, not hidden or requiring button clicks to access.
-Homepage design: AI chat interface at top, manual calculator form always visible below, allowing seamless auto-population of form fields from chat conversations.
+Homepage design: AI chat interface at top providing detailed quotes, manual calculator form always visible below for additional carrier options.
+No auto-scroll: Page stays at top when users type or AI responds, with loading animation instead of screen jumping.
 
 ## System Architecture
 
@@ -106,6 +107,15 @@ The application is designed for easy migration from in-memory storage to Postgre
 
 ## Recent Changes
 
+- **MAJOR UPDATE: AI Chat Provides Comprehensive Quotes Without Auto-Fill** - July 30, 2025
+  - **Removed Auto-Fill**: Per user request, AI no longer auto-populates calculator form fields
+  - **Comprehensive Quotes in Chat**: AI now provides detailed quotes with full customs and VAT breakdowns
+  - **First-Time Shipper Focus**: Every quote explains calculations as if user has never shipped before
+  - **Wider Chat Bubbles**: Increased to 95% width for better readability
+  - **Removed "Get Detailed Quote" Button**: Cleaner interface without extra buttons
+  - **Clear User Flow**: AI gives comprehensive quote → directs user to fill form below for carrier options
+  - **Educational Approach**: Full explanations of duties, VAT calculations, and cost breakdowns
+
 - **CRITICAL UX FIX: Smooth Chat Experience Without Page Jumping** - July 30, 2025
   - **Fixed Auto-Scroll Issue**: Removed automatic scrolling when user types or AI responds
   - **Page Positioning**: Homepage now starts at top and stays there during chat interactions
@@ -113,7 +123,7 @@ The application is designed for easy migration from in-memory storage to Postgre
   - **Stable Interface**: Chat interface remains at top while form stays visible below
   - **No More Disruption**: Users can continue chatting without page jumping down
   - **Professional UX**: Chat behaves like modern messaging apps with stable positioning
-  - **Enhanced Usability**: Form auto-population works smoothly without visual disruption
+  - **Enhanced Usability**: Clean, stable interface without visual disruption
 
 - **CRITICAL FIX: Port Extraction & Chat Estimates Fully Working!** - July 28, 2025
   - **Fixed Port ID Mapping**: "New York to Cape Town" now correctly extracts origin port ID "34" and destination port ID "10"
