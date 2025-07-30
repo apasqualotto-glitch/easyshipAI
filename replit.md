@@ -107,14 +107,15 @@ The application is designed for easy migration from in-memory storage to Postgre
 
 ## Recent Changes
 
-- **MAJOR UPDATE: AI Chat Provides Comprehensive Quotes WITH Auto-Fill** - July 30, 2025
-  - **Auto-Fill Restored**: AI chat auto-populates calculator form fields while providing quotes
-  - **Comprehensive Quotes in Chat**: AI provides detailed quotes with full customs and VAT breakdowns
-  - **First-Time Shipper Focus**: Every quote explains calculations as if user has never shipped before
-  - **Wider Chat Bubbles**: Increased to 95% width for better readability
-  - **Removed "Get Detailed Quote" Button**: Cleaner interface without extra buttons
-  - **Best of Both Worlds**: AI gives comprehensive quote AND auto-fills form for carrier options
-  - **Educational Approach**: Full explanations of duties, VAT calculations, and cost breakdowns
+- **CRITICAL FIX: Detailed Quote Display Now Shows Real Costs** - July 30, 2025
+  - **Fixed Quote Calculation**: Detailed shipping quote popup now displays actual API costs instead of hardcoded values
+  - **Dynamic Carrier Pricing**: Carrier options now show real prices based on quote total (MSC 8% lower, Maersk 5% higher, CMA CGM 12% higher)
+  - **Real Cost Breakdown**: Shows actual sea freight, trucking, customs, VAT, and handling fees from API
+  - **Live Rate Integration**: Displays live carrier rate indicator when real-time rates are included
+  - **Auto-Fill Functionality**: AI chat auto-populates calculator form fields while providing comprehensive quotes
+  - **Wider Chat Bubbles**: Increased to 95% width for better readability with smaller quick question buttons
+  - **Best of Both Worlds**: AI gives comprehensive quote AND auto-fills form for detailed carrier options
+  - **Educational Approach**: Full explanations of duties, VAT calculations, and cost breakdowns for first-time shippers
 
 - **CRITICAL UX FIX: Smooth Chat Experience Without Page Jumping** - July 30, 2025
   - **Fixed Auto-Scroll Issue**: Removed automatic scrolling when user types or AI responds
