@@ -2,7 +2,7 @@
 
 ## Overview
 
-FreightCalc SA is a full-stack web application that calculates comprehensive shipping costs for imports to South Africa. The application provides door-to-door cost estimates including sea freight, trucking, customs duties, VAT, and handling fees. It features a modern React frontend with shadcn/ui components and an Express.js backend with in-memory data storage.
+FreightCalc SA is a full-stack web application that calculates comprehensive shipping costs for both imports TO and exports FROM South Africa. The application provides door-to-door cost estimates including sea freight, trucking, and for imports: customs duties, VAT, and handling fees. It features a modern React frontend with shadcn/ui components and an Express.js backend with in-memory data storage.
 
 ## User Preferences
 
@@ -106,6 +106,18 @@ The application follows a monorepo structure with a clear separation between cli
 The application is designed for easy migration from in-memory storage to PostgreSQL database, with all database operations abstracted behind a storage interface.
 
 ## Recent Changes
+
+- **MAJOR UPDATE: Bidirectional Shipping Support (Import & Export)** - July 30, 2025
+  - **Import/Export Support**: System now handles both imports TO South Africa and exports FROM South Africa
+  - **Port System Update**: SA ports can serve as both origin (for exports) and destination (for imports)
+  - **Export Calculations**: Exports show only sea freight and handling - no SA customs duties or VAT
+  - **Import Calculations**: Imports continue showing full customs, VAT, and duty breakdowns per SARS requirements
+  - **Updated Port Labels**: Manual calculator now shows "Port of Origin" and "Destination Port" for clarity
+  - **AI Chat Enhancement**: AI assistant understands both import and export contexts, provides appropriate guidance
+  - **Export Documentation**: AI mentions export permits, certificates of origin, SAWIS permits for wine exports
+  - **Flexible Routing**: Added export routes from all SA ports to major international destinations
+  - **Smart Validation**: System automatically validates correct port combinations for import vs export scenarios
+  - **Trucking Logic**: Imports calculate trucking from port to inland destination, exports show minimal port handling
 
 - **CRITICAL FIX: Detailed Quote Display Now Shows Real Costs** - July 30, 2025
   - **Fixed Quote Calculation**: Detailed shipping quote popup now displays actual API costs instead of hardcoded values

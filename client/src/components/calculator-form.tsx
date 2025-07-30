@@ -206,7 +206,7 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <Label htmlFor="originPort" className="flex items-center">
-                Origin Port
+                Port of Origin
                 <div className="tooltip-trigger relative inline-block ml-1">
                   <span className="material-icons text-gray-400 text-sm cursor-help">help_outline</span>
                   <div className="tooltip absolute bottom-6 left-0 bg-gray-900 text-white text-xs p-2 rounded opacity-0 invisible whitespace-nowrap z-10">
@@ -316,11 +316,11 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
 
             <div>
               <Label htmlFor="destinationPort" className="flex items-center">
-                South African Port
+                Destination Port
                 <div className="tooltip-trigger relative inline-block ml-1">
                   <span className="material-icons text-gray-400 text-sm cursor-help">help_outline</span>
                   <div className="tooltip absolute bottom-6 left-0 bg-gray-900 text-white text-xs p-2 rounded opacity-0 invisible whitespace-nowrap z-10">
-                    Choose which SA port your cargo will arrive at
+                    Choose the port where your cargo will arrive
                   </div>
                 </div>
               </Label>

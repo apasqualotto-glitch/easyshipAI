@@ -19,7 +19,7 @@ export const ports = pgTable("ports", {
   name: text("name").notNull(),
   code: text("code").notNull().unique(),
   country: text("country").notNull(),
-  type: text("type").notNull(), // 'origin' or 'destination'
+  type: text("type").notNull(), // 'origin', 'destination', or 'both'
 });
 
 export const routes = pgTable("routes", {

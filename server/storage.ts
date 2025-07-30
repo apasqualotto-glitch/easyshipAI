@@ -148,16 +148,14 @@ export class MemStorage implements IStorage {
       { id: "38", name: "Jebel Ali, UAE", code: "AEJEA", country: "UAE", type: "origin" },
       { id: "39", name: "Casablanca, Morocco", code: "MACAS", country: "Morocco", type: "origin" },
       
-      // South African ports (destinations)
-      { id: "9", name: "Durban", code: "ZADUR", country: "South Africa", type: "destination" },
-      { id: "10", name: "Cape Town", code: "ZACPT", country: "South Africa", type: "destination" },
-      { id: "11", name: "Port Elizabeth (Gqeberha)", code: "ZAPEZ", country: "South Africa", type: "destination" },
-      { id: "12", name: "Richards Bay", code: "ZARBD", country: "South Africa", type: "destination" },
-      { id: "13", name: "East London", code: "ZAELS", country: "South Africa", type: "destination" },
-      { id: "14", name: "Mossel Bay", code: "ZAMOB", country: "South Africa", type: "destination" },
-      { id: "15", name: "Saldanha Bay", code: "ZASDB", country: "South Africa", type: "destination" },
-      { id: "14", name: "Mossel Bay", code: "ZAMOB", country: "South Africa", type: "destination" },
-      { id: "15", name: "Saldanha Bay", code: "ZASDB", country: "South Africa", type: "destination" },
+      // South African ports (can be both origin for exports and destination for imports)
+      { id: "9", name: "Durban", code: "ZADUR", country: "South Africa", type: "both" },
+      { id: "10", name: "Cape Town", code: "ZACPT", country: "South Africa", type: "both" },
+      { id: "11", name: "Port Elizabeth (Gqeberha)", code: "ZAPEZ", country: "South Africa", type: "both" },
+      { id: "12", name: "Richards Bay", code: "ZARBD", country: "South Africa", type: "both" },
+      { id: "13", name: "East London", code: "ZAELS", country: "South Africa", type: "both" },
+      { id: "14", name: "Mossel Bay", code: "ZAMOB", country: "South Africa", type: "both" },
+      { id: "15", name: "Saldanha Bay", code: "ZASDB", country: "South Africa", type: "both" },
     ];
 
     portsData.forEach(port => this.ports.set(port.id, port));
@@ -215,6 +213,40 @@ export class MemStorage implements IStorage {
     });
 
     routesData.forEach(route => this.routes.set(`${route.originPortId}-${route.destinationPortId}`, route));
+    
+    // Add export routes from SA ports to international destinations
+    const exportRoutesData: Route[] = [];
+    const saOriginPorts = ["9", "10", "11", "12", "13", "14", "15"]; // SA ports as origins for exports
+    const internationalDestinations = [
+      // Major export destinations from SA
+      { portId: "1", baseCosts: { "9": 45000, "10": 47500, "11": 46000, "12": 44000, "13": 46500, "14": 48500, "15": 49500 }, transitDays: 20 }, // Shanghai
+      { portId: "4", baseCosts: { "9": 38000, "10": 36000, "11": 39000, "12": 40000, "13": 40000, "14": 42000, "15": 34000 }, transitDays: 17 }, // Hamburg
+      { portId: "5", baseCosts: { "9": 39000, "10": 37000, "11": 40000, "12": 41000, "13": 41000, "14": 43000, "15": 35000 }, transitDays: 18 }, // Rotterdam
+      { portId: "7", baseCosts: { "9": 28000, "10": 30000, "11": 29000, "12": 27000, "13": 29500, "14": 31000, "15": 32000 }, transitDays: 14 }, // Mumbai
+      { portId: "8", baseCosts: { "9": 26000, "10": 28000, "11": 27000, "12": 25000, "13": 27500, "14": 29000, "15": 30000 }, transitDays: 12 }, // Singapore
+      { portId: "32", baseCosts: { "9": 40000, "10": 43000, "11": 41000, "12": 42000, "13": 42000, "14": 44000, "15": 45000 }, transitDays: 28 }, // Los Angeles
+      { portId: "34", baseCosts: { "9": 38000, "10": 41000, "11": 39000, "12": 40000, "13": 40000, "14": 42000, "15": 43000 }, transitDays: 26 }, // New York
+      { portId: "38", baseCosts: { "9": 23000, "10": 25000, "11": 24000, "12": 22000, "13": 24500, "14": 26000, "15": 27000 }, transitDays: 10 }, // Jebel Ali
+    ];
+    
+    let exportRouteId = routeId;
+    saOriginPorts.forEach(originId => {
+      internationalDestinations.forEach(dest => {
+        const baseCost = dest.baseCosts[originId as keyof typeof dest.baseCosts] || 35000;
+        exportRoutesData.push({
+          id: exportRouteId.toString(),
+          originPortId: originId,
+          destinationPortId: dest.portId,
+          seaFreightCost20ft: baseCost,
+          seaFreightCost40ft: Math.round(baseCost * 1.3),
+          seaFreightCost40ftHC: Math.round(baseCost * 1.35),
+          transitDays: dest.transitDays
+        });
+        exportRouteId++;
+      });
+    });
+    
+    exportRoutesData.forEach(route => this.routes.set(`${route.originPortId}-${route.destinationPortId}`, route));
 
     // Initialize destinations with trucking costs from all SA ports
     // Note: These are industry-standard trucking estimates. Future enhancement: integrate with real trucking companies like Imperial Logistics, Unitrans
@@ -360,11 +392,11 @@ export class MemStorage implements IStorage {
   }
 
   async getOriginPorts(): Promise<Port[]> {
-    return Array.from(this.ports.values()).filter(port => port.type === "origin");
+    return Array.from(this.ports.values()).filter(port => port.type === "origin" || port.type === "both");
   }
 
   async getDestinationPorts(): Promise<Port[]> {
-    return Array.from(this.ports.values()).filter(port => port.type === "destination");
+    return Array.from(this.ports.values()).filter(port => port.type === "destination" || port.type === "both");
   }
 
   async getRoute(originPortId: string, destinationPortId: string): Promise<Route | undefined> {

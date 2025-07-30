@@ -111,14 +111,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = quoteRequestSchema.parse(req.body);
       
       // Find origin and destination ports
+      const allPorts = await storage.getPorts();
       const originPorts = await storage.getOriginPorts();
       const destinationPorts = await storage.getDestinationPorts();
       
       const originPort = originPorts.find(p => p.id === validatedData.originPort || p.code === validatedData.originPort);
-      const destinationPort = destinationPorts.find(p => p.id === validatedData.destinationPort || p.code === validatedData.destinationPort);
+      if (!originPort) {
+        return res.status(400).json({ message: `Origin port ${validatedData.originPort} not found` });
+      }
       
-      if (!originPort || !destinationPort) {
-        return res.status(400).json({ message: "Invalid port selection" });
+      // For exports from SA, destination can be any port
+      // For imports to SA, destination must be a SA port
+      let destinationPort;
+      if (originPort.country === "South Africa") {
+        // Export: destination can be any port
+        destinationPort = allPorts.find(p => p.id === validatedData.destinationPort || p.code === validatedData.destinationPort);
+      } else {
+        // Import: destination must be in destinationPorts (SA ports)
+        destinationPort = destinationPorts.find(p => p.id === validatedData.destinationPort || p.code === validatedData.destinationPort);
+      }
+      
+      if (!destinationPort) {
+        return res.status(400).json({ message: `Destination port ${validatedData.destinationPort} not found` });
       }
 
       // Get route information
@@ -129,13 +143,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get destination for trucking costs
       const destinations = await storage.getDestinations();
-      const destination = destinations.find(d => 
-        d.name === validatedData.finalDestination || 
-        d.name.toLowerCase().includes(validatedData.finalDestination.toLowerCase()) ||
-        validatedData.finalDestination.toLowerCase().includes(d.name.toLowerCase())
-      );
-      if (!destination) {
-        return res.status(400).json({ message: "Invalid final destination" });
+      let destination;
+      
+      // For exports, we don't need a SA destination (cargo goes to international port)
+      if (originPort.country === "South Africa") {
+        // For exports, finalDestination is the international destination
+        // Use the origin location for local trucking costs
+        destination = destinations.find(d => 
+          d.name === validatedData.finalDestination || 
+          d.name.toLowerCase().includes(validatedData.finalDestination.toLowerCase()) ||
+          validatedData.finalDestination.toLowerCase().includes(d.name.toLowerCase())
+        );
+        // If not found, it's okay for exports - no local trucking at destination
+        if (!destination) {
+          destination = { 
+            fromDurban: 0, fromCapeTown: 0, fromPortElizabeth: 0, 
+            fromRichardsBay: 0, fromEastLondon: 0, fromMosselBay: 0, fromSaldanhaBay: 0 
+          };
+        }
+      } else {
+        // For imports, finalDestination must be a SA destination
+        destination = destinations.find(d => 
+          d.name === validatedData.finalDestination || 
+          d.name.toLowerCase().includes(validatedData.finalDestination.toLowerCase()) ||
+          validatedData.finalDestination.toLowerCase().includes(d.name.toLowerCase())
+        );
+        if (!destination) {
+          return res.status(400).json({ message: "Invalid final destination" });
+        }
       }
 
       // Get cargo type for duty calculation - be flexible with advanced customs lookup
@@ -184,30 +219,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Apply Incoterm-based cost adjustments (will be calculated after exchange rate)
       let seaFreightCost = baseSeaFreightCost; // Default to base cost, will be adjusted below
 
-      // Calculate trucking cost based on destination port
+      // Calculate trucking cost
       let truckingCost = 0;
-      switch (destinationPort.code) {
-        case "ZADUR":
-          truckingCost = destination.fromDurban;
-          break;
-        case "ZACPT":
-          truckingCost = destination.fromCapeTown;
-          break;
-        case "ZAPEZ":
-          truckingCost = destination.fromPortElizabeth;
-          break;
-        case "ZARBD":
-          truckingCost = destination.fromRichardsBay;
-          break;
-        case "ZAELS":
-          truckingCost = destination.fromEastLondon;
-          break;
-        case "ZAMOB":
-          truckingCost = destination.fromMosselBay;
-          break;
-        case "ZASDB":
-          truckingCost = destination.fromSaldanhaBay;
-          break;
+      
+      // For exports: trucking from origin location to SA port
+      // For imports: trucking from SA port to final destination
+      if (originPort.country === "South Africa") {
+        // Export: minimal handling at port (no trucking to destination)
+        truckingCost = 1000; // Basic port handling fee
+      } else {
+        // Import: trucking from port to final destination
+        switch (destinationPort.code) {
+          case "ZADUR":
+            truckingCost = destination.fromDurban;
+            break;
+          case "ZACPT":
+            truckingCost = destination.fromCapeTown;
+            break;
+          case "ZAPEZ":
+            truckingCost = destination.fromPortElizabeth;
+            break;
+          case "ZARBD":
+            truckingCost = destination.fromRichardsBay;
+            break;
+          case "ZAELS":
+            truckingCost = destination.fromEastLondon;
+            break;
+          case "ZAMOB":
+            truckingCost = destination.fromMosselBay;
+            break;
+          case "ZASDB":
+            truckingCost = destination.fromSaldanhaBay;
+            break;
+        }
       }
 
       // Validate and get origin country from port information for trade agreement calculations
@@ -239,12 +283,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fobValueUSD = validatedData.value; // User enters FOB value (cargo value only)
       const fobValueZAR = Math.round(fobValueUSD * usdToZarRate);
       
+      // Check if this is an export from SA (SA port as origin)
+      const isExport = originPort.country === "South Africa";
+      
       // Calculate customs duties and VAT using correct SARS methodology
       let customsDuties, vat, handlingFees, customsExplanation, tradeAgreementInfo, customsBreakdown;
       
-      // Determine if country is SACU member (no 10% markup)
+      // Determine if country is SACU member (no 10% markup) - needed for both export and import logic
       const sacuCountries = ["Botswana", "Lesotho", "Namibia", "Eswatini"];
       const isSacuCountry = sacuCountries.includes(originCountry);
+      
+      // For exports, no customs or VAT applies in SA
+      if (isExport) {
+        customsDuties = 0;
+        vat = 0;
+        handlingFees = seaFreightCost * 0.05; // Only basic handling fees
+        customsExplanation = "Export shipment - No SA customs duties or VAT applicable";
+        tradeAgreementInfo = {
+          name: "Export",
+          preferential: true,
+          description: "Exports from South Africa are not subject to import duties or VAT",
+          dutyRate: 0
+        };
+        customsBreakdown = {
+          fobValueUSD: validatedData.value,
+          fobValueZAR: fobValueZAR,
+          exchangeRate: usdToZarRate,
+          dutyRate: 0,
+          customsDuty: 0,
+          markupApplied: false,
+          markupAmount: 0,
+          atvValue: 0,
+          vatRate: 0,
+          vat: 0,
+          formula: "Export - No duties or VAT"
+        };
+      } else {
+        // Import calculations - existing logic
       
       if (validatedData.customsTariff) {
         // Use advanced customs calculations with trade agreement rates
@@ -352,8 +427,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             : "VAT = (FOB Value + 10% markup + Duties) × 15%"
         };
       }
-      
-      // Calculate total cost
+      } // End of import calculations
       const totalCost = seaFreightCost + truckingCost + customsDuties + vat + handlingFees;
 
       const quote = {
