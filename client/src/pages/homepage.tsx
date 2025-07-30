@@ -143,15 +143,12 @@ export function Homepage() {
               <Ship className="h-8 w-8 text-white" />
             </div>
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Container Shipping to South Africa Made Simple
-          </h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Container Shipping to and from South Africa Made Simple</h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
             Get instant quotes, understand customs, and ship with confidence using our AI-powered platform
           </p>
         </div>
       </section>
-
       {/* Main Content Section */}
       <section className="px-4 pb-8">
         <div className="max-w-7xl mx-auto">
@@ -192,7 +189,6 @@ export function Homepage() {
           )}
         </div>
       </section>
-
       {/* Features Section */}
       <section className="pb-16 px-4">
         <div className="max-w-6xl mx-auto text-center">
@@ -225,7 +221,6 @@ export function Homepage() {
           </div>
         </div>
       </section>
-
       {/* Stats Section */}
       <section className="py-16 bg-white">
         <div className="max-w-6xl mx-auto px-4">
@@ -246,7 +241,6 @@ export function Homepage() {
           </div>
         </div>
       </section>
-
       {/* Benefits Section */}
       <section className="py-16 px-4">
         <div className="max-w-6xl mx-auto">
@@ -272,7 +266,6 @@ export function Homepage() {
           </div>
         </div>
       </section>
-
       {/* CTA Section */}
       <section className="py-16 bg-blue-600 text-white">
         <div className="max-w-4xl mx-auto text-center px-4">

@@ -107,6 +107,15 @@ The application is designed for easy migration from in-memory storage to Postgre
 
 ## Recent Changes
 
+- **CRITICAL FIX: AI Chat Now Uses Only Real User Data** - July 30, 2025
+  - **No More Ghost Data**: Removed all fallback values - AI only uses information actually provided by user
+  - **Asks for Missing Info**: When cargo value, weight, or container size missing, AI asks user to provide it
+  - **Weight Detection Added**: Extracts weight from user messages (kg, tons, pounds) for accurate calculations
+  - **Real Data Only**: Quote estimates now only appear when user provides ALL required information
+  - **Better UX**: Clear prompts guide users to provide missing container size, cargo value, and weight
+  - **Authentic Quotes**: All cost breakdowns based on actual user-provided shipping parameters
+  - **No Assumptions**: System never assumes default values for critical shipping information
+
 - **ENHANCED: AI Chat Auto-Fill Extraction for Import/Export** - July 30, 2025
   - **Improved Port Detection**: AI now correctly extracts both origin and destination ports for imports AND exports
   - **Houston Added**: Added Houston, USA as new port (ID: 40) for better US coverage

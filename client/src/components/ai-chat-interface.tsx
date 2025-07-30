@@ -258,6 +258,30 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
     return 0;
   };
 
+  const getWeight = (msg: string) => {
+    const lower = msg.toLowerCase();
+    
+    // Weight patterns in kg
+    const kgMatch = lower.match(/(\d+[,\d]*)\s*(?:kg|kilograms?)/);
+    if (kgMatch) {
+      return parseInt(kgMatch[1].replace(/,/g, ''));
+    }
+    
+    // Weight patterns in tons (convert to kg)
+    const tonMatch = lower.match(/(\d+[,\d]*)\s*(?:tons?|tonnes?)/);
+    if (tonMatch) {
+      return parseInt(tonMatch[1].replace(/,/g, '')) * 1000;
+    }
+    
+    // Weight patterns in pounds (convert to kg)
+    const lbMatch = lower.match(/(\d+[,\d]*)\s*(?:lbs?|pounds?)/);
+    if (lbMatch) {
+      return Math.round(parseInt(lbMatch[1].replace(/,/g, '')) * 0.453592);
+    }
+    
+    return 0;
+  };
+
   const getCargoType = (msg: string) => {
     const lower = msg.toLowerCase();
     
@@ -358,34 +382,50 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
       const hasSufficientInfo = hasOrigin && hasDestination;
       const isCompleteShippingRequest = hasSufficientInfo && (hasContainer || hasValue);
       
-      // Generate quick estimate for chat if we have origin and destination
+      // Only generate estimate if we have ALL required information from user
       let estimateText = "";
+      const missingInfo = [];
+      
       if (hasOrigin && hasDestination) {
         const originId = getOriginPortId(fullConversation);
         const destId = getDestinationPortId(fullConversation);
-        const containerType = getContainerType(fullConversation) || '20ft';
-        const cargoValue = getCargoValue(fullConversation) || 25000;
-        const cargoType = getCargoType(fullConversation) || 'general';
+        const containerType = getContainerType(fullConversation);
+        const cargoValue = getCargoValue(fullConversation);
+        const cargoType = getCargoType(fullConversation);
         
-        // Quick calculation based on common routes
-        const routeEstimates: Record<string, Record<string, number>> = {
-          '1': { '9': 48500, '10': 51000, '11': 49500 }, // Shanghai
-          '4': { '9': 42000, '10': 40000, '11': 43000 }, // Hamburg  
-          '34': { '9': 40000, '10': 43000, '11': 41000 }, // New York
-        };
+        const weight = getWeight(fullConversation);
         
-        const seaFreight = routeEstimates[originId]?.[destId] || 45000;
-        const containerMultiplier = containerType === '40ft' ? 1.3 : containerType === '40ft-hc' ? 1.35 : 1;
-        const adjustedSeaFreight = Math.round(seaFreight * containerMultiplier);
+        // Check for missing required information
+        if (!containerType) missingInfo.push("container size (20ft, 40ft, or 40ft-hc)");
+        if (cargoValue === 0) missingInfo.push("cargo value in USD");
+        if (weight === 0) missingInfo.push("cargo weight (kg or tons)");
         
-        const trucking = destId === '10' ? 1000 : destId === '9' ? 1000 : 6000; // Cape Town/Durban vs inland
-        const customsDuty = Math.round(cargoValue * (cargoType === 'textiles' ? 0.45 : cargoType === 'electronics' ? 0.20 : 0.15));
-        const vat = Math.round((cargoValue + customsDuty) * 0.15);
-        const handling = 3500;
-        
-        const total = adjustedSeaFreight + trucking + customsDuty + vat + handling;
-        
-        estimateText = `\n\n💰 **Quick Estimate**: R${total.toLocaleString()} total\n• Sea freight (${containerType}): R${adjustedSeaFreight.toLocaleString()}\n• Trucking: R${trucking.toLocaleString()}\n• Customs & VAT: R${(customsDuty + vat).toLocaleString()}\n• Handling: R${handling.toLocaleString()}`;
+        // Only generate estimate if we have all required info
+        if (missingInfo.length === 0) {
+          // Quick calculation based on common routes - using only user-provided data
+          const routeEstimates: Record<string, Record<string, number>> = {
+            '1': { '9': 48500, '10': 51000, '11': 49500 }, // Shanghai
+            '4': { '9': 42000, '10': 40000, '11': 43000 }, // Hamburg  
+            '34': { '9': 40000, '10': 43000, '11': 41000 }, // New York
+            '40': { '9': 39000, '10': 42000, '11': 40000 }, // Houston
+          };
+          
+          const seaFreight = routeEstimates[originId]?.[destId] || 45000;
+          const containerMultiplier = containerType === '40ft' ? 1.3 : containerType === '40ft-hc' ? 1.35 : 1;
+          const adjustedSeaFreight = Math.round(seaFreight * containerMultiplier);
+          
+          const trucking = destId === '10' ? 1000 : destId === '9' ? 1000 : 6000; // Cape Town/Durban vs inland
+          const customsDuty = Math.round(cargoValue * (cargoType === 'textiles' ? 0.45 : cargoType === 'electronics' ? 0.20 : 0.15));
+          const vat = Math.round((cargoValue + customsDuty) * 0.15);
+          const handling = 3500;
+          
+          const total = adjustedSeaFreight + trucking + customsDuty + vat + handling;
+          
+          estimateText = `\n\n💰 **Quick Estimate**: R${total.toLocaleString()} total\n• Sea freight (${containerType}): R${adjustedSeaFreight.toLocaleString()}\n• Trucking: R${trucking.toLocaleString()}\n• Customs & VAT: R${(customsDuty + vat).toLocaleString()}\n• Handling: R${handling.toLocaleString()}`;
+        } else {
+          // Ask for missing information
+          estimateText = `\n\n❓ **To provide an accurate quote, I need:**\n• ${missingInfo.join('\n• ')}\n\nPlease provide this information and I'll calculate your exact shipping cost.`;
+        }
       }
 
       // Add calculator suggestion for relevant shipping queries
@@ -450,6 +490,9 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
         
         const value = getCargoValue(fullConversation);
         if (value > 0) extractedData.value = value;
+        
+        const weight = getWeight(fullConversation);
+        if (weight > 0) extractedData.weight = weight;
         
         const incoterm = getIncoterm(fullConversation);
         if (incoterm) extractedData.incoterm = incoterm;
