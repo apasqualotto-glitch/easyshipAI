@@ -66,7 +66,7 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
       id: '1',
       role: 'assistant',
       content: context === "homepage" || context === "calculator" 
-        ? "👋 Hi! I'm your shipping assistant. Tell me about your shipment (like 'I need to ship shoes from New York to Cape Town') and I'll provide a comprehensive quote with full customs and VAT breakdown. For more detailed quotes with carrier options, please fill in the calculator form below."
+        ? "👋 Hi! I'm your shipping assistant. Tell me about your shipment (like 'I need to ship shoes from New York to Cape Town') and I'll provide a comprehensive quote with full customs and VAT breakdown, then automatically fill in the calculator form below for more detailed quotes!"
         : "👋 Welcome to EasyShip AI! I'm here to help you understand container shipping, customs, and Incoterms in simple terms. What would you like to know?",
       timestamp: new Date()
     }
@@ -422,7 +422,9 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
         
         console.log('🔍 Extracted data from conversation:', extractedData);
         
-        // Auto-fill functionality removed per user request
+        if (Object.keys(extractedData).length > 0) {
+          onExtractedData(extractedData);
+        }
         
 
 
@@ -618,7 +620,7 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
 
             <div className="mt-3 text-xs text-gray-500 text-center">
               {context === "homepage" || context === "calculator" 
-                ? "💡 Tip: Tell me your shipping details like 'ship electronics from China to Cape Town' and I'll provide a comprehensive quote"
+                ? "💡 Tip: Tell me your shipping details like 'ship electronics from China to Cape Town' and I'll provide a comprehensive quote and auto-fill the form"
                 : "💡 Tip: Ask specific questions like 'What documents do I need?' or 'Explain FOB pricing'"}
             </div>
           </CardContent>
