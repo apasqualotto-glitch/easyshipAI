@@ -42,7 +42,9 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
   const [useLiveRates, setUseLiveRates] = useState(true); // Always use live rates by default
   const [selectedCustomsTariff, setSelectedCustomsTariff] = useState<CustomsTariff | null>(null);
   const [originPortOpen, setOriginPortOpen] = useState(false);
+  const [destinationPortOpen, setDestinationPortOpen] = useState(false);
   const [selectedOriginPort, setSelectedOriginPort] = useState("");
+  const [selectedDestinationPort, setSelectedDestinationPort] = useState("");
 
   const form = useForm<QuoteRequest>({
     resolver: zodResolver(quoteRequestSchema),
@@ -136,6 +138,14 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
             shouldDirty: true,
             shouldTouch: true 
           });
+          
+          // Update the selected port display values
+          if (key === 'originPort') {
+            setSelectedOriginPort(value as string);
+          }
+          if (key === 'destinationPort') {
+            setSelectedDestinationPort(value as string);
+          }
         }
       });
       
@@ -324,18 +334,59 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
                   </div>
                 </div>
               </Label>
-              <Select onValueChange={(value) => form.setValue("destinationPort", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select SA port" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(destinationPorts as Port[]).map((port) => (
-                    <SelectItem key={port.id} value={port.code}>
-                      {port.name} ({port.code})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover open={destinationPortOpen} onOpenChange={setDestinationPortOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={destinationPortOpen}
+                    className="w-full justify-between"
+                  >
+                    {selectedDestinationPort
+                      ? (destinationPorts as Port[]).find((port) => port.code === selectedDestinationPort)?.name
+                      : "Search and select destination port..."}
+                    <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[400px] p-0">
+                  <Command>
+                    <CommandInput placeholder="Search destination ports..." />
+                    <CommandEmpty>No port found.</CommandEmpty>
+                    <CommandList>
+                      <CommandGroup heading="South African Ports">
+                        {(destinationPorts as Port[]).filter(port => port.country === "South Africa").map((port) => (
+                          <CommandItem
+                            key={port.id}
+                            value={port.name}
+                            onSelect={() => {
+                              setSelectedDestinationPort(port.code);
+                              form.setValue("destinationPort", port.code);
+                              setDestinationPortOpen(false);
+                            }}
+                          >
+                            {port.name} ({port.code})
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                      <CommandGroup heading="International Ports (Exports)">
+                        {(destinationPorts as Port[]).filter(port => port.country !== "South Africa").map((port) => (
+                          <CommandItem
+                            key={port.id}
+                            value={port.name}
+                            onSelect={() => {
+                              setSelectedDestinationPort(port.code);
+                              form.setValue("destinationPort", port.code);
+                              setDestinationPortOpen(false);
+                            }}
+                          >
+                            {port.name} ({port.code})
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
 
