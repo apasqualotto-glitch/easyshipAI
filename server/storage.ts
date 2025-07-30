@@ -141,6 +141,7 @@ export class MemStorage implements IStorage {
       { id: "33", name: "Long Beach, USA", code: "USLGB", country: "USA", type: "origin" },
       { id: "34", name: "New York, USA", code: "USNYC", country: "USA", type: "origin" },
       { id: "35", name: "Miami, USA", code: "USMIA", country: "USA", type: "origin" },
+      { id: "40", name: "Houston, USA", code: "USHOU", country: "USA", type: "both" },
       { id: "36", name: "Vancouver, Canada", code: "CAVAN", country: "Canada", type: "origin" },
       { id: "37", name: "Santos, Brazil", code: "BRSSZ", country: "Brazil", type: "origin" },
       
@@ -190,6 +191,7 @@ export class MemStorage implements IStorage {
       // Americas
       { portId: "32", baseCosts: { "9": 42000, "10": 45000, "11": 43000, "12": 44000, "13": 44000, "14": 46000, "15": 47000 }, transitDays: 28 }, // Los Angeles
       { portId: "34", baseCosts: { "9": 40000, "10": 43000, "11": 41000, "12": 42000, "13": 42000, "14": 44000, "15": 45000 }, transitDays: 26 }, // New York
+      { portId: "40", baseCosts: { "9": 39000, "10": 42000, "11": 40000, "12": 41000, "13": 41000, "14": 43000, "15": 44000 }, transitDays: 24 }, // Houston
       
       // Middle East
       { portId: "38", baseCosts: { "9": 25000, "10": 27000, "11": 26000, "12": 24000, "13": 26500, "14": 28000, "15": 29000 }, transitDays: 10 }, // Jebel Ali
@@ -226,6 +228,7 @@ export class MemStorage implements IStorage {
       { portId: "8", baseCosts: { "9": 26000, "10": 28000, "11": 27000, "12": 25000, "13": 27500, "14": 29000, "15": 30000 }, transitDays: 12 }, // Singapore
       { portId: "32", baseCosts: { "9": 40000, "10": 43000, "11": 41000, "12": 42000, "13": 42000, "14": 44000, "15": 45000 }, transitDays: 28 }, // Los Angeles
       { portId: "34", baseCosts: { "9": 38000, "10": 41000, "11": 39000, "12": 40000, "13": 40000, "14": 42000, "15": 43000 }, transitDays: 26 }, // New York
+      { portId: "40", baseCosts: { "9": 37000, "10": 40000, "11": 38000, "12": 39000, "13": 39000, "14": 41000, "15": 42000 }, transitDays: 24 }, // Houston
       { portId: "38", baseCosts: { "9": 23000, "10": 25000, "11": 24000, "12": 22000, "13": 24500, "14": 26000, "15": 27000 }, transitDays: 10 }, // Jebel Ali
     ];
     

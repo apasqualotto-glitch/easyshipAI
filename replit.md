@@ -107,6 +107,17 @@ The application is designed for easy migration from in-memory storage to Postgre
 
 ## Recent Changes
 
+- **ENHANCED: AI Chat Auto-Fill Extraction for Import/Export** - July 30, 2025
+  - **Improved Port Detection**: AI now correctly extracts both origin and destination ports for imports AND exports
+  - **Houston Added**: Added Houston, USA as new port (ID: 40) for better US coverage
+  - **Partial Name Support**: Extraction handles partial city names like "hou" for Houston
+  - **Context-Aware Extraction**: AI determines if shipping is import TO SA or export FROM SA automatically
+  - **Better Auto-Fill**: Form fields populate correctly with extracted origin, destination, container, value
+  - **Export Detection**: Keywords like "export", "from SA", "from Cape Town" trigger export mode
+  - **Import Detection**: Default mode assumes import unless export keywords are detected
+  - **Smart Port Mapping**: SA ports can be origin (exports) or destination (imports) based on context
+  - **Improved Success Rate**: Auto-fill now works reliably for both import and export scenarios
+
 - **MAJOR UPDATE: Bidirectional Shipping Support (Import & Export)** - July 30, 2025
   - **Import/Export Support**: System now handles both imports TO South Africa and exports FROM South Africa
   - **Port System Update**: SA ports can serve as both origin (for exports) and destination (for imports)

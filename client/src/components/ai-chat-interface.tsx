@@ -101,40 +101,97 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
   // Extract helper functions
   const getOriginPortId = (msg: string) => {
     const lower = msg.toLowerCase();
-    // Major US ports
-    if (lower.includes('new york') || lower.includes('ny')) return '34';
-    if (lower.includes('los angeles') || lower.includes('la')) return '32';
-    if (lower.includes('usa') || lower.includes('america')) return '34'; // Default to New York for USA
     
-    // Major Chinese ports
-    if (lower.includes('shanghai')) return '1';
-    if (lower.includes('shenzhen') || lower.includes('yantian')) return '16';
-    if (lower.includes('ningbo')) return '2';
-    if (lower.includes('qingdao')) return '17';
-    if (lower.includes('tianjin')) return '3';
-    if (lower.includes('china') && !lower.includes('specific')) return '1'; // Default to Shanghai for China
+    // Check if this is an export FROM SA
+    const isExport = lower.includes('export') || lower.includes('from south africa') || 
+                    lower.includes('from sa') || lower.includes('from cape town') || 
+                    lower.includes('from durban');
     
-    // European ports
-    if (lower.includes('hamburg') || lower.includes('germany')) return '4';
-    if (lower.includes('rotterdam') || lower.includes('netherlands')) return '5';
-    if (lower.includes('antwerp') || lower.includes('belgium')) return '20';
-    if (lower.includes('felixstowe') || lower.includes('uk') || lower.includes('england')) return '6';
-    if (lower.includes('europe') && !lower.includes('specific')) return '4'; // Default to Hamburg for Europe
-    
-    // Other major ports
-    if (lower.includes('singapore')) return '8';
-    if (lower.includes('mumbai') || lower.includes('india')) return '7';
+    if (isExport) {
+      // For exports, origin is SA ports
+      if (lower.includes('cape town') || lower.includes('cpt')) return '10';
+      if (lower.includes('durban') || lower.includes('dbn')) return '9';
+      if (lower.includes('port elizabeth') || lower.includes('gqeberha') || lower.includes('pe')) return '11';
+      if (lower.includes('richards bay')) return '12';
+      if (lower.includes('east london')) return '13';
+      // Default to Cape Town for exports
+      if (lower.includes('south africa') || lower.includes('from sa')) return '10';
+    } else {
+      // For imports, origin is international ports
+      // Major US ports
+      if (lower.includes('houston') || lower.includes('hou')) return '40'; // Houston
+      if (lower.includes('new york') || lower.includes('ny')) return '34';
+      if (lower.includes('los angeles') || lower.includes('la')) return '32';
+      if (lower.includes('miami')) return '35';
+      if (lower.includes('usa') || lower.includes('america')) return '34'; // Default to New York for USA
+      
+      // Major Chinese ports
+      if (lower.includes('shanghai')) return '1';
+      if (lower.includes('shenzhen') || lower.includes('yantian')) return '16';
+      if (lower.includes('ningbo')) return '2';
+      if (lower.includes('qingdao')) return '17';
+      if (lower.includes('tianjin')) return '3';
+      if (lower.includes('china') && !lower.includes('specific')) return '1'; // Default to Shanghai for China
+      
+      // European ports
+      if (lower.includes('hamburg') || lower.includes('germany')) return '4';
+      if (lower.includes('rotterdam') || lower.includes('netherlands')) return '5';
+      if (lower.includes('antwerp') || lower.includes('belgium')) return '20';
+      if (lower.includes('felixstowe') || lower.includes('uk') || lower.includes('england')) return '6';
+      if (lower.includes('europe') && !lower.includes('specific')) return '4'; // Default to Hamburg for Europe
+      
+      // Other major ports
+      if (lower.includes('singapore')) return '8';
+      if (lower.includes('mumbai') || lower.includes('india')) return '7';
+      if (lower.includes('jebel ali') || lower.includes('dubai') || lower.includes('uae')) return '38';
+    }
     
     return '';
   };
 
   const getDestinationPortId = (msg: string) => {
     const lower = msg.toLowerCase();
-    if (lower.includes('cape town') || lower.includes('cpt')) return '10';
-    if (lower.includes('durban') || lower.includes('dbn')) return '9';
-    if (lower.includes('port elizabeth') || lower.includes('gqeberha') || lower.includes('pe')) return '11';
-    // Default to Durban if South Africa is mentioned but no specific port
-    if (lower.includes('south africa') && !lower.includes('specific')) return '9';
+    
+    // Check if this is an export (FROM SA) or import (TO SA) based on context
+    const isExport = lower.includes('export') || lower.includes('from south africa') || 
+                    lower.includes('from sa') || lower.includes('from cape town') || 
+                    lower.includes('from durban') || lower.includes('from johannesburg');
+    
+    if (isExport) {
+      // For exports, destination can be international ports
+      // US destinations
+      if (lower.includes('houston') || lower.includes('hou')) return '40'; // Houston
+      if (lower.includes('new york') || lower.includes('ny')) return '34';
+      if (lower.includes('los angeles') || lower.includes('la')) return '32';
+      if (lower.includes('miami')) return '35';
+      
+      // Chinese destinations
+      if (lower.includes('shanghai')) return '1';
+      if (lower.includes('shenzhen')) return '16';
+      if (lower.includes('ningbo')) return '2';
+      if (lower.includes('qingdao')) return '17';
+      
+      // European destinations
+      if (lower.includes('hamburg') || lower.includes('germany')) return '4';
+      if (lower.includes('rotterdam') || lower.includes('netherlands')) return '5';
+      if (lower.includes('antwerp') || lower.includes('belgium')) return '20';
+      if (lower.includes('felixstowe') || lower.includes('uk')) return '6';
+      
+      // Other destinations
+      if (lower.includes('singapore')) return '8';
+      if (lower.includes('mumbai') || lower.includes('india')) return '7';
+      if (lower.includes('jebel ali') || lower.includes('dubai') || lower.includes('uae')) return '38';
+    } else {
+      // For imports, destination is SA ports
+      if (lower.includes('cape town') || lower.includes('cpt')) return '10';
+      if (lower.includes('durban') || lower.includes('dbn')) return '9';
+      if (lower.includes('port elizabeth') || lower.includes('gqeberha') || lower.includes('pe')) return '11';
+      if (lower.includes('richards bay')) return '12';
+      if (lower.includes('east london')) return '13';
+      // Default to Durban if South Africa is mentioned but no specific port
+      if (lower.includes('south africa') || lower.includes(' sa')) return '9';
+    }
+    
     return '';
   };
 
