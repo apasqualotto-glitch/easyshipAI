@@ -72,7 +72,25 @@ export interface IStorage {
   markNotificationRead(id: string): Promise<void>;
 }
 
-export class MemStorage implements IStorage {
+// Import database functions
+import { db } from "./db";
+import { eq, and, desc } from "drizzle-orm";
+import { 
+  ports, 
+  routes, 
+  destinations, 
+  cargoTypes, 
+  incoterms, 
+  shippingQuotes, 
+  users,
+  chatConversations,
+  chatMessages,
+  shipmentBookings,
+  trackingEvents,
+  notifications
+} from "@shared/schema";
+
+export class DatabaseStorage implements IStorage {
   private ports: Map<string, Port>;
   private routes: Map<string, Route>;
   private destinations: Map<string, Destination>;
@@ -659,4 +677,4 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();

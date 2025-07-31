@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -76,8 +77,19 @@ const generateCarrierOptions = (basePrice: number): CarrierOption[] => [
 
 export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: QuoteDisplayProps) {
   const [selectedCarrier, setSelectedCarrier] = useState<string | null>(null);
+  const [, setLocation] = useLocation();
 
   if (!isVisible) return null;
+  
+  const handleBookShipment = (carrier: string) => {
+    if (onBookShipment) {
+      onBookShipment(carrier);
+    }
+    // Navigate to booking page with quote ID and carrier
+    if (quote?.id) {
+      setLocation(`/booking?quoteId=${quote.id}&carrier=${encodeURIComponent(carrier)}`);
+    }
+  };
 
   // Extract data from the actual quote structure
   const basePrice = quote?.totalCost || 0;
@@ -435,7 +447,7 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                               </div>
                               <Button 
                                 className="bg-blue-600 hover:bg-blue-700"
-                                onClick={() => onBookShipment?.(carrier.name)}
+                                onClick={() => handleBookShipment(carrier.name)}
                               >
                                 Book with {carrier.name}
                                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -501,7 +513,7 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                 Save Quote for Later
               </Button>
               {selectedCarrier ? (
-                <Button onClick={() => onBookShipment?.(selectedCarrier)} className="bg-primary-600 hover:bg-primary-700">
+                <Button onClick={() => handleBookShipment(selectedCarrier)} className="bg-primary-600 hover:bg-primary-700">
                   Proceed to Booking
                 </Button>
               ) : (

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Calculator from "@/pages/calculator";
 import Booking from "@/pages/booking";
+import BookingConfirmation from "@/pages/booking-confirmation";
 import { Homepage } from "@/pages/homepage";
 import { Guides } from "@/pages/guides";
 import { Tracking } from "@/pages/tracking";
@@ -129,6 +130,7 @@ function Router() {
       <Route path="/" component={Homepage} />
       <Route path="/calculator" component={Calculator} />
       <Route path="/booking" component={Booking} />
+      <Route path="/booking/confirmation/:id" component={BookingConfirmation} />
       <Route path="/guides" component={Guides} />
       <Route path="/tracking" component={Tracking} />
       <Route component={NotFound} />

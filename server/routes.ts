@@ -1130,6 +1130,133 @@ What specific shipping question can I help you with?`;
     }
   });
 
+  // Get quote details endpoint
+  app.get("/api/quotes/:id", async (req, res) => {
+    try {
+      const quote = await storage.getQuote(req.params.id);
+      if (!quote) {
+        return res.status(404).json({ message: "Quote not found" });
+      }
+      res.json(quote);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Create booking endpoint
+  app.post("/api/bookings", async (req, res) => {
+    try {
+      const {
+        quoteId,
+        carrierName,
+        shipperName,
+        shipperEmail,
+        shipperPhone,
+        shipperCompany,
+        shipperAddress,
+        consigneeName,
+        consigneeEmail,
+        consigneePhone,
+        consigneeCompany,
+        consigneeAddress,
+        cargoDescription,
+        specialInstructions,
+        preferredDeparture
+      } = req.body;
+
+      // Validate required fields
+      if (!quoteId || !carrierName || !shipperName || !shipperEmail || !consigneeName || !consigneeAddress || !cargoDescription) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      // Get quote details
+      const quote = await storage.getQuote(quoteId);
+      if (!quote) {
+        return res.status(404).json({ message: "Quote not found" });
+      }
+
+      // Generate booking reference
+      const bookingReference = `FCS-${new Date().getFullYear()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+
+      // Create booking
+      const booking = await storage.createBooking({
+        userId: undefined, // For now, guest bookings
+        quoteId,
+        bookingReference,
+        carrierCode: carrierName.toLowerCase().replace(/\s+/g, '-'),
+        carrierName,
+        status: "pending",
+        originPort: quote.originPort,
+        destinationPort: quote.destinationPort,
+        finalDestination: quote.finalDestination,
+        containerType: quote.containerType,
+        shipperName,
+        shipperEmail,
+        shipperPhone,
+        shipperAddress,
+        consigneeName,
+        consigneeEmail,
+        consigneePhone,
+        consigneeAddress,
+        cargoDescription,
+        cargoWeight: quote.weight,
+        cargoValue: quote.value,
+        quotedAmount: quote.totalCost,
+        specialInstructions,
+        estimatedDeparture: preferredDeparture ? new Date(preferredDeparture) : undefined,
+      });
+
+      // Add initial tracking event
+      await storage.addTrackingEvent({
+        bookingId: booking.id,
+        eventType: "booking_created",
+        description: "Booking created and awaiting confirmation",
+        location: quote.originPort,
+        timestamp: new Date(),
+        isEstimated: false,
+      });
+
+      // Create notification
+      if (booking.userId) {
+        await storage.createNotification({
+          userId: booking.userId,
+          type: "booking_confirmed",
+          title: "Booking Confirmed",
+          message: `Your booking ${bookingReference} has been confirmed. We'll keep you updated on the shipment progress.`,
+          relatedBookingId: booking.id,
+        });
+      }
+
+      res.json(booking);
+    } catch (error: any) {
+      console.error("Error creating booking:", error);
+      res.status(500).json({ message: error.message || "Failed to create booking" });
+    }
+  });
+
+  // Get booking details
+  app.get("/api/bookings/:id", async (req, res) => {
+    try {
+      const booking = await storage.getBooking(req.params.id);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+      res.json(booking);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Get tracking events for a booking
+  app.get("/api/bookings/:id/tracking", async (req, res) => {
+    try {
+      const events = await storage.getBookingEvents(req.params.id);
+      res.json(events);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
