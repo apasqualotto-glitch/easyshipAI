@@ -18,7 +18,8 @@ import {
   FileText,
   HelpCircle,
   BookOpen,
-  Calculator
+  Calculator,
+  RotateCcw
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -33,6 +34,7 @@ interface AIChatInterfaceProps {
   className?: string;
   context?: string; // Current page context for better AI responses
   onExtractedData?: (data: Partial<any>) => void; // Callback for extracted shipping data
+  onReset?: () => void; // Callback for reset functionality
 }
 
 // Predefined quick questions for first-time users
@@ -59,7 +61,7 @@ const QUICK_QUESTIONS = [
   }
 ];
 
-export function AIChatInterface({ className, context, onExtractedData }: AIChatInterfaceProps) {
+export function AIChatInterface({ className, context, onExtractedData, onReset }: AIChatInterfaceProps) {
   const [isExpanded, setIsExpanded] = useState(true); // Always expanded on calculator page
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -77,6 +79,25 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
 
   // Remove auto-scroll to prevent page jumping
   // Users can manually scroll if needed
+
+  // Reset function to clear chat conversation
+  const resetChat = () => {
+    setMessages([{
+      id: '1',
+      role: 'assistant',
+      content: context === "homepage" || context === "calculator" 
+        ? "👋 Hi! I'm your shipping assistant. Tell me about your shipment and I'll provide a comprehensive quote with full customs and VAT breakdown, then automatically fill in the calculator form below for more detailed quotes!"
+        : "👋 Welcome to EasyShip AI! I'm here to help you understand container shipping, customs, and Incoterms in simple terms. What would you like to know?",
+      timestamp: new Date()
+    }]);
+    setInputMessage("");
+    setIsLoading(false);
+    
+    // Call parent reset callback if provided
+    if (onReset) {
+      onReset();
+    }
+  };
 
   // Port code to ID mapping based on database
   const portCodeToId: Record<string, string> = {
@@ -610,6 +631,16 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={resetChat}
+                className="text-gray-600 hover:text-gray-800 hover:bg-gray-100"
+                title="Reset conversation and form"
+              >
+                <RotateCcw className="h-4 w-4 mr-1" />
+                Reset
+              </Button>
               <Badge variant="secondary" className="bg-green-100 text-green-800">
                 <div className="w-2 h-2 bg-green-600 rounded-full mr-1"></div>
                 Online

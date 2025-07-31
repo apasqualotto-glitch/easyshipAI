@@ -17,6 +17,7 @@ export default function Calculator() {
   const [quoteResult, setQuoteResult] = useState<any>(null);
   const [carrierComparison, setCarrierComparison] = useState<any>(null);
   const [formValues, setFormValues] = useState<Partial<QuoteRequest>>({});
+  const [resetTrigger, setResetTrigger] = useState(0);
 
   const handleQuoteUpdate = (data: QuoteRequest) => {
     setQuoteData(data);
@@ -34,6 +35,16 @@ export default function Calculator() {
   const handleAIChatExtraction = (extractedData: Partial<QuoteRequest>) => {
     console.log('📝 AI Chat extracted:', extractedData);
     setFormValues(extractedData);
+  };
+
+  // Reset function to clear both chat and form
+  const handleReset = () => {
+    setFormValues({});
+    setQuoteData(null);
+    setQuoteResult(null);
+    setCarrierComparison(null);
+    setResetTrigger(prev => prev + 1); // Trigger form reset
+    console.log('🔄 Reset chat conversation and calculator form');
   };
 
   const fetchCarrierComparison = async (data: QuoteRequest) => {
@@ -67,6 +78,7 @@ export default function Calculator() {
           <AIChatInterface 
             context="calculator" 
             onExtractedData={handleAIChatExtraction}
+            onReset={handleReset}
           />
         </div>
         
@@ -76,6 +88,7 @@ export default function Calculator() {
               onQuoteUpdate={handleQuoteUpdate}
               onQuoteResult={handleQuoteResult}
               initialValues={formValues}
+              resetTrigger={resetTrigger}
             />
           </div>
           

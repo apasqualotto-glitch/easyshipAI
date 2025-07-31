@@ -34,9 +34,10 @@ interface CalculatorFormProps {
   onQuoteUpdate: (data: QuoteRequest) => void;
   onQuoteResult: (result: any) => void;
   initialValues?: Partial<QuoteRequest>;
+  resetTrigger?: number;
 }
 
-export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialValues }: CalculatorFormProps) {
+export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialValues, resetTrigger }: CalculatorFormProps) {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [useLiveRates, setUseLiveRates] = useState(true); // Always use live rates by default
@@ -167,6 +168,27 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
       });
     }
   }, [initialValues, form, toast, originPorts, destinationPorts]);
+
+  // Reset form when resetTrigger changes
+  useEffect(() => {
+    if (resetTrigger && resetTrigger > 0) {
+      form.reset({
+        originPort: "",
+        destinationPort: "",
+        finalDestination: "",
+        containerType: "20ft",
+        cargoType: "",
+        incoterm: "",
+        weight: 0,
+        value: 0,
+      });
+      setSelectedOriginPort("");
+      setSelectedDestinationPort("");
+      setSelectedCustomsTariff(null);
+      setCurrentStep(1);
+      console.log('🔄 Form reset to default values');
+    }
+  }, [resetTrigger, form]);
 
   const onSubmit = (data: QuoteRequest) => {
     // Include customs tariff information if selected
