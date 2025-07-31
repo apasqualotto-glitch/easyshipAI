@@ -397,6 +397,37 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                         
                         {selectedCarrier === carrier.name && (
                           <div className="mt-6 pt-4 border-t-2 border-blue-200 bg-blue-50 p-4 rounded-lg">
+                            <div className="mb-4">
+                              <h4 className="font-bold text-blue-800 mb-3">Cost Breakdown for {carrier.name}</h4>
+                              <div className="space-y-2 text-sm">
+                                <div className="flex justify-between">
+                                  <span>Sea Freight ({carrier.name} rate):</span>
+                                  <span className="font-medium">{formatCurrency(Math.round(breakdown.seaFreight * (carrier.price / breakdown.total)))}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Local Trucking:</span>
+                                  <span className="font-medium">{formatCurrency(breakdown.trucking)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Customs Duties:</span>
+                                  <span className="font-medium">{formatCurrency(breakdown.customs)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>VAT (15%):</span>
+                                  <span className="font-medium">{formatCurrency(breakdown.vat)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Handling & Documentation:</span>
+                                  <span className="font-medium">{formatCurrency(breakdown.handling)}</span>
+                                </div>
+                                <div className="border-t border-blue-300 pt-2 mt-2">
+                                  <div className="flex justify-between font-bold text-blue-800">
+                                    <span>Total Cost:</span>
+                                    <span>{formatCurrency(carrier.price)}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
                             <div className="flex items-center justify-between">
                               <div>
                                 <h4 className="font-bold text-blue-800">Selected: {carrier.name}</h4>
