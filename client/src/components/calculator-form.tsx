@@ -621,7 +621,7 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
                     </div>
                   </div>
                 </Label>
-                <Select onValueChange={(value) => form.setValue("incoterm", value)}>
+                <Select onValueChange={(value) => form.setValue("incoterm", value)} value={form.watch("incoterm")}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select incoterm" />
                   </SelectTrigger>
