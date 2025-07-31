@@ -211,9 +211,26 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                       </div>
                       <span className="font-bold text-lg">{formatCurrency(breakdown.customs)}</span>
                     </div>
-                    <p className="text-sm text-orange-700">
+                    <p className="text-sm text-orange-700 mb-3">
                       Government import taxes based on your cargo type and value. Required by SARS for all imports into South Africa.
                     </p>
+                    {/* Customs Calculation Breakdown */}
+                    {quote?.customsInfo?.breakdown && (
+                      <div className="bg-orange-100 p-3 rounded border text-xs space-y-1">
+                        <div className="font-medium text-orange-800 mb-2">📊 How customs duties are calculated:</div>
+                        <div className="text-orange-700">
+                          <div>Cargo Value (FOB): ${quote.customsInfo.breakdown.fobValueUSD?.toLocaleString()} USD = {formatCurrency(quote.customsInfo.breakdown.fobValueZAR)}</div>
+                          <div>Exchange Rate: 1 USD = R{quote.customsInfo.breakdown.exchangeRate?.toFixed(4)}</div>
+                          <div>Duty Rate ({quote.cargoType}): {(quote.customsInfo.breakdown.dutyRate * 100).toFixed(1)}%</div>
+                          {quote.customsInfo.breakdown.markupApplied && (
+                            <div className="text-orange-600">+ 10% markup (non-SACU): {formatCurrency(quote.customsInfo.breakdown.markupAmount)}</div>
+                          )}
+                          <div className="border-t border-orange-300 pt-1 mt-1 font-medium">
+                            Calculation: {formatCurrency(quote.customsInfo.breakdown.fobValueZAR)} × {(quote.customsInfo.breakdown.dutyRate * 100).toFixed(1)}% = {formatCurrency(breakdown.customs)}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   
                   <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
@@ -224,9 +241,31 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                       </div>
                       <span className="font-bold text-lg">{formatCurrency(breakdown.vat)}</span>
                     </div>
-                    <p className="text-sm text-purple-700">
+                    <p className="text-sm text-purple-700 mb-3">
                       Value Added Tax applied to the total dutiable amount (cargo value + customs duties). Standard South African VAT rate.
                     </p>
+                    {/* VAT Calculation Breakdown */}
+                    {quote?.customsInfo?.breakdown && (
+                      <div className="bg-purple-100 p-3 rounded border text-xs space-y-1">
+                        <div className="font-medium text-purple-800 mb-2">🧮 How VAT is calculated:</div>
+                        <div className="text-purple-700">
+                          <div>Cargo Value (FOB): {formatCurrency(quote.customsInfo.breakdown.fobValueZAR)}</div>
+                          {quote.customsInfo.breakdown.markupApplied && (
+                            <div>+ 10% markup (non-SACU): {formatCurrency(quote.customsInfo.breakdown.markupAmount)}</div>
+                          )}
+                          <div>+ Customs Duties: {formatCurrency(breakdown.customs)}</div>
+                          <div className="border-t border-purple-300 pt-1 mt-1">
+                            = ATV (Aggregate Transaction Value): {formatCurrency(quote.customsInfo.breakdown.atvValue)}
+                          </div>
+                          <div className="mt-1 font-medium">
+                            VAT Calculation: {formatCurrency(quote.customsInfo.breakdown.atvValue)} × 15% = {formatCurrency(breakdown.vat)}
+                          </div>
+                          <div className="mt-2 text-xs italic">
+                            Formula: {quote.customsInfo.breakdown.formula}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   
                   <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
