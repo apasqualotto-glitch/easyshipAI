@@ -172,6 +172,9 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
   // Reset form when resetTrigger changes
   useEffect(() => {
     if (resetTrigger && resetTrigger > 0) {
+      console.log('🔄 Starting complete form reset...');
+      
+      // Reset form to default values
       form.reset({
         originPort: "",
         destinationPort: "",
@@ -182,13 +185,34 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
         weight: 0,
         value: 0,
       });
+      
+      // Clear all local state
       setSelectedOriginPort("");
       setSelectedDestinationPort("");
       setSelectedCustomsTariff(null);
       setCurrentStep(1);
-      console.log('🔄 Form reset to default values');
+      
+      // Clear each form field explicitly to ensure UI updates
+      setTimeout(() => {
+        form.setValue("originPort", "");
+        form.setValue("destinationPort", "");
+        form.setValue("finalDestination", "");
+        form.setValue("containerType", "20ft");
+        form.setValue("cargoType", "");
+        form.setValue("incoterm", "");
+        form.setValue("weight", 0);
+        form.setValue("value", 0);
+        console.log('✅ Form completely reset - all fields cleared');
+      }, 100);
+      
+      // Show confirmation toast
+      toast({
+        title: "Reset Complete! 🔄",
+        description: "Chat conversation and calculator form have been cleared",
+        duration: 3000,
+      });
     }
-  }, [resetTrigger, form]);
+  }, [resetTrigger, form, toast]);
 
   const onSubmit = (data: QuoteRequest) => {
     // Include customs tariff information if selected
