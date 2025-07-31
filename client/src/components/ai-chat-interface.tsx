@@ -101,11 +101,14 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
   // Extract helper functions
   const getOriginPortId = (msg: string) => {
     const lower = msg.toLowerCase();
+    console.log(`🔍 Extracting origin from: "${lower}"`);
     
     // Check if this is an export FROM SA
     const isExport = lower.includes('export') || lower.includes('from south africa') || 
                     lower.includes('from sa') || lower.includes('from cape town') || 
                     lower.includes('from durban');
+    
+    console.log(`📦 Is export: ${isExport}`);
     
     if (isExport) {
       // For exports, origin is SA ports
@@ -118,20 +121,26 @@ export function AIChatInterface({ className, context, onExtractedData }: AIChatI
       if (lower.includes('south africa') || lower.includes('from sa')) return '10';
     } else {
       // For imports, origin is international ports
-      // Major US ports
-      if (lower.includes('houston') || lower.includes('hou')) return '40'; // Houston
-      if (lower.includes('new york') || lower.includes('ny')) return '34';
-      if (lower.includes('los angeles') || lower.includes('la')) return '32';
-      if (lower.includes('miami')) return '35';
-      if (lower.includes('usa') || lower.includes('america')) return '34'; // Default to New York for USA
-      
-      // Major Chinese ports
-      if (lower.includes('shanghai')) return '1';
+      // Major Chinese ports (check first to prioritize specific matches)
+      if (lower.includes('shanghai')) {
+        console.log(`✅ Found Shanghai, returning ID: 1`);
+        return '1';
+      }
       if (lower.includes('shenzhen') || lower.includes('yantian')) return '16';
       if (lower.includes('ningbo')) return '2';
       if (lower.includes('qingdao')) return '17';
       if (lower.includes('tianjin')) return '3';
       if (lower.includes('china') && !lower.includes('specific')) return '1'; // Default to Shanghai for China
+      
+      // Major US ports
+      if (lower.includes('houston') || lower.includes('hou')) return '40'; // Houston
+      if (lower.includes('new york') || lower.includes('ny')) return '34';
+      if (lower.includes('los angeles') || lower.includes('la')) {
+        console.log(`⚠️ Found Los Angeles, returning ID: 32`);
+        return '32';
+      }
+      if (lower.includes('miami')) return '35';
+      if (lower.includes('usa') || lower.includes('america')) return '34'; // Default to New York for USA
       
       // European ports
       if (lower.includes('hamburg') || lower.includes('germany')) return '4';
