@@ -139,12 +139,22 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
             shouldTouch: true 
           });
           
-          // Update the selected port display values
+          // Update the selected port display values - convert ID to code if needed
           if (key === 'originPort') {
-            setSelectedOriginPort(value as string);
+            const port = (originPorts as Port[]).find(p => p.id === value || p.code === value);
+            if (port) {
+              setSelectedOriginPort(port.code);
+              form.setValue("originPort", port.code);
+              console.log(`✅ Origin port set: ${port.name} (${port.code})`);
+            }
           }
           if (key === 'destinationPort') {
-            setSelectedDestinationPort(value as string);
+            const port = (destinationPorts as Port[]).find(p => p.id === value || p.code === value);
+            if (port) {
+              setSelectedDestinationPort(port.code);
+              form.setValue("destinationPort", port.code);
+              console.log(`✅ Destination port set: ${port.name} (${port.code})`);
+            }
           }
         }
       });
@@ -156,7 +166,7 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
         duration: 4000,
       });
     }
-  }, [initialValues, form, toast]);
+  }, [initialValues, form, toast, originPorts, destinationPorts]);
 
   const onSubmit = (data: QuoteRequest) => {
     // Include customs tariff information if selected
@@ -401,7 +411,7 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
                   </div>
                 </div>
               </Label>
-              <Select onValueChange={(value) => form.setValue("finalDestination", value)}>
+              <Select onValueChange={(value) => form.setValue("finalDestination", value)} value={form.watch("finalDestination")}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select destination city" />
                 </SelectTrigger>
