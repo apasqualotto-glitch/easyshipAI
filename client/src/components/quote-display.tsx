@@ -296,31 +296,20 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                     )}
                   </div>
                   
-                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <div className="flex justify-between items-center mb-2">
-                      <div className="flex items-center gap-3">
-                        <Package className="h-5 w-5 text-gray-600" />
-                        <span className="font-medium">Handling & Documentation</span>
-                      </div>
-                      <span className="font-bold text-lg">{formatCurrency(breakdown.handling)}</span>
-                    </div>
-                    <p className="text-sm text-gray-700">
-                      Port handling, customs clearance, documentation, and terminal charges. Covers all administrative processes.
-                    </p>
-                  </div>
+                  {/* Handling & Documentation moved to freight forwarder selection */}
                 </div>
                 
                 <Separator className="my-4" />
                 
                 <div className="p-4 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-lg border-2 border-blue-300">
                   <div className="flex justify-between items-center">
-                    <span className="text-xl font-bold">Total All-Inclusive Cost</span>
+                    <span className="text-xl font-bold">Base Cost (Before Service Provider Selection)</span>
                     <span className="text-2xl font-bold text-blue-600">
-                      {formatCurrency(breakdown.total)}
+                      {formatCurrency(breakdown.seaFreight + breakdown.trucking + breakdown.customs + breakdown.vat)}
                     </span>
                   </div>
                   <p className="text-sm text-blue-700 mt-2">
-                    Complete door-to-door delivery with all fees included
+                    Sea freight, trucking, customs & VAT. Select carrier + freight forwarder below for final price.
                   </p>
                 </div>
                 
@@ -485,10 +474,10 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-xl">
                   <Package className="h-6 w-6" />
-                  Choose Your Freight Forwarder
+                  Complete Your Service Selection
                 </CardTitle>
                 <CardDescription className="text-base">
-                  Select a customs clearance and port handling specialist
+                  Choose freight forwarder for handling & documentation to see your final total cost
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -591,6 +580,78 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                         )}
                       </div>
                     ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Dynamic Total Cost with Selected Combination */}
+          {(selectedCarrier || selectedFreightForwarder) && (
+            <Card className="mt-8 border-2 border-green-500 bg-gradient-to-r from-green-50 to-emerald-50">
+              <CardHeader className="text-center">
+                <CardTitle className="text-2xl text-green-800">Your Final Total Cost</CardTitle>
+                <CardDescription className="text-lg text-green-700">
+                  {selectedCarrier && selectedFreightForwarder
+                    ? `${selectedCarrier} + ${selectedFreightForwarder}`
+                    : selectedCarrier
+                    ? `${selectedCarrier} + Select freight forwarder`
+                    : `Select carrier + ${selectedFreightForwarder}`}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
+                    <div className="p-3 bg-white rounded-lg border">
+                      <div className="text-sm text-gray-600">Sea Freight</div>
+                      <div className="text-lg font-bold text-blue-600">
+                        {formatCurrency(breakdown.seaFreight)}
+                      </div>
+                      <div className="text-xs text-gray-500">{selectedCarrier || 'Select carrier'}</div>
+                    </div>
+                    <div className="p-3 bg-white rounded-lg border">
+                      <div className="text-sm text-gray-600">Customs & VAT</div>
+                      <div className="text-lg font-bold text-orange-600">
+                        {formatCurrency(breakdown.customs + breakdown.vat)}
+                      </div>
+                      <div className="text-xs text-gray-500">Government fees</div>
+                    </div>
+                    <div className="p-3 bg-white rounded-lg border">
+                      <div className="text-sm text-gray-600">Handling & Docs</div>
+                      <div className="text-lg font-bold text-indigo-600">
+                        {selectedFreightForwarder 
+                          ? formatCurrency(quote?.freightForwarders?.find((f: any) => f.provider === selectedFreightForwarder)?.totalCost || breakdown.handling)
+                          : formatCurrency(breakdown.handling)}
+                      </div>
+                      <div className="text-xs text-gray-500">{selectedFreightForwarder || 'Select forwarder'}</div>
+                    </div>
+                    <div className="p-3 bg-white rounded-lg border">
+                      <div className="text-sm text-gray-600">Local Trucking</div>
+                      <div className="text-lg font-bold text-green-600">
+                        {formatCurrency(breakdown.trucking)}
+                      </div>
+                      <div className="text-xs text-gray-500">Door delivery</div>
+                    </div>
+                  </div>
+                  <Separator />
+                  <div className="text-center p-6 bg-white rounded-lg border-2 border-green-400">
+                    <div className="text-lg text-gray-700 mb-2">Complete Door-to-Door Total</div>
+                    <div className="text-4xl font-bold text-green-600">
+                      {selectedFreightForwarder 
+                        ? formatCurrency(
+                            breakdown.seaFreight + 
+                            breakdown.customs + 
+                            breakdown.vat + 
+                            breakdown.trucking + 
+                            (quote?.freightForwarders?.find((f: any) => f.provider === selectedFreightForwarder)?.totalCost || breakdown.handling)
+                          )
+                        : formatCurrency(breakdown.total)}
+                    </div>
+                    <div className="text-sm text-green-700 mt-2">
+                      {selectedCarrier && selectedFreightForwarder 
+                        ? 'Ready to book your complete shipping solution'
+                        : 'Complete your selection above to see final price'}
+                    </div>
                   </div>
                 </div>
               </CardContent>
