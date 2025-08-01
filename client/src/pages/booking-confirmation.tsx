@@ -17,9 +17,195 @@ import {
   ArrowRight,
   Home,
   Download,
-  Clock
+  Clock,
+  AlertCircle,
+  Info
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
+
+
+function getIncotermGuidance(booking: any) {
+  const incoterm = booking?.incoterm?.toUpperCase();
+  
+  const getIncotermInfo = (term: string) => {
+    switch (term) {
+      case 'FOB':
+        return {
+          title: 'FOB (Free On Board)',
+          buyerResponsibilities: [
+            'Coordinate with your supplier to ensure cargo is ready for collection at origin port',
+            'Share shipping schedule with supplier (container ready date)',
+            'Arrange marine insurance for your cargo during transit',
+            'Handle import customs clearance and duties in South Africa',
+            'Arrange trucking from SA port to final destination'
+          ],
+          supplierAction: 'Your supplier must deliver cargo to the origin port and load it onto the vessel',
+          urgentNote: 'Critical: Share container pickup date with your supplier NOW to avoid delays'
+        };
+      case 'CIF':
+        return {
+          title: 'CIF (Cost, Insurance, and Freight)',
+          buyerResponsibilities: [
+            'Confirm delivery address and contact details with your supplier',
+            'Prepare for import customs clearance (duties already calculated)',
+            'Arrange trucking from SA port to final destination',
+            'Be ready to receive cargo at your specified address'
+          ],
+          supplierAction: 'Your supplier handles shipping, insurance, and delivery to SA port',
+          urgentNote: 'Ensure your supplier has correct delivery address and contact information'
+        };
+      case 'EXW':
+        return {
+          title: 'EXW (Ex Works)',
+          buyerResponsibilities: [
+            'Arrange collection from supplier\'s premises/warehouse',
+            'Handle all export procedures at origin country',
+            'Manage complete shipping process including freight and insurance',
+            'Handle import customs clearance and duties in South Africa',
+            'Coordinate entire logistics chain from supplier to your door'
+          ],
+          supplierAction: 'Your supplier only needs to have cargo ready for collection at their facility',
+          urgentNote: 'You are responsible for ALL shipping arrangements - start planning immediately'
+        };
+      case 'DDP':
+        return {
+          title: 'DDP (Delivered Duty Paid)',
+          buyerResponsibilities: [
+            'Provide accurate delivery address and contact details',
+            'Be available to receive cargo at your premises',
+            'Inspect cargo upon delivery and sign receipt'
+          ],
+          supplierAction: 'Your supplier handles everything including customs duties and final delivery',
+          urgentNote: 'Ensure your supplier has your exact delivery address and contact number'
+        };
+      default:
+        return {
+          title: `${term} Terms`,
+          buyerResponsibilities: [
+            'Review your purchase agreement for specific responsibilities',
+            'Contact your supplier to clarify shipping arrangements',
+            'Prepare for customs clearance if required',
+            'Arrange final delivery logistics'
+          ],
+          supplierAction: 'Check your agreement for supplier responsibilities',
+          urgentNote: 'Verify shipping terms with your supplier to avoid misunderstandings'
+        };
+    }
+  };
+
+  const incotermInfo = getIncotermInfo(incoterm || '');
+
+  return (
+    <div className="space-y-6">
+      {/* Incoterm Overview */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="flex items-start gap-3">
+          <Info className="h-5 w-5 text-blue-600 mt-0.5" />
+          <div>
+            <h4 className="font-semibold text-blue-900">{incotermInfo.title}</h4>
+            <p className="text-sm text-blue-800 mt-1">
+              {incotermInfo.supplierAction}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Urgent Action Required */}
+      <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+        <div className="flex items-start gap-3">
+          <AlertCircle className="h-5 w-5 text-orange-600 mt-0.5" />
+          <div>
+            <h4 className="font-semibold text-orange-900">Urgent: Contact Your Supplier</h4>
+            <p className="text-sm text-orange-800 mt-1">
+              {incotermInfo.urgentNote}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Your Action Items */}
+      <div>
+        <h4 className="font-semibold mb-3">Your Action Items</h4>
+        <div className="space-y-3">
+          {incotermInfo.buyerResponsibilities.map((responsibility, index) => (
+            <div key={index} className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-6 h-6 bg-green-100 rounded-full flex items-center justify-center text-xs font-semibold text-green-700">
+                {index + 1}
+              </div>
+              <p className="text-sm text-gray-700">{responsibility}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Timeline */}
+      <div>
+        <h4 className="font-semibold mb-3">Expected Timeline</h4>
+        <div className="space-y-3">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+            </div>
+            <div className="flex-1">
+              <h5 className="font-medium">Booking Confirmed</h5>
+              <p className="text-sm text-gray-600">Your booking has been registered with {booking.carrierName}</p>
+              <p className="text-xs text-gray-500 mt-1">Just now</p>
+            </div>
+          </div>
+          
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+              <FileText className="h-5 w-5 text-blue-600" />
+            </div>
+            <div className="flex-1">
+              <h5 className="font-medium">Documentation & Coordination</h5>
+              <p className="text-sm text-gray-600">Contact supplier and prepare shipping documents</p>
+              <p className="text-xs text-gray-500 mt-1">Next 24-48 hours</p>
+            </div>
+          </div>
+          
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0 w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+              <Package className="h-5 w-5 text-gray-600" />
+            </div>
+            <div className="flex-1">
+              <h5 className="font-medium">Cargo Loading</h5>
+              <p className="text-sm text-gray-600">Container loading at {booking.originPort}</p>
+              <p className="text-xs text-gray-500 mt-1">
+                {booking.estimatedDeparture 
+                  ? `Scheduled: ${new Date(booking.estimatedDeparture).toLocaleDateString()}`
+                  : 'Date to be confirmed'
+                }
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0 w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+              <Ship className="h-5 w-5 text-gray-600" />
+            </div>
+            <div className="flex-1">
+              <h5 className="font-medium">Ocean Transit</h5>
+              <p className="text-sm text-gray-600">Sea freight to {booking.destinationPort}</p>
+              <p className="text-xs text-gray-500 mt-1">18-25 days transit time</p>
+            </div>
+          </div>
+          
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0 w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+              <Truck className="h-5 w-5 text-gray-600" />
+            </div>
+            <div className="flex-1">
+              <h5 className="font-medium">Final Delivery</h5>
+              <p className="text-sm text-gray-600">Customs clearance and delivery to {booking.finalDestination}</p>
+              <p className="text-xs text-gray-500 mt-1">3-5 days after port arrival</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function BookingConfirmation() {
   const [, params] = useRoute("/booking/confirmation/:id");
@@ -186,74 +372,14 @@ export default function BookingConfirmation() {
           </Card>
         </div>
         
-        {/* What Happens Next */}
+        {/* What Happens Next - Incoterm-specific guidance */}
         <Card className="mt-6">
           <CardHeader>
             <CardTitle>What Happens Next?</CardTitle>
-            <CardDescription>Your shipment journey timeline</CardDescription>
+            <CardDescription>Your next steps based on your Incoterm terms</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <CheckCircle className="h-5 w-5 text-green-600" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="font-semibold">Booking Confirmed</h4>
-                  <p className="text-sm text-gray-600">Your booking has been registered with {booking.carrierName}</p>
-                  <p className="text-xs text-gray-500 mt-1">Just now</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                  <FileText className="h-5 w-5 text-blue-600" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="font-semibold">Documentation Processing</h4>
-                  <p className="text-sm text-gray-600">We'll prepare your Bill of Lading and shipping documents</p>
-                  <p className="text-xs text-gray-500 mt-1">Within 24 hours</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                  <Package className="h-5 w-5 text-gray-600" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="font-semibold">Cargo Collection</h4>
-                  <p className="text-sm text-gray-600">Container will be ready for loading at origin port</p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {booking.estimatedDeparture 
-                      ? `Scheduled: ${new Date(booking.estimatedDeparture).toLocaleDateString()}`
-                      : 'Date to be confirmed'
-                    }
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                  <Ship className="h-5 w-5 text-gray-600" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="font-semibold">Ocean Transit</h4>
-                  <p className="text-sm text-gray-600">Your cargo will travel by sea to destination port</p>
-                  <p className="text-xs text-gray-500 mt-1">18-22 days transit time</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                  <Truck className="h-5 w-5 text-gray-600" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="font-semibold">Final Delivery</h4>
-                  <p className="text-sm text-gray-600">Customs clearance and delivery to your door</p>
-                  <p className="text-xs text-gray-500 mt-1">3-5 days after arrival</p>
-                </div>
-              </div>
-            </div>
+            {getIncotermGuidance(booking)}
           </CardContent>
         </Card>
         
