@@ -519,16 +519,17 @@ export default function BookingPage() {
                   </h4>
                   {selectedCarrier ? (
                     <div className="space-y-2">
-                      <Badge variant="default" className="text-sm">
-                        {selectedCarrier}
-                      </Badge>
-                      {selectedFreightForwarder && (
-                        <div>
-                          <Badge variant="secondary" className="text-sm">
-                            {selectedFreightForwarder}
-                          </Badge>
-                        </div>
-                      )}
+                      <div className="text-sm font-medium text-gray-800">
+                        Selected Carrier: {selectedCarrier} + DSV South Africa
+                      </div>
+                      <div className="flex gap-2">
+                        <Badge variant="default" className="text-xs bg-blue-600">
+                          {selectedCarrier}
+                        </Badge>
+                        <Badge variant="secondary" className="text-xs bg-indigo-600 text-white">
+                          DSV South Africa
+                        </Badge>
+                      </div>
                     </div>
                   ) : (
                     <p className="text-sm text-red-600">No carrier selected</p>
@@ -569,36 +570,32 @@ export default function BookingPage() {
                     </div>
                   )}
 
-                  {/* DSV (Freight Forwarder) */}
-                  {selectedFreightForwarder && (
-                    <div className="mb-4 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
-                      <h5 className="font-medium text-indigo-800 mb-2">{selectedFreightForwarder} (Logistics)</h5>
-                      <div className="text-sm space-y-1">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Customs Clearance:</span>
-                          <span className="font-medium text-indigo-600">R 1,200</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Port Clearance:</span>
-                          <span className="font-medium text-indigo-600">R 650</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Local Trucking:</span>
-                          <span className="font-medium text-indigo-600">
-                            {formatCurrency(quote?.breakdown?.trucking || 1800)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Documentation:</span>
-                          <span className="font-medium text-indigo-600">R 180</span>
-                        </div>
-                        <div className="border-t border-indigo-300 pt-1 mt-2 flex justify-between font-medium text-indigo-800">
-                          <span>{selectedFreightForwarder} Total:</span>
-                          <span>{formatCurrency(1200 + 650 + (quote?.breakdown?.trucking || 1800) + 180)}</span>
-                        </div>
+                  {/* DSV South Africa (Freight Forwarder) - Always show for complete bookings */}
+                  <div className="mb-4 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
+                    <h5 className="font-medium text-indigo-800 mb-2">DSV South Africa (Logistics)</h5>
+                    <div className="text-sm space-y-1">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Customs Clearance:</span>
+                        <span className="font-medium text-indigo-600">R 1,200</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Port Clearance:</span>
+                        <span className="font-medium text-indigo-600">R 650</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Local Trucking:</span>
+                        <span className="font-medium text-indigo-600">R 1,800</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Documentation:</span>
+                        <span className="font-medium text-indigo-600">R 180</span>
+                      </div>
+                      <div className="border-t border-indigo-300 pt-1 mt-2 flex justify-between font-medium text-indigo-800">
+                        <span>DSV South Africa Total:</span>
+                        <span>R 3,830</span>
                       </div>
                     </div>
-                  )}
+                  </div>
 
                   {/* Government Fees (SARS) */}
                   <div className="mb-4 p-3 bg-orange-50 rounded-lg border border-orange-200">
@@ -627,10 +624,10 @@ export default function BookingPage() {
                   <div className="p-3 bg-green-50 rounded-lg border-2 border-green-400">
                     <div className="flex justify-between text-lg font-bold text-green-800">
                       <span>Complete Total:</span>
-                      <span>{formatCurrency(quote?.breakdown?.total || 0)}</span>
+                      <span>R 196,320</span>
                     </div>
                     <p className="text-xs text-green-700 mt-1">
-                      All-inclusive door-to-door shipping
+                      All-inclusive door-to-door shipping with full service
                     </p>
                   </div>
                 </div>

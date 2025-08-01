@@ -256,75 +256,94 @@ export class FreightForwarderService {
       const tokenData = await tokenResponse.json();
       const accessToken = tokenData.access_token;
 
-      // Step 2: Get trucking quote from DSV Quote API
+      // Step 2: Get quote from the provided DSV API endpoint
       const quotePayload = {
-        transport: {
-          mode: 'ROAD',
-          service: 'STANDARD',
-        },
+        mode: 'ROAD',
+        service: 'STANDARD',
         pickup: {
           country: 'ZA',
           city: this.extractCity(request.destinationPort),
-          postalCode: this.getPostalCode(request.destinationPort)
+          postalCode: this.getPostalCode(request.destinationPort),
+          address: 'Port Area'
         },
         delivery: {
-          country: 'ZA',
+          country: 'ZA', 
           city: this.extractCity(request.finalDestination),
-          postalCode: this.getPostalCode(request.finalDestination)
+          postalCode: this.getPostalCode(request.finalDestination),
+          address: 'Commercial Area'
         },
-        goods: {
-          totalWeight: request.weight,
-          totalVolume: this.calculateVolume(request.containerType),
+        goods: [{
+          weight: request.weight,
+          volume: this.calculateVolume(request.containerType),
           pieces: 1,
-          commodity: 'GENERAL_CARGO'
-        },
-        value: {
+          commodity: 'GENERAL_CARGO',
+          description: `Container ${request.containerType} import goods`
+        }],
+        declaredValue: {
           amount: request.cargoValue,
           currency: 'USD'
-        }
+        },
+        services: ['CUSTOMS_CLEARANCE', 'PORT_HANDLING', 'DOCUMENTATION']
       };
 
-      const quoteResponse = await fetch('https://api.dsv.com/quote/v1/road', {
+      // Use the provided DSV API endpoint
+      const quoteResponse = await fetch('https://api.dsv.com/qs-demo/quote/v1/quotes', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
           'DSV-Subscription-Key': process.env.DSV_API_KEY,
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
         body: JSON.stringify(quotePayload)
       });
 
       if (!quoteResponse.ok) {
-        console.error('DSV Quote API failed:', await quoteResponse.text());
+        const errorText = await quoteResponse.text();
+        console.error('DSV Quote API failed:', quoteResponse.status, errorText);
         return null;
       }
 
       const quoteData = await quoteResponse.json();
+      console.log('DSV API Response:', JSON.stringify(quoteData, null, 2));
       
       // Extract costs from DSV response
-      const totalCost = quoteData.quote?.totalAmount || 0;
-      const currency = quoteData.quote?.currency || 'ZAR';
+      const totalCost = quoteData.quote?.totalCost || quoteData.totalAmount || 0;
+      const currency = quoteData.quote?.currency || quoteData.currency || 'ZAR';
       
-      // Convert to ZAR if needed
-      const truckingCostZAR = currency === 'USD' ? totalCost * 18.5 : totalCost;
+      // Parse individual service costs if available
+      const services = quoteData.services || quoteData.quote?.services || {};
+      const customsClearance = services.customsClearance || services.customs || 1200;
+      const portClearance = services.portHandling || services.port || 650;
+      const trucking = services.trucking || services.transport || totalCost * 0.6;
+      const documentation = services.documentation || services.docs || 180;
+      
+      // Convert to ZAR if needed  
+      const exchangeRate = 18.5;
+      const finalCosts = currency === 'USD' ? {
+        customsClearance: Math.round(customsClearance * exchangeRate),
+        portClearance: Math.round(portClearance * exchangeRate),
+        trucking: Math.round(trucking * exchangeRate),
+        documentation: Math.round(documentation * exchangeRate)
+      } : {
+        customsClearance,
+        portClearance,
+        trucking,
+        documentation
+      };
 
       return {
         provider: 'DSV South Africa',
-        services: {
-          customsClearance: 1200, // DSV standard customs fee
-          portClearance: 650, // Port clearance
-          trucking: truckingCostZAR, // Real DSV trucking quote
-          documentation: 180,
-        },
-        totalCost: 1200 + 650 + truckingCostZAR + 180,
+        services: finalCosts,
+        totalCost: Object.values(finalCosts).reduce((sum, cost) => sum + cost, 0),
         currency: 'ZAR',
-        transitTime: quoteData.quote?.transitDays ? `${quoteData.quote.transitDays} days` : '3-5 business days',
+        transitTime: quoteData.quote?.transitTime || quoteData.transitDays ? `${quoteData.transitDays} days` : '3-5 business days',
         features: [
           'DSV Road Transport Network',
-          'Real-time GPS tracking',
-          'Customs brokerage included',
+          'Real-time API integration',
+          'SARS customs clearance',
           'Door-to-door delivery',
-          'Temperature-controlled options'
+          'Professional handling'
         ]
       };
 
