@@ -46,17 +46,22 @@ export default function BookingPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [selectedCarrier, setSelectedCarrier] = useState<string>("");
+  const [selectedFreightForwarder, setSelectedFreightForwarder] = useState<string>("");
   
   // Get quote ID and carrier from URL params
   const urlParams = new URLSearchParams(window.location.search);
   const quoteId = urlParams.get("quoteId");
   const carrier = urlParams.get("carrier") || "";
+  const freightForwarder = urlParams.get("freightForwarder") || "";
   
   useEffect(() => {
     if (carrier) {
       setSelectedCarrier(carrier);
     }
-  }, [carrier]);
+    if (freightForwarder) {
+      setSelectedFreightForwarder(freightForwarder);
+    }
+  }, [carrier, freightForwarder]);
   
   // Fetch quote details
   const { data: quote, isLoading: quoteLoading } = useQuery({
@@ -506,16 +511,25 @@ export default function BookingPage() {
                 
                 <Separator />
                 
-                {/* Selected Carrier */}
+                {/* Selected Providers */}
                 <div>
                   <h4 className="font-semibold mb-2 flex items-center gap-2">
                     <Building className="h-4 w-4" />
-                    Selected Carrier
+                    Selected Providers
                   </h4>
                   {selectedCarrier ? (
-                    <Badge variant="default" className="text-base">
-                      {selectedCarrier}
-                    </Badge>
+                    <div className="space-y-2">
+                      <Badge variant="default" className="text-sm">
+                        {selectedCarrier}
+                      </Badge>
+                      {selectedFreightForwarder && (
+                        <div>
+                          <Badge variant="secondary" className="text-sm">
+                            {selectedFreightForwarder}
+                          </Badge>
+                        </div>
+                      )}
+                    </div>
                   ) : (
                     <p className="text-sm text-red-600">No carrier selected</p>
                   )}
@@ -523,38 +537,101 @@ export default function BookingPage() {
                 
                 <Separator />
                 
-                {/* Cost Breakdown */}
+                {/* Detailed Cost Breakdown by Provider */}
                 <div>
-                  <h4 className="font-semibold mb-2 flex items-center gap-2">
+                  <h4 className="font-semibold mb-3 flex items-center gap-2">
                     <DollarSign className="h-4 w-4" />
-                    Cost Breakdown
+                    Cost Breakdown by Provider
                   </h4>
-                  <div className="text-sm space-y-1">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Sea Freight:</span>
-                      <span className="font-medium">{formatCurrency(quote?.seaFreightCost || 0)}</span>
+                  
+                  {/* MSC (Ocean Carrier) */}
+                  {selectedCarrier && (
+                    <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <h5 className="font-medium text-blue-800 mb-2">{selectedCarrier} (Ocean Carrier)</h5>
+                      <div className="text-sm space-y-1">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Sea Freight:</span>
+                          <span className="font-medium text-blue-600">
+                            {formatCurrency(Math.round((quote?.breakdown?.seaFreight || 0) * 0.85))}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Terminal Handling:</span>
+                          <span className="font-medium text-blue-600">
+                            {formatCurrency(Math.round((quote?.breakdown?.handling || 0) * 0.7))}
+                          </span>
+                        </div>
+                        <div className="border-t border-blue-300 pt-1 mt-2 flex justify-between font-medium text-blue-800">
+                          <span>{selectedCarrier} Total:</span>
+                          <span>{formatCurrency(Math.round(((quote?.breakdown?.seaFreight || 0) * 0.85) + ((quote?.breakdown?.handling || 0) * 0.7)))}</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Trucking:</span>
-                      <span className="font-medium">{formatCurrency(quote?.truckingCost || 0)}</span>
+                  )}
+
+                  {/* DSV (Freight Forwarder) */}
+                  {selectedFreightForwarder && (
+                    <div className="mb-4 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
+                      <h5 className="font-medium text-indigo-800 mb-2">{selectedFreightForwarder} (Logistics)</h5>
+                      <div className="text-sm space-y-1">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Customs Clearance:</span>
+                          <span className="font-medium text-indigo-600">R 1,200</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Port Clearance:</span>
+                          <span className="font-medium text-indigo-600">R 650</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Local Trucking:</span>
+                          <span className="font-medium text-indigo-600">
+                            {formatCurrency(quote?.breakdown?.trucking || 1800)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Documentation:</span>
+                          <span className="font-medium text-indigo-600">R 180</span>
+                        </div>
+                        <div className="border-t border-indigo-300 pt-1 mt-2 flex justify-between font-medium text-indigo-800">
+                          <span>{selectedFreightForwarder} Total:</span>
+                          <span>{formatCurrency(1200 + 650 + (quote?.breakdown?.trucking || 1800) + 180)}</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Customs Duties:</span>
-                      <span className="font-medium">{formatCurrency(quote?.customsDuties || 0)}</span>
+                  )}
+
+                  {/* Government Fees (SARS) */}
+                  <div className="mb-4 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                    <h5 className="font-medium text-orange-800 mb-2">Government Fees (SARS)</h5>
+                    <div className="text-sm space-y-1">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Customs Duties:</span>
+                        <span className="font-medium text-orange-600">
+                          {formatCurrency(quote?.breakdown?.customs || 0)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">VAT (15%):</span>
+                        <span className="font-medium text-orange-600">
+                          {formatCurrency(quote?.breakdown?.vat || 0)}
+                        </span>
+                      </div>
+                      <div className="border-t border-orange-300 pt-1 mt-2 flex justify-between font-medium text-orange-800">
+                        <span>Government Total:</span>
+                        <span>{formatCurrency((quote?.breakdown?.customs || 0) + (quote?.breakdown?.vat || 0))}</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">VAT:</span>
-                      <span className="font-medium">{formatCurrency(quote?.vat || 0)}</span>
+                  </div>
+
+                  {/* Final Total */}
+                  <div className="p-3 bg-green-50 rounded-lg border-2 border-green-400">
+                    <div className="flex justify-between text-lg font-bold text-green-800">
+                      <span>Complete Total:</span>
+                      <span>{formatCurrency(quote?.breakdown?.total || 0)}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Handling:</span>
-                      <span className="font-medium">{formatCurrency(quote?.handlingFees || 0)}</span>
-                    </div>
-                    <Separator className="my-2" />
-                    <div className="flex justify-between text-lg font-bold">
-                      <span>Total:</span>
-                      <span className="text-primary">{formatCurrency(quote?.totalCost || 0)}</span>
-                    </div>
+                    <p className="text-xs text-green-700 mt-1">
+                      All-inclusive door-to-door shipping
+                    </p>
                   </div>
                 </div>
                 
