@@ -455,13 +455,18 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                             <div className="flex items-center justify-between">
                               <div>
                                 <h4 className="font-bold text-blue-800">Selected: {carrier.name}</h4>
-                                <p className="text-sm text-blue-600">Ready to proceed with booking</p>
+                                {selectedFreightForwarder ? (
+                                  <p className="text-sm text-blue-600">+ {selectedFreightForwarder} freight services</p>
+                                ) : (
+                                  <p className="text-sm text-orange-600">⚠️ Select freight forwarder below to complete booking</p>
+                                )}
                               </div>
                               <Button 
-                                className="bg-blue-600 hover:bg-blue-700"
-                                onClick={() => handleBookShipment(carrier.name)}
+                                className={`${selectedFreightForwarder ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'}`}
+                                onClick={() => selectedFreightForwarder && handleBookShipment(carrier.name)}
+                                disabled={!selectedFreightForwarder}
                               >
-                                Book with {carrier.name}
+                                {selectedFreightForwarder ? `Book Complete Service` : 'Select Freight Forwarder'}
                                 <ArrowRight className="ml-2 h-4 w-4" />
                               </Button>
                             </div>
@@ -570,18 +575,44 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                         
                         {selectedFreightForwarder === forwarder.provider && (
                           <div className="mt-6 pt-4 border-t-2 border-indigo-200 bg-indigo-50 p-4 rounded-lg">
+                            <div className="mb-4">
+                              <h4 className="font-bold text-indigo-800 mb-2">Selected: {forwarder.provider}</h4>
+                              <div className="text-sm text-indigo-700 space-y-1">
+                                <div className="flex justify-between">
+                                  <span>• DSV Customs Clearance:</span>
+                                  <span className="font-medium">{formatCurrency(forwarder.services.customsClearance)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>• DSV Port Clearance:</span>
+                                  <span className="font-medium">{formatCurrency(forwarder.services.portClearance)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>• DSV Local Trucking:</span>
+                                  <span className="font-medium">{formatCurrency(forwarder.services.trucking)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>• DSV Documentation:</span>
+                                  <span className="font-medium">{formatCurrency(forwarder.documentation)}</span>
+                                </div>
+                                <div className="border-t border-indigo-300 pt-1 mt-2 flex justify-between font-bold">
+                                  <span>DSV Total:</span>
+                                  <span>{formatCurrency(forwarder.totalCost)}</span>
+                                </div>
+                              </div>
+                            </div>
                             <div className="flex items-center justify-between">
                               <div>
-                                <h4 className="font-bold text-indigo-800">Selected: {forwarder.provider}</h4>
-                                <p className="text-sm text-indigo-600">Professional customs clearance and logistics</p>
+                                <p className="text-sm text-indigo-600">Ready to book complete door-to-door service</p>
                               </div>
-                              <Button 
-                                className="bg-indigo-600 hover:bg-indigo-700"
-                                onClick={() => handleBookShipment(`${selectedCarrier || 'Maersk'} + ${forwarder.provider}`)}
-                              >
-                                Book Complete Service
-                                <ArrowRight className="ml-2 h-4 w-4" />
-                              </Button>
+                              {selectedCarrier && (
+                                <Button 
+                                  className="bg-indigo-600 hover:bg-indigo-700"
+                                  onClick={() => handleBookShipment(`${selectedCarrier} + ${forwarder.provider}`)}
+                                >
+                                  Book Complete Service
+                                  <ArrowRight className="ml-2 h-4 w-4" />
+                                </Button>
+                              )}
                             </div>
                           </div>
                         )}
