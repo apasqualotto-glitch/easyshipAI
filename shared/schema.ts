@@ -91,8 +91,8 @@ export const insertShippingQuoteSchema = createInsertSchema(shippingQuotes).omit
 export const customsTariffSchema = z.object({
   hsCode: z.string(),
   dutyRate: z.number(),
-  vatRate: z.number(),
-  additionalFees: z.number(),
+  vatRate: z.number().optional(),
+  additionalFees: z.number().optional(),
   explanation: z.string(),
 });
 

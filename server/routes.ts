@@ -106,30 +106,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Debug endpoint to test port lookups
+  app.get("/api/debug-ports/:portId", async (req, res) => {
+    try {
+      const portId = req.params.portId;
+      const originPorts = await storage.getOriginPorts();
+      
+      const found = originPorts.find(p => 
+        p.id === portId || 
+        p.code === portId || 
+        p.name === portId
+      );
+      
+      res.json({
+        searchingFor: portId,
+        found: found || null,
+        availablePorts: originPorts.slice(0, 5).map(p => ({ id: p.id, name: p.name, code: p.code })),
+        totalOriginPorts: originPorts.length
+      });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Calculate shipping quote
   app.post("/api/calculate-quote", async (req, res) => {
     try {
       const validatedData = quoteRequestSchema.parse(req.body);
       
-      // Find origin and destination ports
+      // Find origin and destination ports using direct iteration for reliable matching
       const allPorts = await storage.getPorts();
       const originPorts = await storage.getOriginPorts();
-      const destinationPorts = await storage.getDestinationPorts();
       
-      const originPort = originPorts.find(p => p.id === validatedData.originPort || p.code === validatedData.originPort);
+      // Find origin port using direct iteration (more reliable than find())
+      let originPort = null;
+      for (const port of originPorts) {
+        if (port.id === validatedData.originPort || port.code === validatedData.originPort || port.name === validatedData.originPort) {
+          originPort = port;
+          break;
+        }
+      }
+      
       if (!originPort) {
         return res.status(400).json({ message: `Origin port ${validatedData.originPort} not found` });
       }
       
-      // For exports from SA, destination can be any port
-      // For imports to SA, destination must be a SA port
-      let destinationPort;
+      // Find destination port based on shipment direction
+      let destinationPort = null;
       if (originPort.country === "South Africa") {
         // Export: destination can be any port
-        destinationPort = allPorts.find(p => p.id === validatedData.destinationPort || p.code === validatedData.destinationPort);
+        for (const port of allPorts) {
+          if (port.id === validatedData.destinationPort || port.code === validatedData.destinationPort || port.name === validatedData.destinationPort) {
+            destinationPort = port;
+            break;
+          }
+        }
       } else {
-        // Import: destination must be in destinationPorts (SA ports)
-        destinationPort = destinationPorts.find(p => p.id === validatedData.destinationPort || p.code === validatedData.destinationPort);
+        // Import: destination must be a SA port (type "destination" or "both")
+        for (const port of allPorts) {
+          const isDestinationType = port.type === "destination" || port.type === "both";
+          if (isDestinationType && (port.id === validatedData.destinationPort || port.code === validatedData.destinationPort || port.name === validatedData.destinationPort)) {
+            destinationPort = port;
+            break;
+          }
+        }
       }
       
       if (!destinationPort) {
@@ -365,7 +405,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
           vat = atvValue * 0.15;
           
-          handlingFees = incotermAdjustments.handlingFeesToBuyer || (validatedData.customsTariff.additionalFees + (seaFreightCost * 0.05));
+          handlingFees = incotermAdjustments.handlingFeesToBuyer || ((validatedData.customsTariff.additionalFees ?? 0) + (seaFreightCost * 0.05));
           customsExplanation = validatedData.customsTariff.explanation;
           tradeAgreementInfo = {
             name: "Standard MFN",
@@ -623,7 +663,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         originPort: standardQuote.originPort,
         destinationPort: standardQuote.destinationPort,
         finalDestination: validatedData.finalDestination,
-        containerType: validatedData.containerType,
+        containerType: validatedData.containerType === "partial" ? "20ft" : validatedData.containerType as "20ft" | "40ft" | "40ft-hc",
         cargoValue: validatedData.value,
         weight: validatedData.weight,
         hsCode: standardQuote.customsInfo?.hsCode,
