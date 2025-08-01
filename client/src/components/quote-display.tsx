@@ -236,41 +236,72 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                   </div>
                 </div>
                 
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <Ship className="h-5 w-5 text-blue-600" />
-                      <span className="font-medium">Sea Freight</span>
+                <div className="space-y-4">
+                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex justify-between items-center mb-2">
+                      <div className="flex items-center gap-3">
+                        <Ship className="h-5 w-5 text-blue-600" />
+                        <span className="font-medium">Sea Freight</span>
+                      </div>
+                      <span className="font-bold text-lg">{formatCurrency(getSelectedCarrierPrice())}</span>
                     </div>
-                    <span className="text-sm text-gray-600">
-                      {selectedCarrier ? `${selectedCarrier} rate` : 'Select carrier for pricing'}
-                    </span>
+                    <p className="text-sm text-blue-700">
+                      {selectedCarrier ? `${selectedCarrier} rate` : 'Maersk rate'} - Ocean shipping from {route.origin} to {route.destination}
+                    </p>
                   </div>
                   
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <Truck className="h-5 w-5 text-green-600" />
-                      <span className="font-medium">Local Trucking</span>
+                  <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                    <div className="flex justify-between items-center mb-2">
+                      <div className="flex items-center gap-3">
+                        <Truck className="h-5 w-5 text-green-600" />
+                        <span className="font-medium">Local Trucking</span>
+                      </div>
+                      <span className="font-bold text-lg">{formatCurrency(breakdown.trucking)}</span>
                     </div>
-                    <span className="text-sm text-gray-600">Port to destination</span>
+                    <p className="text-sm text-green-700">
+                      Port to destination - Transport from {route.destination} port to your final destination
+                    </p>
                   </div>
                   
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <FileText className="h-5 w-5 text-orange-600" />
-                      <span className="font-medium">Customs & VAT</span>
+                  <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                    <div className="flex justify-between items-center mb-2">
+                      <div className="flex items-center gap-3">
+                        <FileText className="h-5 w-5 text-orange-600" />
+                        <span className="font-medium">Customs & VAT</span>
+                      </div>
+                      <span className="font-bold text-lg">{formatCurrency(breakdown.customs + breakdown.vat)}</span>
                     </div>
-                    <span className="text-sm text-gray-600">SARS import duties & 15% VAT</span>
+                    <p className="text-sm text-orange-700 mb-3">
+                      SARS import duties & 15% VAT - Government taxes on imported goods
+                    </p>
+                    {/* Detailed calculations */}
+                    {quote?.customsInfo?.breakdown && (
+                      <div className="bg-orange-100 p-3 rounded border text-xs space-y-1">
+                        <div className="font-medium text-orange-800 mb-2">📊 Calculation Details:</div>
+                        <div className="text-orange-700">
+                          <div>Cargo Value (FOB): ${quote.customsInfo.breakdown.fobValueUSD?.toLocaleString()} USD = {formatCurrency(quote.customsInfo.breakdown.fobValueZAR)}</div>
+                          <div>Exchange Rate: 1 USD = R{quote.customsInfo.breakdown.exchangeRate?.toFixed(4)}</div>
+                          <div>Customs Duty Rate: {(quote.customsInfo.breakdown.dutyRate * 100).toFixed(1)}% = {formatCurrency(breakdown.customs)}</div>
+                          <div>VAT (15% on FOB + Duties): {formatCurrency(breakdown.vat)}</div>
+                          <div className="border-t border-orange-300 pt-1 mt-1 font-medium">
+                            Total: {formatCurrency(breakdown.customs + breakdown.vat)}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   
-                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <Package className="h-5 w-5 text-purple-600" />
-                      <span className="font-medium">Handling & Documentation</span>
+                  <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                    <div className="flex justify-between items-center mb-2">
+                      <div className="flex items-center gap-3">
+                        <Package className="h-5 w-5 text-purple-600" />
+                        <span className="font-medium">Handling & Documentation</span>
+                      </div>
+                      <span className="font-bold text-lg">{formatCurrency(breakdown.handling)}</span>
                     </div>
-                    <span className="text-sm text-gray-600">
-                      {selectedFreightForwarder ? `${selectedFreightForwarder} services` : 'Select freight forwarder'}
-                    </span>
+                    <p className="text-sm text-purple-700">
+                      {selectedFreightForwarder ? `${selectedFreightForwarder} services` : 'Select freight forwarder'} - Port handling, customs clearance, documentation
+                    </p>
                   </div>
                 </div>
                 
