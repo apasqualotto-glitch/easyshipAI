@@ -246,8 +246,11 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                       <span className="font-bold text-lg">{formatCurrency(getSelectedCarrierPrice())}</span>
                     </div>
                     <p className="text-sm text-blue-700">
-                      {selectedCarrier ? `${selectedCarrier} rate` : 'Maersk rate'} - Ocean shipping from {route.origin} to {route.destination}
+                      Ocean shipping from {route.origin} to {route.destination} via {route.containerType} container
                     </p>
+                    <div className="mt-2 text-xs text-blue-600">
+                      Base rate varies by carrier: Maersk ~{formatCurrency(breakdown.seaFreight)}, MSC ~{formatCurrency(Math.round(breakdown.seaFreight * 0.95))}, COSCO ~{formatCurrency(Math.round(breakdown.seaFreight * 1.08))}
+                    </div>
                   </div>
                   
                   <div className="p-4 bg-green-50 rounded-lg border border-green-200">
@@ -261,6 +264,9 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                     <p className="text-sm text-green-700">
                       Port to destination - Transport from {route.destination} port to your final destination
                     </p>
+                    <div className="mt-2 text-xs text-green-600">
+                      Calculated based on distance and container size. Rate: ~R{Math.round(breakdown.trucking / 100) * 100} for {route.containerType} container
+                    </div>
                   </div>
                   
                   <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
@@ -438,12 +444,12 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                                   <span className="font-medium">{formatCurrency(Math.round(breakdown.handling * 0.1))}</span>
                                 </div>
                                 <div className="border-t border-blue-300 pt-1 mt-2 flex justify-between font-bold">
-                                  <span>{carrier.name} Subtotal:</span>
+                                  <span>{carrier.name} Total:</span>
                                   <span>{formatCurrency(Math.round(breakdown.seaFreight * (carrier.price / breakdown.total)) + Math.round(breakdown.handling * 0.5))}</span>
                                 </div>
                               </div>
                               <p className="text-xs text-blue-600 mt-2 italic">
-                                Customs, VAT & trucking costs remain the same for all carriers.
+                                This is {carrier.name}'s portion only. Add customs ({formatCurrency(breakdown.customs)}), VAT ({formatCurrency(breakdown.vat)}), and trucking ({formatCurrency(breakdown.trucking)}) for complete cost.
                               </p>
                             </div>
                             <div className="flex items-center justify-between">
