@@ -182,8 +182,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const searchPortId = validatedData.originPort;
       console.log(`Searching for port ID: '${searchPortId}' in ${allPorts.length} ports`);
       
-      // Direct port lookup - same as debug endpoint
-      const originPort = allPorts.find(p => p.id === searchPortId);
+      // Direct port lookup - support both ID and code for AI integration
+      const originPort = allPorts.find(p => p.id === searchPortId || p.code === searchPortId);
       
       if (!originPort) {
         console.error(`CRITICAL: Port ${searchPortId} not found - data integrity failure`);
@@ -197,9 +197,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: `Port ${validatedData.originPort} is not a valid origin port` });
       }
       
-      // Find destination port - use same method as origin port for data integrity
+      // Find destination port - support both ID and code for AI integration
       console.log(`Looking for destination port: ${validatedData.destinationPort}`);
-      const destinationPort = allPorts.find(p => p.id === validatedData.destinationPort);
+      const destinationPort = allPorts.find(p => p.id === validatedData.destinationPort || p.code === validatedData.destinationPort);
       
       if (!destinationPort) {
         console.error(`CRITICAL: Destination port ${validatedData.destinationPort} not found`);
