@@ -624,62 +624,120 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
             </Card>
           )}
 
-          {/* Dynamic Total Cost with Selected Combination */}
-          {(selectedCarrier || selectedFreightForwarder) && (
+          {/* Complete Booking Breakdown */}
+          {selectedCarrier && selectedFreightForwarder && (
             <Card className="mt-8 border-2 border-green-500 bg-gradient-to-r from-green-50 to-emerald-50">
               <CardHeader className="text-center">
-                <CardTitle className="text-2xl text-green-800">Your Final Total Cost</CardTitle>
+                <CardTitle className="text-2xl text-green-800">Complete Booking Summary</CardTitle>
                 <CardDescription className="text-lg text-green-700">
-                  {selectedCarrier && selectedFreightForwarder
-                    ? `${selectedCarrier} + ${selectedFreightForwarder}`
-                    : selectedCarrier
-                    ? `${selectedCarrier} + Select freight forwarder`
-                    : `Select carrier + ${selectedFreightForwarder}`}
+                  Selected Providers: {selectedCarrier} + {selectedFreightForwarder}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
-                    <div className="p-3 bg-white rounded-lg border">
-                      <div className="text-sm text-gray-600">Sea Freight</div>
-                      <div className="text-lg font-bold text-blue-600">
-                        {formatCurrency(getSelectedCarrierPrice())}
+                <div className="space-y-6">
+                  {/* Supplier Breakdown Section */}
+                  <div className="bg-white p-6 rounded-lg border">
+                    <h3 className="text-xl font-bold text-gray-800 mb-4">Cost Breakdown by Provider</h3>
+                    
+                    {/* Carrier Costs */}
+                    <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <h4 className="text-lg font-semibold text-blue-800 mb-3">{selectedCarrier} (Ocean Carrier)</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-700">Sea Freight:</span>
+                          <span className="font-medium text-blue-600">
+                            {formatCurrency(Math.round(breakdown.seaFreight * (getSelectedCarrierPrice() / (breakdown.seaFreight + breakdown.handling))))}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-700">Terminal Handling:</span>
+                          <span className="font-medium text-blue-600">
+                            {formatCurrency(Math.round(breakdown.handling * (getSelectedCarrierPrice() / (breakdown.seaFreight + breakdown.handling))))}
+                          </span>
+                        </div>
                       </div>
-                      <div className="text-xs text-gray-500">{selectedCarrier || 'Select carrier'}</div>
+                      <div className="border-t border-blue-300 pt-2 mt-3 flex justify-between font-bold text-blue-800">
+                        <span>{selectedCarrier} Total:</span>
+                        <span className="text-lg">{formatCurrency(getSelectedCarrierPrice())}</span>
+                      </div>
                     </div>
-                    <div className="p-3 bg-white rounded-lg border">
-                      <div className="text-sm text-gray-600">Customs & VAT</div>
-                      <div className="text-lg font-bold text-orange-600">
-                        {formatCurrency(breakdown.customs + breakdown.vat)}
+
+                    {/* Freight Forwarder Costs */}
+                    <div className="mb-6 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+                      <h4 className="text-lg font-semibold text-indigo-800 mb-3">{selectedFreightForwarder} (Logistics Services)</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        {quote?.freightForwarders?.find(f => f.provider === selectedFreightForwarder) && (
+                          <>
+                            <div className="flex justify-between">
+                              <span className="text-gray-700">Customs Clearance:</span>
+                              <span className="font-medium text-indigo-600">
+                                {formatCurrency(quote.freightForwarders.find(f => f.provider === selectedFreightForwarder)!.services.customsClearance)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-700">Port Clearance:</span>
+                              <span className="font-medium text-indigo-600">
+                                {formatCurrency(quote.freightForwarders.find(f => f.provider === selectedFreightForwarder)!.services.portClearance)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-700">Local Trucking:</span>
+                              <span className="font-medium text-indigo-600">
+                                {formatCurrency(quote.freightForwarders.find(f => f.provider === selectedFreightForwarder)!.services.trucking)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-700">Documentation:</span>
+                              <span className="font-medium text-indigo-600">
+                                {formatCurrency(quote.freightForwarders.find(f => f.provider === selectedFreightForwarder)!.documentation || 0)}
+                              </span>
+                            </div>
+                          </>
+                        )}
                       </div>
-                      <div className="text-xs text-gray-500">Government fees</div>
+                      <div className="border-t border-indigo-300 pt-2 mt-3 flex justify-between font-bold text-indigo-800">
+                        <span>{selectedFreightForwarder} Total:</span>
+                        <span className="text-lg">{formatCurrency(getSelectedFreightForwarderCost())}</span>
+                      </div>
                     </div>
-                    <div className="p-3 bg-white rounded-lg border">
-                      <div className="text-sm text-gray-600">Handling & Docs</div>
-                      <div className="text-lg font-bold text-indigo-600">
-                        {formatCurrency(getSelectedFreightForwarderCost())}
+
+                    {/* Government Fees */}
+                    <div className="mb-6 p-4 bg-orange-50 rounded-lg border border-orange-200">
+                      <h4 className="text-lg font-semibold text-orange-800 mb-3">Government Fees (SARS)</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-700">Customs Duties:</span>
+                          <span className="font-medium text-orange-600">{formatCurrency(breakdown.customs)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-700">VAT (15%):</span>
+                          <span className="font-medium text-orange-600">{formatCurrency(breakdown.vat)}</span>
+                        </div>
                       </div>
-                      <div className="text-xs text-gray-500">{selectedFreightForwarder || 'Select forwarder'}</div>
-                    </div>
-                    <div className="p-3 bg-white rounded-lg border">
-                      <div className="text-sm text-gray-600">Local Trucking</div>
-                      <div className="text-lg font-bold text-green-600">
-                        {formatCurrency(breakdown.trucking)}
+                      <div className="border-t border-orange-300 pt-2 mt-3 flex justify-between font-bold text-orange-800">
+                        <span>Government Total:</span>
+                        <span className="text-lg">{formatCurrency(breakdown.customs + breakdown.vat)}</span>
                       </div>
-                      <div className="text-xs text-gray-500">Door delivery</div>
                     </div>
                   </div>
-                  <Separator />
-                  <div className="text-center p-6 bg-white rounded-lg border-2 border-green-400">
-                    <div className="text-lg text-gray-700 mb-2">Complete Door-to-Door Total</div>
-                    <div className="text-4xl font-bold text-green-600">
+
+                  {/* Final Total */}
+                  <div className="text-center p-6 bg-white rounded-lg border-2 border-green-500">
+                    <div className="text-xl text-gray-700 mb-2 font-semibold">Complete Door-to-Door Total</div>
+                    <div className="text-4xl font-bold text-green-600 mb-3">
                       {formatCurrency(getDynamicTotal())}
                     </div>
-                    <div className="text-sm text-green-700 mt-2">
-                      {selectedCarrier && selectedFreightForwarder 
-                        ? 'Ready to book your complete shipping solution'
-                        : 'Complete your selection above to see final price'}
+                    <div className="text-sm text-green-700 mb-4">
+                      All-inclusive: Ocean freight + Customs + VAT + Trucking + Documentation
                     </div>
+                    <Button 
+                      size="lg"
+                      className="bg-green-600 hover:bg-green-700 text-white px-8 py-3"
+                      onClick={() => handleBookShipment(`${selectedCarrier} + ${selectedFreightForwarder}`)}
+                    >
+                      Confirm Booking - {formatCurrency(getDynamicTotal())}
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
                   </div>
                 </div>
               </CardContent>
