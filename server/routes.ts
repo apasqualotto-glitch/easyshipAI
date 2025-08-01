@@ -8,6 +8,7 @@ import { customsDatabase } from "./customs-database";
 import { bookingService, type BookingRequest, type BookingResponse } from "./booking-service";
 import { generateChatResponse } from "./ai-service";
 import { z } from "zod";
+import { freightForwarderService } from "./freight-forwarder-api";
 
 // Enhanced currency conversion service with multiple API sources
 async function getCurrentExchangeRate(): Promise<{ rate: number; source: string; timestamp: string }> {
@@ -617,10 +618,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       }
 
+      // Get freight forwarder quotes for customs and port clearance
+      const freightForwarderRequest = {
+        originPort: standardQuote.originPort,
+        destinationPort: standardQuote.destinationPort,
+        finalDestination: validatedData.finalDestination,
+        containerType: validatedData.containerType,
+        cargoValue: validatedData.value,
+        weight: validatedData.weight,
+        hsCode: standardQuote.customsInfo?.hsCode,
+        incoterm: validatedData.incoterm,
+        isHazardous: false // TODO: Add hazardous goods flag to form
+      };
+
+      const freightForwarderQuotes = await freightForwarderService.getQuotes(freightForwarderRequest);
+
       res.json({
         ...enhancedQuote,
         hasLiveRates: liveRates.length > 0,
-        rateSource: liveRates.length > 0 ? "live" : "estimate"
+        rateSource: liveRates.length > 0 ? "live" : "estimate",
+        freightForwarders: freightForwarderQuotes
       });
 
     } catch (error) {
@@ -630,6 +647,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         res.status(500).json({ message: "Failed to calculate enhanced quote" });
       }
+    }
+  });
+
+  // Get freight forwarder quotes
+  app.post("/api/freight-forwarder-quotes", async (req, res) => {
+    try {
+      const { 
+        originPort, 
+        destinationPort, 
+        finalDestination, 
+        containerType, 
+        cargoValue, 
+        weight, 
+        hsCode, 
+        incoterm,
+        isHazardous 
+      } = req.body;
+
+      if (!originPort || !destinationPort || !containerType || !cargoValue || !weight) {
+        return res.status(400).json({ 
+          message: "Missing required fields: originPort, destinationPort, containerType, cargoValue, weight" 
+        });
+      }
+
+      const freightForwarderRequest = {
+        originPort,
+        destinationPort,
+        finalDestination: finalDestination || destinationPort,
+        containerType,
+        cargoValue,
+        weight,
+        hsCode,
+        incoterm: incoterm || 'FOB',
+        isHazardous: isHazardous || false
+      };
+
+      const quotes = await freightForwarderService.getQuotes(freightForwarderRequest);
+
+      res.json({
+        quotes,
+        totalProviders: quotes.length,
+        bestQuote: quotes[0], // Already sorted by total cost
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error("Freight forwarder quotes error:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch freight forwarder quotes",
+        quotes: []
+      });
     }
   });
 

@@ -4,6 +4,13 @@
 
 FreightCalc SA is a comprehensive shipping marketplace that connects importers and exporters with carriers, freight forwarders, and logistics service providers. The platform calculates comprehensive shipping costs including sea freight, trucking, customs duties, VAT, and handling fees for imports to and exports from South Africa. As a marketplace, FreightCalc SA facilitates connections between shippers and service providers while maintaining transparent, back-to-back pricing with no markup on carrier freight charges. The platform offers educational content, transparent cost breakdowns, and seamless booking integration with multiple service providers including ocean carriers and customs clearance specialists.
 
+## Recent Changes (January 2025)
+
+- **Freight Forwarder API Integration**: Integrated real-time quotes from major freight forwarders (DHL Global Forwarding, DSV Air & Sea, FedEx Trade Networks, UPS Supply Chain Solutions) for customs clearance, port clearance, and trucking services
+- **Enhanced Quote Display**: Updated quote display component to show freight forwarder options alongside carrier choices, allowing users to select both shipping line and freight forwarding services
+- **AI Chat Enhancement**: Updated AI agent to include freight forwarder costs and options in comprehensive shipping quotes
+- **API Endpoints**: Added `/api/freight-forwarder-quotes` endpoint for standalone freight forwarder quotes and updated `/api/calculate-quote-with-live` to include freight forwarder options
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.

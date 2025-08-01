@@ -37,6 +37,21 @@ interface CarrierOption {
   features: string[];
 }
 
+interface FreightForwarder {
+  provider: string;
+  services: {
+    customsClearance: number;
+    portClearance: number;
+    trucking: number;
+  };
+  documentation: number;
+  insurance: number;
+  totalCost: number;
+  processingTime: string;
+  currency: string;
+  features: string[];
+}
+
 interface QuoteDisplayProps {
   quote: any; // Accept any quote result structure from the API
   isVisible: boolean;
@@ -77,6 +92,7 @@ const generateCarrierOptions = (basePrice: number): CarrierOption[] => [
 
 export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: QuoteDisplayProps) {
   const [selectedCarrier, setSelectedCarrier] = useState<string | null>(null);
+  const [selectedFreightForwarder, setSelectedFreightForwarder] = useState<string | null>(null);
   const [, setLocation] = useLocation();
 
   if (!isVisible) return null;
@@ -462,6 +478,118 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
               </CardContent>
             </Card>
           </div>
+
+          {/* Freight Forwarder Options */}
+          {quote?.freightForwarders && quote.freightForwarders.length > 0 && (
+            <Card className="mt-8">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <Package className="h-6 w-6" />
+                  Choose Your Freight Forwarder
+                </CardTitle>
+                <CardDescription className="text-base">
+                  Select a customs clearance and port handling specialist
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  <div className="p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
+                    <p className="text-indigo-800 text-sm">
+                      <strong>💡 About Freight Forwarders:</strong> These specialized companies handle customs clearance, port documentation, and local trucking. They ensure your cargo clears customs smoothly and reaches your final destination.
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    {quote.freightForwarders.map((forwarder: FreightForwarder) => (
+                      <div
+                        key={forwarder.provider}
+                        className={`border rounded-lg p-6 cursor-pointer transition-all hover:shadow-lg ${
+                          selectedFreightForwarder === forwarder.provider
+                            ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950 shadow-md'
+                            : 'border-gray-200 dark:border-gray-700'
+                        }`}
+                        onClick={() => setSelectedFreightForwarder(forwarder.provider)}
+                      >
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <h3 className="font-bold text-xl mb-2">{forwarder.provider}</h3>
+                            <div className="space-y-1 text-sm">
+                              <div className="flex items-center gap-2">
+                                <Clock className="h-4 w-4 text-gray-500" />
+                                <span>Processing: {forwarder.processingTime}</span>
+                              </div>
+                              <Badge className="mt-2">Full Service Provider</Badge>
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <div className="text-sm text-gray-600 mb-2">Service Breakdown</div>
+                            <div className="space-y-1 text-sm">
+                              <div className="flex justify-between">
+                                <span>Customs Clearance:</span>
+                                <span className="font-medium">{formatCurrency(forwarder.services.customsClearance)}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Port Clearance:</span>
+                                <span className="font-medium">{formatCurrency(forwarder.services.portClearance)}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Local Trucking:</span>
+                                <span className="font-medium">{formatCurrency(forwarder.services.trucking)}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Documentation:</span>
+                                <span className="font-medium">{formatCurrency(forwarder.documentation)}</span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="text-center">
+                            <div className="text-sm text-gray-600 mb-1">Total Service Cost</div>
+                            <div className="text-3xl font-bold text-indigo-600">
+                              {formatCurrency(forwarder.totalCost)}
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">
+                              All-inclusive service package
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            {forwarder.features.map((feature) => (
+                              <div key={feature} className="flex items-center gap-2 text-sm">
+                                <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
+                                <span className="text-gray-700">{feature}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        {selectedFreightForwarder === forwarder.provider && (
+                          <div className="mt-6 pt-4 border-t-2 border-indigo-200 bg-indigo-50 p-4 rounded-lg">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h4 className="font-bold text-indigo-800">Selected: {forwarder.provider}</h4>
+                                <p className="text-sm text-indigo-600">Professional customs clearance and logistics</p>
+                              </div>
+                              <Button 
+                                className="bg-indigo-600 hover:bg-indigo-700"
+                                onClick={() => handleBookShipment(`${selectedCarrier || 'Maersk'} + ${forwarder.provider}`)}
+                              >
+                                Book Complete Service
+                                <ArrowRight className="ml-2 h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
           
           {/* Educational Information Section */}
           <Card className="mt-8">

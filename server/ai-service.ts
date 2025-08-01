@@ -284,7 +284,7 @@ Need help with any specific document?`;
   }
 
   // Default response with numerical estimates
-  return `I'm ready to help with South African shipping!\n\n💰 **Current Rates:**\n• 20ft from China: R68,500\n• 40ft from China: R123,000\n• 20ft from Europe: R72,000\n• Partial shipments: R12,500\n\n🚛 All-inclusive: Sea freight + trucking + customs + VAT\n\n💡 Popular routes:\n• Shanghai → Durban\n• Hamburg → Cape Town\n• New York → Durban\n\n**Need a detailed quote?** I can generate one instantly! Just tell me your origin, destination, and container type, and I'll create a comprehensive breakdown with carrier options and exact costs.`;
+  return `I'm ready to help with South African shipping!\n\n💰 **Current Rates:**\n• 20ft from China: R68,500\n• 40ft from China: R123,000\n• 20ft from Europe: R72,000\n• Partial shipments: R12,500\n\n🚛 All-inclusive: Sea freight + trucking + customs + VAT\n\n🚚 **Freight Forwarder Services:**\n• DHL Global Forwarding: R18,000-R22,000\n• DSV Air & Sea: R16,500-R20,000\n• FedEx Trade Networks: R17,000-R21,000\n• UPS Supply Chain: R19,000-R23,000\n\n💡 Popular routes:\n• Shanghai → Durban\n• Hamburg → Cape Town\n• New York → Durban\n\n**Need a detailed quote?** I can generate one instantly! Just tell me your origin, destination, and container type, and I'll create a comprehensive breakdown with carrier options, freight forwarder services, and exact costs.`;
 }
 
 /**
@@ -363,6 +363,21 @@ Use our shipping calculator for instant quotes with SARS-compliant customs calcu
   - Trucking: R10,000 - R15,000
   - Customs duties: Varies by product
 
+**🚚 Freight Forwarder Services** (Customs & Port Clearance):
+• **DHL Global Forwarding**: R18,000 - R22,000
+  - Customs clearance: R8,500
+  - Port clearance: R6,200
+  - Documentation: R2,000
+  - Processing time: 2-3 days
+
+• **DSV Air & Sea**: R16,500 - R20,000
+  - All-inclusive service package
+  - Processing time: 3-4 days
+
+• **FedEx Trade Networks**: R17,000 - R21,000
+  - Express customs clearance
+  - Processing time: 1-2 days
+
 **⏱️ Timeline**: 25-35 days port-to-port + 2-5 days customs
 
 **💡 Next Steps:**
@@ -371,7 +386,7 @@ To get exact pricing with customs calculations, I'll need:
 • **Product type** - affects duty rates (0% to 45%)
 • **Preferred Incoterm** - FOB saves ~R20,000 vs CIF
 
-Want me to walk you through these details for a precise quote?`;
+Want me to walk you through these details for a precise quote with real-time carrier rates and freight forwarder options?`;
 
   } catch (error) {
     console.error('Error generating quote response:', error);
