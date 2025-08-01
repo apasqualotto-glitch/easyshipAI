@@ -59,36 +59,39 @@ interface QuoteDisplayProps {
   onBookShipment?: (carrier: string) => void;
 }
 
-// Generate dynamic carrier options based on sea freight costs only
-const generateCarrierOptions = (seaFreightCost: number): CarrierOption[] => [
-  {
-    name: "Maersk",
-    logo: "🚢",
-    transitDays: 18,
-    reliability: 4.8,
-    price: Math.round(seaFreightCost * 1.05), // 5% higher sea freight rate
-    priceRating: 'standard',
-    features: ['Real-time tracking', 'Door-to-door service', 'Insurance included']
-  },
-  {
-    name: "MSC",
-    logo: "⚓",
-    transitDays: 20,
-    reliability: 4.6,
-    price: Math.round(seaFreightCost * 0.92), // 8% lower sea freight rate
-    priceRating: 'budget',
-    features: ['Competitive pricing', 'Regular schedules', 'Global network']
-  },
-  {
-    name: "CMA CGM",
-    logo: "🌊",
-    transitDays: 19,
-    reliability: 4.7,
-    price: Math.round(seaFreightCost * 1.12), // 12% higher sea freight rate
-    priceRating: 'premium',
-    features: ['Premium service', 'Priority handling', 'Dedicated support']
-  }
-];
+// Generate dynamic carrier options - sea freight + handling only (excludes VAT, customs, trucking)
+const generateCarrierOptions = (breakdown: any): CarrierOption[] => {
+  const baseCarrierCost = breakdown.seaFreight + breakdown.handling; // Only carrier-controlled costs
+  return [
+    {
+      name: "Maersk",
+      logo: "🚢",
+      transitDays: 18,
+      reliability: 4.8,
+      price: Math.round(baseCarrierCost * 1.02), // 2% higher
+      priceRating: 'standard',
+      features: ['Real-time tracking', 'Door-to-door service', 'Insurance included']
+    },
+    {
+      name: "MSC",
+      logo: "⚓",
+      transitDays: 20,
+      reliability: 4.6,
+      price: Math.round(baseCarrierCost * 0.95), // 5% lower (budget option)
+      priceRating: 'budget',
+      features: ['Competitive pricing', 'Regular schedules', 'Global network']
+    },
+    {
+      name: "CMA CGM",
+      logo: "🌊",
+      transitDays: 19,
+      reliability: 4.7,
+      price: Math.round(baseCarrierCost * 1.08), // 8% higher (premium)
+      priceRating: 'premium',
+      features: ['Premium service', 'Priority handling', 'Dedicated support']
+    }
+  ];
+};
 
 export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: QuoteDisplayProps) {
   const [selectedCarrier, setSelectedCarrier] = useState<string | null>(null);
@@ -98,8 +101,15 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
   if (!isVisible) return null;
   
   // Extract data from the actual quote structure
-  const seaFreightCost = quote?.seaFreightCost || 0;
-  const CARRIER_OPTIONS = generateCarrierOptions(seaFreightCost);
+  const breakdown = {
+    seaFreight: quote?.seaFreightCost || 0,
+    trucking: quote?.truckingCost || 0,
+    customs: quote?.customsDuties || 0,
+    vat: quote?.vat || 0,
+    handling: quote?.handlingFees || 0,
+    total: quote?.totalCost || 0
+  };
+  const CARRIER_OPTIONS = generateCarrierOptions(breakdown);
 
   // Get dynamic pricing based on selections
   const getSelectedCarrierPrice = () => {
@@ -131,16 +141,6 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
     if (quote?.id) {
       setLocation(`/booking?quoteId=${quote.id}&carrier=${encodeURIComponent(carrier)}`);
     }
-  };
-  
-  // Create a compatible breakdown structure from the quote data
-  const breakdown = {
-    seaFreight: quote?.seaFreightCost || 0,
-    trucking: quote?.truckingCost || 0,
-    customs: quote?.customsDuties || 0,
-    vat: quote?.vat || 0,
-    handling: quote?.handlingFees || 0,
-    total: quote?.totalCost || 0
   };
 
   const route = {
@@ -407,7 +407,7 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                           <div className="text-center">
                             <div className="text-sm text-gray-600 mb-1">Carrier Cost</div>
                             <div className={`text-3xl font-bold ${getPriceColor(carrier.priceRating)}`}>
-                              {formatCurrency(Math.round(breakdown.seaFreight * (carrier.price / breakdown.total)) + Math.round(breakdown.handling * 0.5))}
+                              {formatCurrency(carrier.price)}
                             </div>
                             <div className="text-xs text-gray-500 mt-1">
                               Ocean freight + handling
