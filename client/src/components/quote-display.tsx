@@ -557,12 +557,18 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                         
                         <div className="mt-4 pt-4 border-t border-gray-200">
                           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                            {forwarder.features.map((feature) => (
-                              <div key={feature} className="flex items-center gap-2 text-sm">
-                                <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
-                                <span className="text-gray-700">{feature}</span>
+                            {forwarder.features && forwarder.features.length > 0 ? (
+                              forwarder.features.map((feature) => (
+                                <div key={feature} className="flex items-center gap-2 text-sm">
+                                  <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
+                                  <span className="text-gray-700">{feature}</span>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="col-span-full text-sm text-gray-500 text-center py-2">
+                                Professional logistics services included
                               </div>
-                            ))}
+                            )}
                           </div>
                         </div>
                         

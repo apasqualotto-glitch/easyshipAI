@@ -14,7 +14,7 @@ export interface FreightForwarderQuote {
   totalCost: number;
   currency: string;
   transitTime: string;
-  capabilities: string[];
+  features: string[];
 }
 
 // Quote request schema
@@ -61,7 +61,7 @@ export class FreightForwarderService {
         totalCost: 0, // Will be calculated
         currency: 'USD',
         transitTime: '3-5 business days',
-        capabilities: [
+        features: [
           'SARS integrated customs clearing',
           'End-to-end visibility',
           'Duty/tax payment service',
@@ -88,7 +88,7 @@ export class FreightForwarderService {
         totalCost: 0,
         currency: 'USD',
         transitTime: '4-6 business days',
-        capabilities: [
+        features: [
           'Customs brokerage',
           'Warehousing available',
           'Cross-border expertise',
@@ -116,7 +116,7 @@ export class FreightForwarderService {
         totalCost: 0,
         currency: 'USD',
         transitTime: '3-4 business days',
-        capabilities: [
+        features: [
           'Express customs clearance',
           'Global trade management',
           'HS code classification',
@@ -143,7 +143,7 @@ export class FreightForwarderService {
         totalCost: 0,
         currency: 'USD',
         transitTime: '4-5 business days',
-        capabilities: [
+        features: [
           'Licensed customs broker',
           'Forwarding hub platform',
           'Consolidated billing',
