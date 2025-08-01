@@ -392,82 +392,50 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                         {selectedCarrier === carrier.name && (
                           <div className="mt-6 pt-4 border-t-2 border-blue-200 bg-blue-50 p-4 rounded-lg">
                             <div className="mb-4">
-                              <h4 className="font-bold text-blue-800 mb-3">Complete Cost Breakdown with {carrier.name}</h4>
+                              <h4 className="font-bold text-blue-800 mb-3">{carrier.name} Shipping Services</h4>
                               <div className="space-y-3 text-sm">
                                 <div className="p-3 bg-white rounded border border-blue-200">
                                   <div className="flex justify-between mb-1">
                                     <span className="flex items-center gap-2">
                                       <Ship className="h-4 w-4 text-blue-600" />
-                                      Sea Freight ({carrier.name} rate)
+                                      Ocean Freight ({carrier.name})
                                     </span>
                                     <span className="font-medium">{formatCurrency(Math.round(breakdown.seaFreight * (carrier.price / breakdown.total)))}</span>
                                   </div>
-                                  <p className="text-xs text-blue-600">Ocean shipping from {route.origin} to {route.destination} port</p>
+                                  <p className="text-xs text-blue-600">Container shipping from {route.origin} to {route.destination} port</p>
                                 </div>
                                 
-                                <div className="p-3 bg-white rounded border border-green-200">
+                                <div className="p-3 bg-white rounded border border-blue-200">
                                   <div className="flex justify-between mb-1">
                                     <span className="flex items-center gap-2">
-                                      <Truck className="h-4 w-4 text-green-600" />
-                                      Local Trucking
+                                      <Package className="h-4 w-4 text-blue-600" />
+                                      Terminal Handling Charges
                                     </span>
-                                    <span className="font-medium">{formatCurrency(breakdown.trucking)}</span>
+                                    <span className="font-medium">{formatCurrency(Math.round(breakdown.handling * 0.4))}</span>
                                   </div>
-                                  <p className="text-xs text-green-600">Transport from port to your final destination</p>
+                                  <p className="text-xs text-blue-600">Port terminal operations and container handling</p>
                                 </div>
                                 
-                                <div className="p-3 bg-white rounded border border-orange-200">
+                                <div className="p-3 bg-white rounded border border-blue-200">
                                   <div className="flex justify-between mb-1">
                                     <span className="flex items-center gap-2">
-                                      <FileText className="h-4 w-4 text-orange-600" />
-                                      Customs Duties
+                                      <FileText className="h-4 w-4 text-blue-600" />
+                                      Carrier Documentation
                                     </span>
-                                    <span className="font-medium">{formatCurrency(breakdown.customs)}</span>
+                                    <span className="font-medium">{formatCurrency(Math.round(breakdown.handling * 0.1))}</span>
                                   </div>
-                                  <p className="text-xs text-orange-600">SARS import duties based on cargo type and value</p>
-                                  {quote?.customsInfo?.breakdown && (
-                                    <div className="mt-2 p-2 bg-orange-50 rounded text-xs">
-                                      <div className="font-medium mb-1">Calculation Details:</div>
-                                      <div>FOB Value: {formatCurrency(quote.customsInfo.breakdown.fobValueZAR)}</div>
-                                      <div>Duty Rate: {(quote.customsInfo.breakdown.dutyRate * 100).toFixed(1)}%</div>
-                                      <div>Exchange Rate: R{quote.customsInfo.breakdown.exchangeRate?.toFixed(4)}/USD</div>
-                                    </div>
-                                  )}
-                                </div>
-                                
-                                <div className="p-3 bg-white rounded border border-purple-200">
-                                  <div className="flex justify-between mb-1">
-                                    <span className="flex items-center gap-2">
-                                      <DollarSign className="h-4 w-4 text-purple-600" />
-                                      VAT (15%)
-                                    </span>
-                                    <span className="font-medium">{formatCurrency(breakdown.vat)}</span>
-                                  </div>
-                                  <p className="text-xs text-purple-600">Applied to cargo value + customs duties</p>
-                                  {quote?.customsInfo?.breakdown && (
-                                    <div className="mt-2 p-2 bg-purple-50 rounded text-xs">
-                                      <div>VAT Base: {formatCurrency(quote.customsInfo.breakdown.atvValue)}</div>
-                                      <div>Formula: {quote.customsInfo.breakdown.formula}</div>
-                                    </div>
-                                  )}
-                                </div>
-                                
-                                <div className="p-3 bg-white rounded border border-gray-200">
-                                  <div className="flex justify-between mb-1">
-                                    <span className="flex items-center gap-2">
-                                      <Package className="h-4 w-4 text-gray-600" />
-                                      Handling & Documentation
-                                    </span>
-                                    <span className="font-medium">{formatCurrency(breakdown.handling)}</span>
-                                  </div>
-                                  <p className="text-xs text-gray-600">Port handling, customs clearance, documentation</p>
+                                  <p className="text-xs text-blue-600">Bill of lading, shipping manifests, carrier certificates</p>
                                 </div>
                                 
                                 <div className="border-t border-blue-300 pt-3 mt-3">
                                   <div className="flex justify-between font-bold text-lg text-blue-800 bg-white p-3 rounded">
-                                    <span>Total Door-to-Door Cost:</span>
-                                    <span>{formatCurrency(carrier.price)}</span>
+                                    <span>{carrier.name} Total:</span>
+                                    <span>{formatCurrency(Math.round(breakdown.seaFreight * (carrier.price / breakdown.total)) + Math.round(breakdown.handling * 0.5))}</span>
                                   </div>
+                                </div>
+                                
+                                <div className="mt-3 p-3 bg-blue-100 rounded text-xs text-blue-700">
+                                  <strong>Note:</strong> This shows only {carrier.name}'s direct shipping costs. Customs duties, VAT, trucking, and freight forwarding costs are the same regardless of which carrier you choose.
                                 </div>
                               </div>
                             </div>
