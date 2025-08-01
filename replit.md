@@ -2,7 +2,7 @@
 
 ## Overview
 
-FreightCalc SA is a full-stack web application designed to calculate comprehensive shipping costs for imports to and exports from South Africa. It provides door-to-door cost estimates including sea freight, trucking, customs duties, VAT, and handling fees. The application's vision is to be a comprehensive "EasyShip AI" solution for South African container imports, simplifying the shipping process for first-time importers. It aims to offer transparent cost breakdowns, educational content, and seamless integration with carrier booking systems.
+FreightCalc SA is a comprehensive shipping marketplace that connects importers and exporters with carriers, freight forwarders, and logistics service providers. The platform calculates comprehensive shipping costs including sea freight, trucking, customs duties, VAT, and handling fees for imports to and exports from South Africa. As a marketplace, FreightCalc SA facilitates connections between shippers and service providers while maintaining transparent, back-to-back pricing with no markup on carrier freight charges. The platform offers educational content, transparent cost breakdowns, and seamless booking integration with multiple service providers including ocean carriers and customs clearance specialists.
 
 ## User Preferences
 
@@ -39,6 +39,8 @@ The application follows a monorepo structure separating client, server, and shar
 - **Partial Shipment Support**: Includes logic for Less than Container Load (LCL) shipments with volume-based pricing.
 - **Advanced Customs Lookup**: Integrates HS code matching, product keyword database, and real-time suggestions for cargo classification.
 - **Unified Quote Experience**: Both AI chat and manual calculator use the same backend API for consistent and accurate quotes.
+- **Marketplace Business Model**: Platform connects shippers with multiple service providers (carriers, freight forwarders, customs brokers) with transparent, back-to-back pricing.
+- **Multi-Service Provider Integration**: Supports both ocean carriers and freight forwarding services for comprehensive logistics solutions.
 
 ## External Dependencies
 

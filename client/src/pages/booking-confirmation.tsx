@@ -25,6 +25,7 @@ import { formatCurrency } from "@/lib/utils";
 
 
 function getIncotermGuidance(booking: any) {
+  if (!booking) return null;
   const incoterm = booking?.incoterm?.toUpperCase();
   
   const getIncotermInfo = (term: string) => {
@@ -110,6 +111,19 @@ function getIncotermGuidance(booking: any) {
         </div>
       </div>
 
+      {/* Marketplace Notice */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+        <div className="flex items-start gap-3">
+          <Info className="h-5 w-5 text-blue-600 mt-0.5" />
+          <div>
+            <h4 className="font-semibold text-blue-900">FreightCalc SA - Your Shipping Marketplace</h4>
+            <p className="text-sm text-blue-800 mt-1">
+              We've connected you with {booking?.carrierName || 'your selected carrier'} for freight services. You remain responsible for your shipment and can choose additional service providers below.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Urgent Action Required */}
       <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
         <div className="flex items-start gap-3">
@@ -148,7 +162,7 @@ function getIncotermGuidance(booking: any) {
             </div>
             <div className="flex-1">
               <h5 className="font-medium">Booking Confirmed</h5>
-              <p className="text-sm text-gray-600">Your booking has been registered with {booking.carrierName}</p>
+              <p className="text-sm text-gray-600">Your booking has been registered with {booking?.carrierName || 'your selected carrier'}</p>
               <p className="text-xs text-gray-500 mt-1">Just now</p>
             </div>
           </div>
@@ -170,9 +184,9 @@ function getIncotermGuidance(booking: any) {
             </div>
             <div className="flex-1">
               <h5 className="font-medium">Cargo Loading</h5>
-              <p className="text-sm text-gray-600">Container loading at {booking.originPort}</p>
+              <p className="text-sm text-gray-600">Container loading at {booking?.originPort || 'origin port'}</p>
               <p className="text-xs text-gray-500 mt-1">
-                {booking.estimatedDeparture 
+                {booking?.estimatedDeparture 
                   ? `Scheduled: ${new Date(booking.estimatedDeparture).toLocaleDateString()}`
                   : 'Date to be confirmed'
                 }
@@ -186,7 +200,7 @@ function getIncotermGuidance(booking: any) {
             </div>
             <div className="flex-1">
               <h5 className="font-medium">Ocean Transit</h5>
-              <p className="text-sm text-gray-600">Sea freight to {booking.destinationPort}</p>
+              <p className="text-sm text-gray-600">Sea freight to {booking?.destinationPort || 'destination port'}</p>
               <p className="text-xs text-gray-500 mt-1">18-25 days transit time</p>
             </div>
           </div>
@@ -197,8 +211,44 @@ function getIncotermGuidance(booking: any) {
             </div>
             <div className="flex-1">
               <h5 className="font-medium">Final Delivery</h5>
-              <p className="text-sm text-gray-600">Customs clearance and delivery to {booking.finalDestination}</p>
+              <p className="text-sm text-gray-600">Customs clearance and delivery to {booking?.finalDestination || 'final destination'}</p>
               <p className="text-xs text-gray-500 mt-1">3-5 days after port arrival</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Additional Services */}
+      <div className="mt-8">
+        <h4 className="font-semibold mb-4">Need Help with Customs & Port Clearance?</h4>
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <p className="text-sm text-gray-700 mb-4">
+            Get quotes from vetted freight forwarders who can handle customs clearance, documentation, and port services for you.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <h5 className="font-medium mb-2">Customs Clearance Services</h5>
+              <ul className="text-sm text-gray-600 space-y-1 mb-3">
+                <li>• Import/Export documentation</li>
+                <li>• SARS customs declaration</li>
+                <li>• Duty and VAT payment</li>
+                <li>• Inspection coordination</li>
+              </ul>
+              <Button variant="outline" size="sm" className="w-full">
+                Get Customs Quotes
+              </Button>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <h5 className="font-medium mb-2">Port & Logistics Services</h5>
+              <ul className="text-sm text-gray-600 space-y-1 mb-3">
+                <li>• Container devanning</li>
+                <li>• Port handling & storage</li>
+                <li>• Final mile delivery</li>
+                <li>• Cargo insurance</li>
+              </ul>
+              <Button variant="outline" size="sm" className="w-full">
+                Get Logistics Quotes
+              </Button>
             </div>
           </div>
         </div>
@@ -261,7 +311,7 @@ export default function BookingConfirmation() {
           </p>
           <div className="inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-lg">
             <span className="font-medium">Booking Reference:</span>
-            <span className="font-bold text-lg">{booking.bookingReference}</span>
+            <span className="font-bold text-lg">{booking?.bookingReference || 'Loading...'}</span>
           </div>
         </div>
         
@@ -273,7 +323,7 @@ export default function BookingConfirmation() {
               <div>
                 <h3 className="font-semibold text-blue-900 mb-1">Check Your Email</h3>
                 <p className="text-blue-800 text-sm">
-                  We've sent a confirmation email to <strong>{booking.shipperEmail}</strong> with your booking details, 
+                  We've sent a confirmation email to <strong>{booking?.shipperEmail || 'your email'}</strong> with your booking details, 
                   shipping documents, and next steps. Please check your inbox and spam folder.
                 </p>
               </div>
@@ -293,29 +343,29 @@ export default function BookingConfirmation() {
             <CardContent className="space-y-4">
               <div>
                 <span className="text-sm text-gray-600">Carrier</span>
-                <p className="font-medium">{booking.carrierName}</p>
+                <p className="font-medium">{booking?.carrierName || 'Carrier'}</p>
               </div>
               <div>
                 <span className="text-sm text-gray-600">Route</span>
-                <p className="font-medium">{booking.originPort} → {booking.destinationPort}</p>
+                <p className="font-medium">{booking?.originPort || 'Origin'} → {booking?.destinationPort || 'Destination'}</p>
               </div>
               <div>
                 <span className="text-sm text-gray-600">Container Type</span>
-                <p className="font-medium">{booking.containerType}</p>
+                <p className="font-medium">{booking?.containerType || 'Container Type'}</p>
               </div>
               <div>
                 <span className="text-sm text-gray-600">Cargo Description</span>
-                <p className="font-medium">{booking.cargoDescription}</p>
+                <p className="font-medium">{booking?.cargoDescription || 'Cargo Description'}</p>
               </div>
               <div>
                 <span className="text-sm text-gray-600">Total Cost</span>
-                <p className="font-bold text-lg text-primary">{formatCurrency(booking.quotedAmount)}</p>
+                <p className="font-bold text-lg text-primary">{formatCurrency(booking?.quotedAmount || 0)}</p>
               </div>
               <div>
                 <span className="text-sm text-gray-600">Status</span>
                 <div className="mt-1">
                   <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                    {booking.status === 'pending' ? 'Awaiting Payment' : booking.status}
+                    {booking?.status === 'pending' ? 'Awaiting Payment' : booking?.status || 'Unknown'}
                   </Badge>
                 </div>
               </div>
@@ -334,13 +384,13 @@ export default function BookingConfirmation() {
               <div>
                 <h4 className="font-semibold mb-2">Shipper (From)</h4>
                 <div className="text-sm space-y-1">
-                  <p className="font-medium">{booking.shipperName}</p>
-                  <p className="text-gray-600">{booking.shipperAddress}</p>
+                  <p className="font-medium">{booking?.shipperName || 'Shipper Name'}</p>
+                  <p className="text-gray-600">{booking?.shipperAddress || 'Shipper Address'}</p>
                   <div className="flex items-center gap-2 text-gray-600">
                     <Mail className="h-3 w-3" />
-                    {booking.shipperEmail}
+                    {booking?.shipperEmail || 'shipper@email.com'}
                   </div>
-                  {booking.shipperPhone && (
+                  {booking?.shipperPhone && (
                     <div className="flex items-center gap-2 text-gray-600">
                       <Phone className="h-3 w-3" />
                       {booking.shipperPhone}
@@ -354,13 +404,13 @@ export default function BookingConfirmation() {
               <div>
                 <h4 className="font-semibold mb-2">Consignee (To)</h4>
                 <div className="text-sm space-y-1">
-                  <p className="font-medium">{booking.consigneeName}</p>
-                  <p className="text-gray-600">{booking.consigneeAddress}</p>
+                  <p className="font-medium">{booking?.consigneeName || 'Consignee Name'}</p>
+                  <p className="text-gray-600">{booking?.consigneeAddress || 'Consignee Address'}</p>
                   <div className="flex items-center gap-2 text-gray-600">
                     <Mail className="h-3 w-3" />
-                    {booking.consigneeEmail}
+                    {booking?.consigneeEmail || 'consignee@email.com'}
                   </div>
-                  {booking.consigneePhone && (
+                  {booking?.consigneePhone && (
                     <div className="flex items-center gap-2 text-gray-600">
                       <Phone className="h-3 w-3" />
                       {booking.consigneePhone}
