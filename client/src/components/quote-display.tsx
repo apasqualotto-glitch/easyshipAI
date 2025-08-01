@@ -93,6 +93,28 @@ const generateCarrierOptions = (basePrice: number): CarrierOption[] => [
 export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: QuoteDisplayProps) {
   const [selectedCarrier, setSelectedCarrier] = useState<string | null>(null);
   const [selectedFreightForwarder, setSelectedFreightForwarder] = useState<string | null>(null);
+
+  // Get dynamic pricing based on selections
+  const getSelectedCarrierPrice = () => {
+    if (!selectedCarrier) return breakdown.seaFreight;
+    const carrier = carrierOptions.find(c => c.name === selectedCarrier);
+    return carrier ? carrier.price : breakdown.seaFreight;
+  };
+
+  const getSelectedFreightForwarderCost = () => {
+    if (!selectedFreightForwarder) return breakdown.handling;
+    const forwarder = quote?.freightForwarders?.find((f: any) => f.provider === selectedFreightForwarder);
+    return forwarder ? forwarder.totalCost : breakdown.handling;
+  };
+
+  // Calculate dynamic total based on selections
+  const getDynamicTotal = () => {
+    return getSelectedCarrierPrice() + 
+           breakdown.trucking + 
+           breakdown.customs + 
+           breakdown.vat + 
+           getSelectedFreightForwarderCost();
+  };
   const [, setLocation] = useLocation();
 
   if (!isVisible) return null;
@@ -210,11 +232,13 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                       <div className="flex items-center gap-3">
                         <Ship className="h-5 w-5 text-blue-600" />
                         <span className="font-medium">Sea Freight</span>
+                        {selectedCarrier && <Badge variant="outline" className="ml-2 text-xs">{selectedCarrier}</Badge>}
                       </div>
-                      <span className="font-bold text-lg">{formatCurrency(breakdown.seaFreight)}</span>
+                      <span className="font-bold text-lg">{formatCurrency(getSelectedCarrierPrice())}</span>
                     </div>
                     <p className="text-sm text-blue-700">
-                      Ocean shipping from {route.origin} to {route.destination} via {route.containerType} container. This is the main transport cost.
+                      Ocean shipping from {route.origin} to {route.destination} via {route.containerType} container.
+                      {selectedCarrier ? ` Rate from ${selectedCarrier}.` : ' Select carrier below to see specific rates.'}
                     </p>
                   </div>
                   
@@ -303,13 +327,15 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                 
                 <div className="p-4 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-lg border-2 border-blue-300">
                   <div className="flex justify-between items-center">
-                    <span className="text-xl font-bold">Base Cost (Before Service Provider Selection)</span>
+                    <span className="text-xl font-bold">Current Total</span>
                     <span className="text-2xl font-bold text-blue-600">
-                      {formatCurrency(breakdown.seaFreight + breakdown.trucking + breakdown.customs + breakdown.vat)}
+                      {formatCurrency(getDynamicTotal())}
                     </span>
                   </div>
                   <p className="text-sm text-blue-700 mt-2">
-                    Sea freight, trucking, customs & VAT. Select carrier + freight forwarder below for final price.
+                    {selectedCarrier && selectedFreightForwarder 
+                      ? `Complete door-to-door cost with ${selectedCarrier} + ${selectedFreightForwarder}`
+                      : 'Select specific carriers and freight forwarders below to customize your rate'}
                   </p>
                 </div>
                 
@@ -605,7 +631,7 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                     <div className="p-3 bg-white rounded-lg border">
                       <div className="text-sm text-gray-600">Sea Freight</div>
                       <div className="text-lg font-bold text-blue-600">
-                        {formatCurrency(breakdown.seaFreight)}
+                        {formatCurrency(getSelectedCarrierPrice())}
                       </div>
                       <div className="text-xs text-gray-500">{selectedCarrier || 'Select carrier'}</div>
                     </div>
@@ -619,9 +645,7 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                     <div className="p-3 bg-white rounded-lg border">
                       <div className="text-sm text-gray-600">Handling & Docs</div>
                       <div className="text-lg font-bold text-indigo-600">
-                        {selectedFreightForwarder 
-                          ? formatCurrency(quote?.freightForwarders?.find((f: any) => f.provider === selectedFreightForwarder)?.totalCost || breakdown.handling)
-                          : formatCurrency(breakdown.handling)}
+                        {formatCurrency(getSelectedFreightForwarderCost())}
                       </div>
                       <div className="text-xs text-gray-500">{selectedFreightForwarder || 'Select forwarder'}</div>
                     </div>
@@ -637,15 +661,7 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                   <div className="text-center p-6 bg-white rounded-lg border-2 border-green-400">
                     <div className="text-lg text-gray-700 mb-2">Complete Door-to-Door Total</div>
                     <div className="text-4xl font-bold text-green-600">
-                      {selectedFreightForwarder 
-                        ? formatCurrency(
-                            breakdown.seaFreight + 
-                            breakdown.customs + 
-                            breakdown.vat + 
-                            breakdown.trucking + 
-                            (quote?.freightForwarders?.find((f: any) => f.provider === selectedFreightForwarder)?.totalCost || breakdown.handling)
-                          )
-                        : formatCurrency(breakdown.total)}
+                      {formatCurrency(getDynamicTotal())}
                     </div>
                     <div className="text-sm text-green-700 mt-2">
                       {selectedCarrier && selectedFreightForwarder 
