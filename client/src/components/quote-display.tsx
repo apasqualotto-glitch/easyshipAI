@@ -59,14 +59,14 @@ interface QuoteDisplayProps {
   onBookShipment?: (carrier: string) => void;
 }
 
-// Generate dynamic carrier options based on the actual quote total
-const generateCarrierOptions = (basePrice: number): CarrierOption[] => [
+// Generate dynamic carrier options based on sea freight costs only
+const generateCarrierOptions = (seaFreightCost: number): CarrierOption[] => [
   {
     name: "Maersk",
     logo: "🚢",
     transitDays: 18,
     reliability: 4.8,
-    price: Math.round(basePrice * 1.05), // 5% higher
+    price: Math.round(seaFreightCost * 1.05), // 5% higher sea freight rate
     priceRating: 'standard',
     features: ['Real-time tracking', 'Door-to-door service', 'Insurance included']
   },
@@ -75,7 +75,7 @@ const generateCarrierOptions = (basePrice: number): CarrierOption[] => [
     logo: "⚓",
     transitDays: 20,
     reliability: 4.6,
-    price: Math.round(basePrice * 0.92), // 8% lower (budget option)
+    price: Math.round(seaFreightCost * 0.92), // 8% lower sea freight rate
     priceRating: 'budget',
     features: ['Competitive pricing', 'Regular schedules', 'Global network']
   },
@@ -84,7 +84,7 @@ const generateCarrierOptions = (basePrice: number): CarrierOption[] => [
     logo: "🌊",
     transitDays: 19,
     reliability: 4.7,
-    price: Math.round(basePrice * 1.12), // 12% higher (premium)
+    price: Math.round(seaFreightCost * 1.12), // 12% higher sea freight rate
     priceRating: 'premium',
     features: ['Premium service', 'Priority handling', 'Dedicated support']
   }
@@ -98,8 +98,8 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
   if (!isVisible) return null;
   
   // Extract data from the actual quote structure
-  const basePrice = quote?.totalCost || 0;
-  const CARRIER_OPTIONS = generateCarrierOptions(basePrice);
+  const seaFreightCost = quote?.seaFreightCost || 0;
+  const CARRIER_OPTIONS = generateCarrierOptions(seaFreightCost);
 
   // Get dynamic pricing based on selections
   const getSelectedCarrierPrice = () => {
@@ -405,12 +405,12 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                           </div>
                           
                           <div className="text-center">
-                            <div className="text-sm text-gray-600 mb-1">Total Price</div>
+                            <div className="text-sm text-gray-600 mb-1">Carrier Cost</div>
                             <div className={`text-3xl font-bold ${getPriceColor(carrier.priceRating)}`}>
-                              {formatCurrency(carrier.price)}
+                              {formatCurrency(Math.round(breakdown.seaFreight * (carrier.price / breakdown.total)) + Math.round(breakdown.handling * 0.5))}
                             </div>
                             <div className="text-xs text-gray-500 mt-1">
-                              Door-to-door delivery
+                              Ocean freight + handling
                             </div>
                           </div>
                         </div>
