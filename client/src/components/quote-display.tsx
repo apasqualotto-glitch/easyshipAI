@@ -68,7 +68,7 @@ const generateCarrierOptions = (breakdown: any): CarrierOption[] => {
       logo: "🚢",
       transitDays: 18,
       reliability: 4.8,
-      price: Math.round(baseCarrierCost * 1.02), // 2% higher
+      price: baseCarrierCost, // Base rate
       priceRating: 'standard',
       features: ['Real-time tracking', 'Door-to-door service', 'Insurance included']
     },
@@ -433,7 +433,7 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                               <div className="space-y-1 text-xs">
                                 <div className="flex justify-between">
                                   <span>• Ocean Freight ({carrier.name}):</span>
-                                  <span className="font-medium">{formatCurrency(Math.round(breakdown.seaFreight * (carrier.price / breakdown.total)))}</span>
+                                  <span className="font-medium">{formatCurrency(Math.round(breakdown.seaFreight * (carrier.price / (breakdown.seaFreight + breakdown.handling))))}</span>
                                 </div>
                                 <div className="flex justify-between">
                                   <span>• Terminal Handling:</span>
@@ -445,7 +445,7 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                                 </div>
                                 <div className="border-t border-blue-300 pt-1 mt-2 flex justify-between font-bold">
                                   <span>{carrier.name} Total:</span>
-                                  <span>{formatCurrency(Math.round(breakdown.seaFreight * (carrier.price / breakdown.total)) + Math.round(breakdown.handling * 0.5))}</span>
+                                  <span className="font-medium">{formatCurrency(carrier.price)}</span>
                                 </div>
                               </div>
                               <p className="text-xs text-blue-600 mt-2 italic">
