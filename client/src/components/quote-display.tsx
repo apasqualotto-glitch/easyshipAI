@@ -390,54 +390,30 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                         </div>
                         
                         {selectedCarrier === carrier.name && (
-                          <div className="mt-6 pt-4 border-t-2 border-blue-200 bg-blue-50 p-4 rounded-lg">
-                            <div className="mb-4">
-                              <h4 className="font-bold text-blue-800 mb-3">{carrier.name} Shipping Services</h4>
-                              <div className="space-y-3 text-sm">
-                                <div className="p-3 bg-white rounded border border-blue-200">
-                                  <div className="flex justify-between mb-1">
-                                    <span className="flex items-center gap-2">
-                                      <Ship className="h-4 w-4 text-blue-600" />
-                                      Ocean Freight ({carrier.name})
-                                    </span>
-                                    <span className="font-medium">{formatCurrency(Math.round(breakdown.seaFreight * (carrier.price / breakdown.total)))}</span>
-                                  </div>
-                                  <p className="text-xs text-blue-600">Container shipping from {route.origin} to {route.destination} port</p>
+                          <div className="mt-4 pt-3 border-t-2 border-blue-200 bg-blue-50 p-3 rounded-lg">
+                            <div className="mb-3">
+                              <h4 className="font-bold text-blue-800 mb-2 text-sm">{carrier.name} Costs:</h4>
+                              <div className="space-y-1 text-xs">
+                                <div className="flex justify-between">
+                                  <span>• Ocean Freight ({carrier.name}):</span>
+                                  <span className="font-medium">{formatCurrency(Math.round(breakdown.seaFreight * (carrier.price / breakdown.total)))}</span>
                                 </div>
-                                
-                                <div className="p-3 bg-white rounded border border-blue-200">
-                                  <div className="flex justify-between mb-1">
-                                    <span className="flex items-center gap-2">
-                                      <Package className="h-4 w-4 text-blue-600" />
-                                      Terminal Handling Charges
-                                    </span>
-                                    <span className="font-medium">{formatCurrency(Math.round(breakdown.handling * 0.4))}</span>
-                                  </div>
-                                  <p className="text-xs text-blue-600">Port terminal operations and container handling</p>
+                                <div className="flex justify-between">
+                                  <span>• Terminal Handling:</span>
+                                  <span className="font-medium">{formatCurrency(Math.round(breakdown.handling * 0.4))}</span>
                                 </div>
-                                
-                                <div className="p-3 bg-white rounded border border-blue-200">
-                                  <div className="flex justify-between mb-1">
-                                    <span className="flex items-center gap-2">
-                                      <FileText className="h-4 w-4 text-blue-600" />
-                                      Carrier Documentation
-                                    </span>
-                                    <span className="font-medium">{formatCurrency(Math.round(breakdown.handling * 0.1))}</span>
-                                  </div>
-                                  <p className="text-xs text-blue-600">Bill of lading, shipping manifests, carrier certificates</p>
+                                <div className="flex justify-between">
+                                  <span>• Documentation:</span>
+                                  <span className="font-medium">{formatCurrency(Math.round(breakdown.handling * 0.1))}</span>
                                 </div>
-                                
-                                <div className="border-t border-blue-300 pt-3 mt-3">
-                                  <div className="flex justify-between font-bold text-lg text-blue-800 bg-white p-3 rounded">
-                                    <span>{carrier.name} Total:</span>
-                                    <span>{formatCurrency(Math.round(breakdown.seaFreight * (carrier.price / breakdown.total)) + Math.round(breakdown.handling * 0.5))}</span>
-                                  </div>
-                                </div>
-                                
-                                <div className="mt-3 p-3 bg-blue-100 rounded text-xs text-blue-700">
-                                  <strong>Note:</strong> This shows only {carrier.name}'s direct shipping costs. Customs duties, VAT, trucking, and freight forwarding costs are the same regardless of which carrier you choose.
+                                <div className="border-t border-blue-300 pt-1 mt-2 flex justify-between font-bold">
+                                  <span>{carrier.name} Subtotal:</span>
+                                  <span>{formatCurrency(Math.round(breakdown.seaFreight * (carrier.price / breakdown.total)) + Math.round(breakdown.handling * 0.5))}</span>
                                 </div>
                               </div>
+                              <p className="text-xs text-blue-600 mt-2 italic">
+                                Customs, VAT & trucking costs remain the same for all carriers.
+                              </p>
                             </div>
                             <div className="flex items-center justify-between">
                               <div>
