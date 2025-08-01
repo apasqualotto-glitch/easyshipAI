@@ -93,6 +93,13 @@ const generateCarrierOptions = (basePrice: number): CarrierOption[] => [
 export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: QuoteDisplayProps) {
   const [selectedCarrier, setSelectedCarrier] = useState<string | null>(null);
   const [selectedFreightForwarder, setSelectedFreightForwarder] = useState<string | null>(null);
+  const [, setLocation] = useLocation();
+
+  if (!isVisible) return null;
+  
+  // Extract data from the actual quote structure
+  const basePrice = quote?.totalCost || 0;
+  const CARRIER_OPTIONS = generateCarrierOptions(basePrice);
 
   // Get dynamic pricing based on selections
   const getSelectedCarrierPrice = () => {
@@ -115,9 +122,6 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
            breakdown.vat + 
            getSelectedFreightForwarderCost();
   };
-  const [, setLocation] = useLocation();
-
-  if (!isVisible) return null;
   
   const handleBookShipment = (carrier: string) => {
     if (onBookShipment) {
@@ -128,10 +132,6 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
       setLocation(`/booking?quoteId=${quote.id}&carrier=${encodeURIComponent(carrier)}`);
     }
   };
-
-  // Extract data from the actual quote structure
-  const basePrice = quote?.totalCost || 0;
-  const CARRIER_OPTIONS = generateCarrierOptions(basePrice);
   
   // Create a compatible breakdown structure from the quote data
   const breakdown = {

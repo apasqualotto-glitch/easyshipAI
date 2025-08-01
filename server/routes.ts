@@ -164,8 +164,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Calculate shipping quote - CRITICAL for providing real industry rates
   app.post("/api/calculate-quote", async (req, res) => {
     try {
-      console.log(`Starting quote calculation...`);
+      console.log(`Starting quote calculation for origin: ${req.body.originPort}, destination: ${req.body.destinationPort}`);
       const validatedData = quoteRequestSchema.parse(req.body);
+      console.log(`Schema validation passed for origin: ${validatedData.originPort}`);
       
       // Use the same storage approach as the working debug endpoints
       // This ensures data integrity and prevents synthetic data fallback
@@ -230,6 +231,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get destination for trucking costs
       const destinations = await storage.getDestinations();
+      console.log(`Found ${destinations.length} destinations for trucking costs`);
       let destination;
       
       // For exports, we don't need a SA destination (cargo goes to international port)
@@ -341,18 +343,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Validate and get origin country from port information for trade agreement calculations
-      const allOriginPorts = await storage.getOriginPorts();
-      const selectedOriginPort = allOriginPorts.find(p => p.code === validatedData.originPort);
-      
-      if (!selectedOriginPort) {
-        throw new Error(`Origin port ${validatedData.originPort} not found`);
-      }
-      
-      const originCountry = selectedOriginPort.country;
+      // Use the origin port we already found and validated earlier
+      const originCountry = originPort.country;
+      console.log(`Using origin country: ${originCountry} for trade agreement calculations`);
 
       // Validate container weight limits
+      console.log(`Validating weight limits for container: ${validatedData.containerType}, weight: ${validatedData.weight}kg`);
       const weightLimits = getContainerWeightLimits(validatedData.containerType);
+      console.log(`Weight limits: max ${weightLimits.maxWeight}kg, volume ${weightLimits.volume}m³`);
       if (validatedData.weight > weightLimits.maxWeight) {
         throw new Error(`Cargo weight ${validatedData.weight}kg exceeds ${validatedData.containerType} container limit of ${weightLimits.maxWeight}kg`);
       }
@@ -585,9 +583,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
     } catch (error) {
+      console.error('Quote calculation error:', error);
       if (error instanceof Error) {
+        console.error('Error details:', error.message, error.stack);
         res.status(400).json({ message: error.message });
       } else {
+        console.error('Unknown error type:', error);
         res.status(500).json({ message: "Failed to calculate quote" });
       }
     }
