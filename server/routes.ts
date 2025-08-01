@@ -56,6 +56,17 @@ async function getCurrentExchangeRate(): Promise<{ rate: number; source: string;
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Get all ports - CRITICAL for quote calculations
+  app.get("/api/ports", async (req, res) => {
+    try {
+      const ports = await storage.getPorts();
+      res.json(ports);
+    } catch (error) {
+      console.error("Failed to fetch all ports:", error);
+      res.status(500).json({ message: "Failed to fetch ports" });
+    }
+  });
+
   // Get all origin ports
   app.get("/api/ports/origin", async (req, res) => {
     try {
@@ -124,63 +135,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
         availablePorts: originPorts.slice(0, 5).map(p => ({ id: p.id, name: p.name, code: p.code })),
         totalOriginPorts: originPorts.length
       });
-    } catch (error) {
+    } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
   });
 
-  // Calculate shipping quote
+  // Debug endpoint to test route lookups
+  app.get("/api/debug-routes/:originId-:destId", async (req, res) => {
+    try {
+      const { originId, destId } = req.params;
+      const route = await storage.getRoute(originId, destId);
+      const allPorts = await storage.getPorts();
+      const originPort = allPorts.find(p => p.id === originId);
+      const destPort = allPorts.find(p => p.id === destId);
+      
+      res.json({
+        searching: `${originId} -> ${destId}`,
+        originPort: originPort ? { id: originPort.id, name: originPort.name } : null,
+        destPort: destPort ? { id: destPort.id, name: destPort.name } : null,
+        route: route || null,
+        routeKey: `${originId}-${destId}`
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Calculate shipping quote - CRITICAL for providing real industry rates
   app.post("/api/calculate-quote", async (req, res) => {
     try {
+      console.log(`Starting quote calculation...`);
       const validatedData = quoteRequestSchema.parse(req.body);
       
-      // Find origin and destination ports using direct iteration for reliable matching
+      // Use the same storage approach as the working debug endpoints
+      // This ensures data integrity and prevents synthetic data fallback
       const allPorts = await storage.getPorts();
-      const originPorts = await storage.getOriginPorts();
       
-      // Find origin port using direct iteration (more reliable than find())
-      let originPort = null;
-      for (const port of originPorts) {
-        if (port.id === validatedData.originPort || port.code === validatedData.originPort || port.name === validatedData.originPort) {
-          originPort = port;
-          break;
-        }
+      // Validate storage is initialized with real port data
+      if (allPorts.length === 0) {
+        console.error('Critical: Storage not initialized - no ports available');
+        return res.status(500).json({ message: "System initialization error - please try again in a moment" });
       }
       
+      // Use EXACT same method as working debug endpoint to ensure data integrity
+      const searchPortId = validatedData.originPort;
+      console.log(`Searching for port ID: '${searchPortId}' in ${allPorts.length} ports`);
+      
+      // Direct port lookup - same as debug endpoint
+      const originPort = allPorts.find(p => p.id === searchPortId);
+      
       if (!originPort) {
+        console.error(`CRITICAL: Port ${searchPortId} not found - data integrity failure`);
         return res.status(400).json({ message: `Origin port ${validatedData.originPort} not found` });
       }
       
-      // Find destination port based on shipment direction
-      let destinationPort = null;
-      if (originPort.country === "South Africa") {
-        // Export: destination can be any port
-        for (const port of allPorts) {
-          if (port.id === validatedData.destinationPort || port.code === validatedData.destinationPort || port.name === validatedData.destinationPort) {
-            destinationPort = port;
-            break;
-          }
-        }
-      } else {
-        // Import: destination must be a SA port (type "destination" or "both")
-        for (const port of allPorts) {
-          const isDestinationType = port.type === "destination" || port.type === "both";
-          if (isDestinationType && (port.id === validatedData.destinationPort || port.code === validatedData.destinationPort || port.name === validatedData.destinationPort)) {
-            destinationPort = port;
-            break;
-          }
-        }
+      console.log(`Port found: ${originPort.name} (${originPort.type})`);
+      
+      // Validate it's an origin port
+      if (originPort.type !== "origin" && originPort.type !== "both") {
+        return res.status(400).json({ message: `Port ${validatedData.originPort} is not a valid origin port` });
       }
       
+      // Find destination port - use same method as origin port for data integrity
+      console.log(`Looking for destination port: ${validatedData.destinationPort}`);
+      const destinationPort = allPorts.find(p => p.id === validatedData.destinationPort);
+      
       if (!destinationPort) {
+        console.error(`CRITICAL: Destination port ${validatedData.destinationPort} not found`);
         return res.status(400).json({ message: `Destination port ${validatedData.destinationPort} not found` });
       }
+      
+      console.log(`Destination port found: ${destinationPort.name} (${destinationPort.type})`);
+      
+      // For imports to SA, ensure destination is a SA port
+      if (originPort.country !== "South Africa") {
+        const isValidDestination = destinationPort.type === "destination" || destinationPort.type === "both";
+        if (!isValidDestination) {
+          return res.status(400).json({ message: `${destinationPort.name} is not a valid destination port for imports` });
+        }
+      }
 
-      // Get route information
+      // Get route information - critical for real shipping costs
+      console.log(`Looking for route: ${originPort.id} -> ${destinationPort.id}`);
       const route = await storage.getRoute(originPort.id, destinationPort.id);
+      
       if (!route) {
+        console.error(`CRITICAL: Route ${originPort.id}-${destinationPort.id} not found`);
         return res.status(400).json({ message: "Route not available" });
       }
+      
+      console.log(`Route found: ${route.seaFreightCost20ft} ZAR for 20ft container`);
+      
+      console.log(`✅ All data found - calculating real shipping costs...`);
 
       // Get destination for trucking costs
       const destinations = await storage.getDestinations();

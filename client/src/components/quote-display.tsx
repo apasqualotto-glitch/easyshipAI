@@ -97,7 +97,7 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
   // Get dynamic pricing based on selections
   const getSelectedCarrierPrice = () => {
     if (!selectedCarrier) return breakdown.seaFreight;
-    const carrier = carrierOptions.find(c => c.name === selectedCarrier);
+    const carrier = CARRIER_OPTIONS.find((c: any) => c.name === selectedCarrier);
     return carrier ? carrier.price : breakdown.seaFreight;
   };
 
