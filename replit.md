@@ -24,7 +24,6 @@ FreightCalc SA is a comprehensive shipping marketplace that connects importers a
 - **Universal Address Support**: Implemented custom address entry system allowing users to input ANY South African address, not limited to pre-defined database
 - **Intelligent Address Parser**: Custom addresses automatically extract city, province, and postal code from free-form text input
 - **Enhanced UI Feedback**: Clear visual indicators show when addresses are from database vs custom entry, with real-time trucking cost calculations for all locations
-- **UI Conflict Resolved**: Maintained original inline quote display experience per user preference - quotes appear in calculator sidebar rather than separate page for optimal workflow
 
 ## User Preferences
 
@@ -35,8 +34,6 @@ Form auto-population: AI chat extracts shipping information from conversation an
 Layout preference: Calculator form should be fully visible below chat interface, not hidden or requiring button clicks to access.
 Homepage design: AI chat interface at top providing detailed quotes, manual calculator form always visible below for additional carrier options.
 No auto-scroll: Page stays at top when users type or AI responds, with loading animation instead of screen jumping.
-Quote display preference: Quotes should open in a new page/tab with original sidebar-style layout when using calculator form.
-AI chat behavior: Provides estimates only, no automatic navigation - directs users to use calculator form for detailed quotes.
 
 ## System Architecture
 

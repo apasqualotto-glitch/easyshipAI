@@ -6,7 +6,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Calculator from "@/pages/calculator";
-import QuoteResults from "@/pages/quote-results";
 import Booking from "@/pages/booking";
 import BookingConfirmation from "@/pages/booking-confirmation";
 import { Homepage } from "@/pages/homepage";
@@ -132,8 +131,6 @@ function Router() {
     <Switch>
       <Route path="/" component={Homepage} />
       <Route path="/calculator" component={Calculator} />
-      <Route path="/quote/:id" component={QuoteResults} />
-      <Route path="/quote/latest" component={QuoteResults} />
       <Route path="/booking" component={Booking} />
       <Route path="/booking/confirmation/:id" component={BookingConfirmation} />
       <Route path="/guides" component={Guides} />

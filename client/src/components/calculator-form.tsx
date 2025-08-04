@@ -76,47 +76,38 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
 
   const calculateQuoteMutation = useMutation({
     mutationFn: async (data: QuoteRequest) => {
-      try {
-        // First validate the data for consistency
-        const validation = await validateQuoteMutation.mutateAsync(data);
-        
-        if (!validation.isValid) {
-          throw new Error(`Data validation failed: ${validation.errors.join(", ")}`);
-        }
-
-        // Show warnings about data consistency if any
-        if (validation.warnings && validation.warnings.length > 0) {
-          toast({
-            title: "Data Check Warning",
-            description: validation.warnings[0], // Show first warning
-            variant: "default",
-          });
-        }
-
-        const endpoint = useLiveRates ? "/api/calculate-quote-with-live" : "/api/calculate-quote";
-        const response = await apiRequest("POST", endpoint, data);
-        const result = await response.json();
-        
-        // Return both result and original request data
-        return { result, requestData: data };
-      } catch (error: any) {
-        console.error("Quote calculation error:", error);
-        throw error;
+      // First validate the data for consistency
+      const validation = await validateQuoteMutation.mutateAsync(data);
+      
+      if (!validation.isValid) {
+        throw new Error(`Data validation failed: ${validation.errors.join(", ")}`);
       }
+
+      // Show warnings about data consistency if any
+      if (validation.warnings && validation.warnings.length > 0) {
+        toast({
+          title: "Data Check Warning",
+          description: validation.warnings[0], // Show first warning
+          variant: "default",
+        });
+      }
+
+      const endpoint = useLiveRates ? "/api/calculate-quote-with-live" : "/api/calculate-quote";
+      const response = await apiRequest("POST", endpoint, data);
+      return response.json();
     },
-    onSuccess: ({ result, requestData }) => {
+    onSuccess: (result) => {
       onQuoteResult(result);
+      setCurrentStep(3);
+      const rateSource = result.hasLiveRates ? "live carrier rates" : "estimates";
+      const savings = result.liveRateInfo?.savings || 0;
+      const savingsText = savings > 0 ? ` (Save R ${Math.abs(savings).toLocaleString()})` : 
+                        savings < 0 ? ` (R ${Math.abs(savings).toLocaleString()} higher)` : "";
       
-      // Store the quote data and navigate to results page
-      const quoteData = {
-        ...result,
-        requestData: requestData
-      };
-      
-      sessionStorage.setItem('latestQuote', JSON.stringify(quoteData));
-      
-      // Navigate to new page in same window (will appear as new page)
-      window.location.href = '/quote/latest';
+      toast({
+        title: "Quote calculated successfully! ✅",
+        description: `Total cost: R ${result.totalCost.toLocaleString()} | Weight: ${result.weight}kg | Origin: ${result.originCountry || 'Unknown'} using ${rateSource}${savingsText}`,
+      });
     },
     onError: (error: any) => {
       toast({

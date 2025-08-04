@@ -491,9 +491,9 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
       
       // Add note about detailed quote for complete requests
       if (isCompleteShippingRequest || hasSufficientInfo) {
-        aiResponse += "\n\n📊 **Ready for your detailed quote!** Use the calculator form below to generate a comprehensive quote with live rates and carrier options.";
+        aiResponse += "\n\n📊 **Generating your detailed quote now...** It will appear below with full cost breakdown and carrier options.";
       } else if (hasShippingKeywords && !aiResponse.toLowerCase().includes('detailed quote')) {
-        aiResponse += "\n\n💡 **Need a detailed quote?** Provide your origin, destination, and container type, then use the calculator form below for comprehensive quotes with live rates!";
+        aiResponse += "\n\n💡 **Need a detailed quote?** Provide your origin, destination, and container type, and I'll generate a comprehensive quote with live rates!";
       }
       
       const assistantMessage: ChatMessage = {
