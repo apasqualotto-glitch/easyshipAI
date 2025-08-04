@@ -115,7 +115,15 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
       };
       
       sessionStorage.setItem('latestQuote', JSON.stringify(quoteData));
-      window.open('/quote/latest', '_blank');
+      
+      // Create a link element to open in new tab
+      const link = document.createElement('a');
+      link.href = '/quote/latest';
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     },
     onError: (error: any) => {
       toast({
