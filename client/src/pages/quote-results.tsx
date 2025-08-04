@@ -89,17 +89,28 @@ export default function QuoteResults() {
 
   const fetchCarrierComparison = async (quoteData: QuoteData) => {
     try {
+      // Extract request data with port codes
+      const requestData = quoteData.requestData || {
+        originPort: quoteData.originPort,
+        destinationPort: quoteData.destinationPort,
+        containerType: quoteData.containerType,
+        cargoValue: quoteData.value,
+        weight: quoteData.weight,
+      };
+
       const response = await fetch("/api/compare-carriers", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(quoteData),
+        body: JSON.stringify(requestData),
       });
       
       if (response.ok) {
         const comparison = await response.json();
         setCarrierComparison(comparison);
+      } else {
+        console.error("Carrier comparison failed:", await response.text());
       }
     } catch (error) {
       console.error("Failed to fetch carrier comparison:", error);
@@ -159,8 +170,8 @@ export default function QuoteResults() {
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2">
-            {/* Carrier Comparison */}
-            {carrierComparison && (
+            {/* Carrier Comparison - Show loading or error state */}
+            {carrierComparison ? (
               <CarrierComparison 
                 rates={carrierComparison?.carrierRates || []}
                 baseCost={quote.totalCost}
@@ -168,13 +179,22 @@ export default function QuoteResults() {
                 route={`${quote.originPort} → ${quote.destinationPort}`}
                 quoteId={quote.id}
               />
+            ) : (
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle>Carrier Options</CardTitle>
+                  <CardDescription>
+                    Loading carrier rates... If this takes too long, carrier comparison may be temporarily unavailable.
+                  </CardDescription>
+                </CardHeader>
+              </Card>
             )}
           </div>
 
           {/* Cost Breakdown - Original Sidebar Style */}
           <div className="lg:col-span-1">
             <CostBreakdown 
-              quoteData={{
+              quoteData={quote.requestData || {
                 originPort: quote.originPort,
                 destinationPort: quote.destinationPort,
                 deliveryAddress: quote.deliveryAddress,
