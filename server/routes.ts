@@ -1398,14 +1398,21 @@ What specific shipping question can I help you with?`;
 
   app.post("/api/addresses/calculate-distance", async (req, res) => {
     try {
-      const { addressId, portCode, incoterm } = req.body;
+      const { addressId, addressString, portCode, incoterm } = req.body;
       
-      if (!addressId || !portCode) {
-        return res.status(400).json({ message: "Missing addressId or portCode" });
+      if ((!addressId && !addressString) || !portCode) {
+        return res.status(400).json({ message: "Missing address or portCode" });
       }
 
-      // Find address by ID directly
-      const address = addressService.getAddressById(addressId);
+      let address: any;
+      
+      // Handle custom addresses
+      if (addressString && (!addressId || addressId.startsWith('custom_'))) {
+        address = addressService.createCustomAddress(addressString);
+      } else {
+        // Find address by ID directly
+        address = addressService.getAddressById(addressId);
+      }
       
       if (!address) {
         return res.status(404).json({ message: "Address not found" });

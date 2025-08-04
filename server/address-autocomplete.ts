@@ -219,9 +219,116 @@ export function searchAddresses(query: string, limit: number = 8): Address[] {
   return uniqueResults.slice(0, limit).map(result => result.item);
 }
 
-// Get address by ID
+// Get address by ID or create custom address
 export function getAddressById(id: string): Address | undefined {
+  // Check if it's a custom address ID
+  if (id.startsWith('custom_')) {
+    // For custom addresses, we need to parse the address from the request
+    // This will be handled differently
+    return undefined;
+  }
   return southAfricanAddresses.find(addr => addr.id === id);
+}
+
+// Create a custom address from user input
+export function createCustomAddress(addressString: string): Address {
+  // Parse the address string to extract components
+  const parts = addressString.split(',').map(p => p.trim());
+  const postalCodeMatch = addressString.match(/\b\d{4}\b/);
+  const postalCode = postalCodeMatch ? postalCodeMatch[0] : '0000';
+  
+  // Try to identify city and province from the string
+  let city = 'Unknown';
+  let province = 'Unknown';
+  
+  // Check for province names
+  const provinces = ['Gauteng', 'Western Cape', 'KwaZulu-Natal', 'Eastern Cape', 
+    'Free State', 'Limpopo', 'Mpumalanga', 'Northern Cape', 'North West'];
+  
+  for (const prov of provinces) {
+    if (addressString.toLowerCase().includes(prov.toLowerCase())) {
+      province = prov;
+      break;
+    }
+  }
+  
+  // Try to extract city from common patterns
+  if (parts.length >= 2) {
+    // Look for city in the second to last part (before postal code)
+    const potentialCity = parts[parts.length - 2].replace(/\d{4}/, '').trim();
+    
+    // Check against known cities
+    const knownCities = ['Johannesburg', 'Cape Town', 'Durban', 'Pretoria', 'Port Elizabeth',
+      'Bloemfontein', 'East London', 'Polokwane', 'Nelspruit', 'Kimberley', 'Rustenburg',
+      'Potchefstroom', 'Pietermaritzburg', 'Stellenbosch', 'Sandton', 'Centurion',
+      'Midrand', 'Soweto', 'Rosebank', 'Germiston', 'Benoni', 'Boksburg', 'Alberton',
+      'Kempton Park', 'Randburg', 'Roodepoort', 'Vereeniging', 'Klerksdorp', 'Welkom',
+      'Newcastle', 'Uitenhage', 'Paarl', 'George', 'Knysna', 'Mossel Bay', 'Hermanus'];
+    
+    for (const knownCity of knownCities) {
+      if (addressString.toLowerCase().includes(knownCity.toLowerCase())) {
+        city = knownCity;
+        break;
+      }
+    }
+    
+    // If no known city found, use the potential city from parsing
+    if (city === 'Unknown' && potentialCity) {
+      city = potentialCity;
+    }
+  }
+  
+  // Generate a unique ID for custom addresses
+  const customId = `custom_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  
+  // Estimate coordinates based on city (fallback to Johannesburg center)
+  const cityCoordinates: { [key: string]: { lat: number; lng: number } } = {
+    'johannesburg': { lat: -26.2041, lng: 28.0473 },
+    'sandton': { lat: -26.1076, lng: 28.0567 },
+    'cape town': { lat: -33.9249, lng: 18.4241 },
+    'durban': { lat: -29.8587, lng: 31.0218 },
+    'pretoria': { lat: -25.7479, lng: 28.2293 },
+    'port elizabeth': { lat: -33.9580, lng: 25.6022 },
+    'bloemfontein': { lat: -29.0852, lng: 26.1596 },
+    'east london': { lat: -33.0158, lng: 27.9139 },
+    'polokwane': { lat: -23.9045, lng: 29.4689 },
+    'nelspruit': { lat: -25.4747, lng: 30.9689 },
+    'kimberley': { lat: -28.7282, lng: 24.7499 },
+    'pietermaritzburg': { lat: -29.6020, lng: 30.3794 },
+    'stellenbosch': { lat: -33.9321, lng: 18.8602 },
+    'centurion': { lat: -25.8601, lng: 28.1882 },
+    'midrand': { lat: -25.9947, lng: 28.1294 },
+    'germiston': { lat: -26.2054, lng: 28.1772 },
+    'benoni': { lat: -26.1882, lng: 28.3208 },
+    'boksburg': { lat: -26.2119, lng: 28.2625 },
+    'kempton park': { lat: -26.1017, lng: 28.2305 },
+    'randburg': { lat: -26.0936, lng: 28.0056 },
+    'soweto': { lat: -26.2678, lng: 27.8586 },
+    'vereeniging': { lat: -26.6736, lng: 27.9319 },
+    'klerksdorp': { lat: -26.8521, lng: 26.6669 },
+    'welkom': { lat: -27.9770, lng: 26.7340 },
+    'newcastle': { lat: -27.7580, lng: 29.9318 },
+    'uitenhage': { lat: -33.7606, lng: 25.3971 },
+    'paarl': { lat: -33.7340, lng: 18.9620 },
+    'george': { lat: -33.9631, lng: 22.4627 },
+    'knysna': { lat: -34.0363, lng: 23.0472 },
+    'mossel bay': { lat: -34.1831, lng: 22.1462 },
+    'hermanus': { lat: -34.4187, lng: 19.2345 }
+  };
+  
+  const coords = cityCoordinates[city.toLowerCase()] || { lat: -26.2041, lng: 28.0473 };
+  
+  return {
+    id: customId,
+    formattedAddress: addressString,
+    city,
+    province,
+    postalCode,
+    lat: coords.lat,
+    lng: coords.lng,
+    suburb: parts[1] || 'Custom Location',
+    streetName: parts[0] || 'Custom Address'
+  };
 }
 
 // Get distance and cost from port to address
@@ -256,5 +363,6 @@ export default {
   calculateDistance,
   calculateTruckingCost,
   getAddressesByCity,
+  createCustomAddress,
   portCoordinates
 };

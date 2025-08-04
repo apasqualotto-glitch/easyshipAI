@@ -13,6 +13,8 @@ interface Address {
   postalCode: string;
   suburb?: string;
   streetName?: string;
+  lat?: number;
+  lng?: number;
 }
 
 interface DistanceResult {
@@ -63,6 +65,7 @@ export function AddressAutocomplete({
         } catch (error) {
           console.error('Address search failed:', error);
           setSuggestions([]);
+          setShowSuggestions(true); // Still show dropdown with custom address option
         }
         setIsLoading(false);
       } else {
@@ -75,7 +78,7 @@ export function AddressAutocomplete({
   }, [query]);
 
   // Calculate distance when address is selected
-  const calculateDistance = async (address: Address) => {
+  const calculateDistance = async (address: Address | { formattedAddress: string }) => {
     if (!portCode) return;
     
     setIsCalculatingDistance(true);
@@ -84,7 +87,8 @@ export function AddressAutocomplete({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          addressId: address.id,
+          addressId: 'id' in address ? address.id : undefined,
+          addressString: address.formattedAddress,
           portCode,
           incoterm
         })
@@ -168,31 +172,90 @@ export function AddressAutocomplete({
       </div>
 
       {/* Address Suggestions Dropdown */}
-      {showSuggestions && suggestions.length > 0 && (
+      {showSuggestions && (
         <div 
           ref={suggestionsRef}
           className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-64 overflow-y-auto"
         >
-          {suggestions.map((address) => (
-            <button
-              key={address.id}
-              onClick={() => handleAddressSelect(address)}
-              className="w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0 focus:outline-none focus:bg-blue-50"
-            >
-              <div className="flex items-start gap-3">
-                <MapPin className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium text-gray-900 truncate">
-                    {address.streetName && `${address.streetName}, `}
-                    {address.suburb}
+          {suggestions.length > 0 ? (
+            <>
+              {suggestions.map((address) => (
+                <button
+                  key={address.id}
+                  onClick={() => handleAddressSelect(address)}
+                  className="w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0 focus:outline-none focus:bg-blue-50"
+                >
+                  <div className="flex items-start gap-3">
+                    <MapPin className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-gray-900 truncate">
+                        {address.streetName && `${address.streetName}, `}
+                        {address.suburb}
+                      </div>
+                      <div className="text-sm text-gray-500 truncate">
+                        {address.city}, {address.province} {address.postalCode}
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-500 truncate">
-                    {address.city}, {address.province} {address.postalCode}
+                </button>
+              ))}
+            </>
+          ) : (
+            <div className="p-4">
+              {query.trim().length >= 5 ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <MapPin className="h-4 w-4" />
+                    <span>No matching addresses found in our database</span>
+                  </div>
+                  
+                  <div className="border-t border-gray-100 pt-3">
+                    <p className="text-xs text-gray-500 mb-2">
+                      Use your custom address:
+                    </p>
+                    <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
+                      <p className="text-sm font-medium text-gray-900 mb-1">
+                        {query}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        We'll calculate trucking costs based on your location
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="default"
+                      className="w-full mt-3"
+                      onClick={() => {
+                        setShowSuggestions(false);
+                        // Calculate distance for custom address
+                        calculateDistance({ formattedAddress: query });
+                        setSelectedAddress({
+                          id: `custom_${Date.now()}`,
+                          formattedAddress: query,
+                          city: 'Custom Location',
+                          province: 'Custom',
+                          postalCode: '0000',
+                          lat: -26.2041,
+                          lng: 28.0473
+                        });
+                      }}
+                    >
+                      Use This Custom Address
+                    </Button>
                   </div>
                 </div>
-              </div>
-            </button>
-          ))}
+              ) : (
+                <div className="text-center">
+                  <p className="text-sm text-gray-500 mb-1">
+                    Type at least 5 characters to search
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    or enter your complete address
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
