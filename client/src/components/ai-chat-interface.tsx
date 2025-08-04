@@ -489,52 +489,11 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
                                  messageContent.toLowerCase().includes('europe') ||
                                  messageContent.toLowerCase().includes('usa');
       
-      // Trigger actual quote calculation for complete requests
-      if (isCompleteShippingRequest && missingInfo.length === 0) {
-        aiResponse += "\n\n📊 **Generating your detailed quote now...** You'll be redirected to the full quote page in a moment.";
-        
-        // Trigger actual quote calculation after a short delay
-        setTimeout(async () => {
-          try {
-            const quoteRequest = {
-              originPort: getOriginPortId(fullConversation),
-              destinationPort: getDestinationPortId(fullConversation),
-              deliveryAddress: getFinalDestinationName(fullConversation) || "Cape Town, Western Cape",
-              containerType: getContainerType(fullConversation),
-              cargoType: getCargoType(fullConversation) || "general",
-              incoterm: getIncoterm(fullConversation) || "FOB",
-              weight: getWeight(fullConversation),
-              value: getCargoValue(fullConversation),
-            };
-
-            const response = await fetch("/api/calculate-quote-with-live", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(quoteRequest),
-            });
-
-            if (response.ok) {
-              const quoteResult = await response.json();
-              
-              // Store quote with request data and navigate to results page
-              const quoteData = {
-                ...quoteResult,
-                requestData: quoteRequest
-              };
-              
-              sessionStorage.setItem('latestQuote', JSON.stringify(quoteData));
-              window.location.href = '/quote/latest';
-            }
-          } catch (error) {
-            console.error("Failed to generate quote:", error);
-          }
-        }, 2000);
-      } else if (hasSufficientInfo) {
-        aiResponse += "\n\n📊 **Almost ready for your detailed quote!** I'll generate it once you provide all the required information.";
+      // Add note about detailed quote for complete requests
+      if (isCompleteShippingRequest || hasSufficientInfo) {
+        aiResponse += "\n\n📊 **Ready for your detailed quote!** Use the calculator form below to generate a comprehensive quote with live rates and carrier options.";
       } else if (hasShippingKeywords && !aiResponse.toLowerCase().includes('detailed quote')) {
-        aiResponse += "\n\n💡 **Need a detailed quote?** Provide your origin, destination, and container type, and I'll generate a comprehensive quote with live rates!";
+        aiResponse += "\n\n💡 **Need a detailed quote?** Provide your origin, destination, and container type, then use the calculator form below for comprehensive quotes with live rates!";
       }
       
       const assistantMessage: ChatMessage = {

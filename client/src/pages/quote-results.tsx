@@ -155,69 +155,24 @@ export default function QuoteResults() {
           Back to Calculator
         </Button>
 
+        {/* Original Sidebar Layout */}
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Quote Header */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-2xl">Shipping Quote</CardTitle>
-                    <CardDescription>
-                      Complete breakdown for your shipment
-                    </CardDescription>
-                  </div>
-                  <Badge variant="outline" className="text-sm">
-                    Quote #{quote.id.slice(-6).toUpperCase()}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-3 gap-6">
-                  {/* Route */}
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <Ship className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Route</p>
-                      <p className="text-sm text-gray-600">
-                        {quote.originPort} → {quote.destinationPort}
-                      </p>
-                    </div>
-                  </div>
+          <div className="lg:col-span-2">
+            {/* Carrier Comparison */}
+            {carrierComparison && (
+              <CarrierComparison 
+                rates={carrierComparison?.carrierRates || []}
+                baseCost={quote.totalCost}
+                containerType={quote.containerType}
+                route={`${quote.originPort} → ${quote.destinationPort}`}
+                quoteId={quote.id}
+              />
+            )}
+          </div>
 
-                  {/* Container */}
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                      <Package className="h-5 w-5 text-green-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Container</p>
-                      <p className="text-sm text-gray-600">
-                        {quote.containerType} • {quote.weight.toLocaleString()} kg
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Delivery */}
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                      <MapPin className="h-5 w-5 text-orange-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Final Delivery</p>
-                      <p className="text-sm text-gray-600">
-                        {quote.deliveryAddress}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Cost Breakdown */}
+          {/* Cost Breakdown - Original Sidebar Style */}
+          <div className="lg:col-span-1">
             <CostBreakdown 
               quoteData={{
                 originPort: quote.originPort,
@@ -231,85 +186,6 @@ export default function QuoteResults() {
               }}
               quoteResult={quote}
             />
-
-            {/* Carrier Comparison */}
-            {carrierComparison && (
-              <CarrierComparison 
-                rates={carrierComparison?.carrierRates || []}
-                baseCost={quote.totalCost}
-                containerType={quote.containerType}
-                route={`${quote.originPort} → ${quote.destinationPort}`}
-                quoteId={quote.id}
-              />
-            )}
-          </div>
-
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
-            <Card className="sticky top-4">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5" />
-                  Total Cost
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-primary-600">
-                    {formatCurrency(quote.totalCost)}
-                  </p>
-                  <p className="text-sm text-gray-600 mt-1">
-                    All-inclusive price
-                  </p>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Sea Freight:</span>
-                    <span className="font-medium">{formatCurrency(quote.seaFreightCost)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Trucking:</span>
-                    <span className="font-medium">{formatCurrency(quote.truckingCost)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Customs & VAT:</span>
-                    <span className="font-medium">{formatCurrency(quote.customsDuties + quote.vat)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Handling:</span>
-                    <span className="font-medium">{formatCurrency(quote.handlingFees)}</span>
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Calendar className="h-4 w-4" />
-                    <span>Transit Time: 25-30 days</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <FileText className="h-4 w-4" />
-                    <span>Incoterm: {quote.incoterm}</span>
-                  </div>
-                </div>
-
-                <Button 
-                  className="w-full" 
-                  size="lg"
-                  onClick={() => handleBookNow("Ocean Carrier")}
-                >
-                  Book This Shipment
-                </Button>
-
-                <div className="text-xs text-gray-500 text-center">
-                  Quote valid for 7 days • Prices include all fees
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>
