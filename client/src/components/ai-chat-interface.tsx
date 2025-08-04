@@ -22,6 +22,7 @@ import {
   RotateCcw
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useChatContext } from "@/contexts/chat-context";
 
 interface ChatMessage {
   id: string;
@@ -62,6 +63,7 @@ const QUICK_QUESTIONS = [
 ];
 
 export function AIChatInterface({ className, context, onExtractedData, onReset }: AIChatInterfaceProps) {
+  const { conversationId, setConversationId } = useChatContext();
   const [isExpanded, setIsExpanded] = useState(true); // Always expanded on calculator page
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -398,7 +400,8 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
         body: JSON.stringify({
           message: messageContent,
           context: context,
-          conversationHistory: messages.slice(-5) // Send last 5 messages for context
+          conversationHistory: messages.slice(-5), // Send last 5 messages for context
+          conversationId: conversationId
         }),
       });
 
@@ -407,6 +410,11 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
       }
 
       const data = await response.json();
+      
+      // Save conversation ID if returned
+      if (data.conversationId && !conversationId) {
+        setConversationId(data.conversationId);
+      }
       
       // Enhanced shipping detection and estimation
       const fullConversation = messages.map(m => m.content).concat(messageContent).join(' ');

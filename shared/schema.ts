@@ -67,7 +67,6 @@ export const shippingQuotes = pgTable("shipping_quotes", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   originPort: text("origin_port").notNull(),
   destinationPort: text("destination_port").notNull(),
-  finalDestination: text("final_destination").notNull(),
   deliveryAddress: text("delivery_address").notNull(),
   containerType: text("container_type").notNull(),
   cargoType: text("cargo_type").notNull(),

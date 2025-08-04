@@ -1,8 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Zap, TrendingDown, TrendingUp, Clock } from "lucide-react";
+import { Zap, TrendingDown, TrendingUp, Clock, MessageCircle } from "lucide-react";
 import { type QuoteRequest } from "@shared/schema";
+import { useState } from "react";
+import { ChatPopup } from "@/components/chat-popup";
 
 interface CostBreakdownProps {
   quoteData: QuoteRequest | null;
@@ -10,6 +12,7 @@ interface CostBreakdownProps {
 }
 
 export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownProps) {
+  const [showChat, setShowChat] = useState(false);
   const formatCurrency = (amount: number) => {
     return `R ${amount.toLocaleString()}`;
   };
@@ -20,8 +23,17 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
         <CardContent className="p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Cost Breakdown</h3>
           {quoteResult && quoteResult.id && (
-            <div className="mb-4 p-2 bg-green-100 text-green-800 rounded text-sm">
-              ✅ Quote generated! Booking section available below.
+            <div className="mb-4 p-2 bg-green-100 text-green-800 rounded text-sm flex items-center justify-between">
+              <span>✅ Quote generated! Booking section available below.</span>
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                onClick={() => setShowChat(true)}
+                className="text-green-700 hover:text-green-900"
+              >
+                <MessageCircle className="h-4 w-4 mr-1" />
+                Ask about this quote
+              </Button>
             </div>
           )}
           
@@ -281,7 +293,7 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
                       id: quoteResult.id,
                       originPort: quoteResult.originPort,
                       destinationPort: quoteResult.destinationPort,
-                      finalDestination: quoteResult.finalDestination,
+                      deliveryAddress: quoteResult.deliveryAddress,
                       containerType: quoteResult.containerType,
                       cargoType: quoteResult.cargoType,
                       weight: quoteResult.weight,
@@ -405,6 +417,19 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
             </div>
           </CardContent>
         </Card>
+      )}
+      
+      {/* Chat Popup for Quote Context */}
+      {showChat && quoteResult && (
+        <ChatPopup 
+          context={{
+            type: 'quote',
+            quoteId: quoteResult.id,
+            totalCost: quoteResult.totalCost,
+            incoterm: quoteResult.incoterm
+          }}
+          initialMessage={`I'd like to ask about my quote #${quoteResult.id} with a total cost of R${quoteResult.totalCost.toLocaleString()}`}
+        />
       )}
     </div>
   );

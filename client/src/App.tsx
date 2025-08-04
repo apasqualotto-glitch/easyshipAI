@@ -12,6 +12,7 @@ import { Homepage } from "@/pages/homepage";
 import { Guides } from "@/pages/guides";
 import { Tracking } from "@/pages/tracking";
 import NotFound from "@/pages/not-found";
+import { ChatPopup } from "@/components/chat-popup";
 import { 
   Ship, 
   Calculator as CalculatorIcon, 
@@ -22,6 +23,7 @@ import {
   X
 } from "lucide-react";
 import { useState } from "react";
+import { ChatProvider } from "@/contexts/chat-context";
 
 function Navigation() {
   const [location] = useLocation();
@@ -141,13 +143,16 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <div className="min-h-screen bg-gray-50">
-          <Navigation />
-          <Router />
-        </div>
-        <Toaster />
-      </TooltipProvider>
+      <ChatProvider>
+        <TooltipProvider>
+          <div className="min-h-screen bg-gray-50">
+            <Navigation />
+            <Router />
+          </div>
+          <Toaster />
+          <ChatPopup />
+        </TooltipProvider>
+      </ChatProvider>
     </QueryClientProvider>
   );
 }

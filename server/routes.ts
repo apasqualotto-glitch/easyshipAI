@@ -656,7 +656,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const freightForwarderRequest = {
         originPort: standardQuote.originPort,
         destinationPort: standardQuote.destinationPort,
-        finalDestination: validatedData.finalDestination,
         deliveryAddress: validatedData.deliveryAddress, // Use delivery address for precise trucking costs
         containerType: validatedData.containerType === "partial" ? "20ft" : validatedData.containerType as "20ft" | "40ft" | "40ft-hc",
         cargoValue: validatedData.value,
@@ -1119,6 +1118,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Commission payment endpoint for 5% platform fee
+  app.post("/api/create-commission-payment", async (req, res) => {
+    try {
+      const { bookingId, amount, description } = req.body;
+
+      if (!bookingId || !amount) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      // Create payment intent for commission only (5% of total)
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(amount * 100), // Convert to cents
+        currency: "zar",
+        description: description || `FreightCalc SA booking commission - ${bookingId}`,
+        metadata: {
+          bookingId,
+          type: "commission",
+          percentage: "5"
+        }
+      });
+
+      res.json({ 
+        clientSecret: paymentIntent.client_secret,
+        commissionAmount: amount 
+      });
+    } catch (error: any) {
+      console.error("Commission payment error:", error);
+      res.status(500).json({ 
+        message: "Error creating commission payment", 
+        error: error.message 
+      });
+    }
+  });
+
   // Get booking status
   app.get("/api/bookings/:carrierCode/:bookingReference/status", async (req, res) => {
     try {
@@ -1206,6 +1239,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/chat", async (req, res) => {
     try {
       const validatedData = chatRequestSchema.parse(req.body);
+      const { conversationId } = req.body;
       
       // Extract context information
       const context = {
@@ -1227,7 +1261,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         response,
         timestamp: new Date().toISOString(),
-        context: context.page
+        context: context.page,
+        conversationId: conversationId || `conv_${Date.now()}`
       });
 
     } catch (error) {
@@ -1309,7 +1344,7 @@ What specific shipping question can I help you with?`;
         status: "pending",
         originPort: quote.originPort,
         destinationPort: quote.destinationPort,
-        finalDestination: quote.finalDestination,
+        finalDestination: quote.deliveryAddress, // Using deliveryAddress as finalDestination
         containerType: quote.containerType,
         shipperName,
         shipperEmail,
