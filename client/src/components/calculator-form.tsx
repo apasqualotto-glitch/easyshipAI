@@ -95,19 +95,22 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
 
         const endpoint = useLiveRates ? "/api/calculate-quote-with-live" : "/api/calculate-quote";
         const response = await apiRequest("POST", endpoint, data);
-        return response.json();
+        const result = await response.json();
+        
+        // Return both result and original request data
+        return { result, requestData: data };
       } catch (error: any) {
         console.error("Quote calculation error:", error);
         throw error;
       }
     },
-    onSuccess: (result) => {
+    onSuccess: ({ result, requestData }) => {
       onQuoteResult(result);
       
       // Store the quote data and navigate to results page
       const quoteData = {
         ...result,
-        requestData: data
+        requestData: requestData
       };
       
       sessionStorage.setItem('latestQuote', JSON.stringify(quoteData));
