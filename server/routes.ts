@@ -1382,11 +1382,13 @@ What specific shipping question can I help you with?`;
   app.get("/api/addresses/search", async (req, res) => {
     try {
       const { q } = req.query;
-      if (!q || typeof q !== 'string' || q.length < 2) {
+      if (!q || typeof q !== 'string' || q.length < 1) {
         return res.json([]);
       }
       
+      console.log(`🔍 Searching addresses for: "${q}"`);
       const addresses = addressService.searchAddresses(q, 8);
+      console.log(`📍 Found ${addresses.length} addresses for "${q}"`);
       res.json(addresses);
     } catch (error) {
       console.error("Address search error:", error);

@@ -19,6 +19,8 @@ FreightCalc SA is a comprehensive shipping marketplace that connects importers a
 - **Integrated Cost Structure**: DSV trucking costs properly integrated into main quote total calculation to prevent double-billing
 - **Schema Cleanup Complete**: Removed redundant "Final Destination" field from all components - address autocomplete now provides all location data
 - **Streamlined UX**: Simplified user interface by eliminating duplicate location selection, users now only enter precise delivery address once
+- **Comprehensive Address Database**: Expanded from 20 to 50+ addresses covering all 9 South African provinces with intelligent abbreviation support (JHB, PTA, CPT, DBN, PE)
+- **Smart Search Enhancement**: Added city abbreviation recognition and flexible fuzzy matching for improved address discovery across South Africa
 
 ## User Preferences
 
