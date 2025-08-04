@@ -115,7 +115,7 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
       };
       
       sessionStorage.setItem('latestQuote', JSON.stringify(quoteData));
-      window.location.href = '/quote/latest';
+      window.open('/quote/latest', '_blank');
     },
     onError: (error: any) => {
       toast({
