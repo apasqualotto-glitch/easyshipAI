@@ -53,7 +53,7 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
     defaultValues: {
       originPort: "",
       destinationPort: "",
-      finalDestination: "",
+      deliveryAddress: "",
       containerType: "20ft",
       cargoType: "",
       incoterm: "",
@@ -64,7 +64,6 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
 
   const { data: originPorts = [] } = useQuery({ queryKey: ["/api/ports/origin"] });
   const { data: destinationPorts = [] } = useQuery({ queryKey: ["/api/ports/destination"] });
-  const { data: destinations = [] } = useQuery({ queryKey: ["/api/destinations"] });
   const { data: incoterms = [] } = useQuery({ queryKey: ["/api/incoterms"] });
 
   // Add validation mutation to check data consistency
@@ -447,31 +446,7 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <Label htmlFor="finalDestination" className="flex items-center">
-                Final Destination City
-                <div className="tooltip-trigger relative inline-block ml-1">
-                  <span className="material-icons text-gray-400 text-sm cursor-help">help_outline</span>
-                  <div className="tooltip absolute bottom-6 left-0 bg-gray-900 text-white text-xs p-2 rounded opacity-0 invisible whitespace-nowrap z-10">
-                    Select the city for trucking cost calculation
-                  </div>
-                </div>
-              </Label>
-              <Select onValueChange={(value) => form.setValue("finalDestination", value)} value={form.watch("finalDestination")}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select destination city" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(destinations as Destination[]).map((dest) => (
-                    <SelectItem key={dest.id} value={dest.name}>
-                      {dest.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
+          <div>
             <div>
               <Label htmlFor="deliveryAddress" className="flex items-center">
                 Delivery Address

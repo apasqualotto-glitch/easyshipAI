@@ -17,6 +17,8 @@ FreightCalc SA is a comprehensive shipping marketplace that connects importers a
 - **Enhanced Quote Breakdown**: Complete supplier breakdown on booking page with Incoterm-specific service levels and accurate distance-based pricing
 - **Double-Charging Eliminated**: Fixed trucking cost duplication between main quote calculation and DSV freight forwarder quotes
 - **Integrated Cost Structure**: DSV trucking costs properly integrated into main quote total calculation to prevent double-billing
+- **Schema Cleanup Complete**: Removed redundant "Final Destination" field from all components - address autocomplete now provides all location data
+- **Streamlined UX**: Simplified user interface by eliminating duplicate location selection, users now only enter precise delivery address once
 
 ## User Preferences
 

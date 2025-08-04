@@ -666,30 +666,30 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                     <div className="mb-6 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
                       <h4 className="text-lg font-semibold text-indigo-800 mb-3">{selectedFreightForwarder} (Logistics Services)</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                        {quote?.freightForwarders?.find(f => f.provider === selectedFreightForwarder) && (
+                        {quote?.freightForwarders?.find((f: any) => f.provider === selectedFreightForwarder) && (
                           <>
                             <div className="flex justify-between">
                               <span className="text-gray-700">Customs Clearance:</span>
                               <span className="font-medium text-indigo-600">
-                                {formatCurrency(quote.freightForwarders.find(f => f.provider === selectedFreightForwarder)!.services.customsClearance)}
+                                {formatCurrency(quote.freightForwarders.find((f: any) => f.provider === selectedFreightForwarder)!.services.customsClearance)}
                               </span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-700">Port Clearance:</span>
                               <span className="font-medium text-indigo-600">
-                                {formatCurrency(quote.freightForwarders.find(f => f.provider === selectedFreightForwarder)!.services.portClearance)}
+                                {formatCurrency(quote.freightForwarders.find((f: any) => f.provider === selectedFreightForwarder)!.services.portClearance)}
                               </span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-700">Local Trucking:</span>
                               <span className="font-medium text-indigo-600">
-                                {formatCurrency(quote.freightForwarders.find(f => f.provider === selectedFreightForwarder)!.services.trucking)}
+                                {formatCurrency(quote.freightForwarders.find((f: any) => f.provider === selectedFreightForwarder)!.services.trucking)}
                               </span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-700">Documentation:</span>
                               <span className="font-medium text-indigo-600">
-                                {formatCurrency(quote.freightForwarders.find(f => f.provider === selectedFreightForwarder)!.documentation || 0)}
+                                {formatCurrency(quote.freightForwarders.find((f: any) => f.provider === selectedFreightForwarder)!.documentation || 0)}
                               </span>
                             </div>
                           </>

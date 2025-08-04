@@ -472,7 +472,7 @@ export default function BookingPage() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Final Delivery:</span>
-                      <span className="font-medium">{quote?.finalDestination}</span>
+                      <span className="font-medium">{quote?.deliveryAddress}</span>
                     </div>
                   </div>
                 </div>

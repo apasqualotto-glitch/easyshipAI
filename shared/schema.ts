@@ -99,8 +99,7 @@ export const customsTariffSchema = z.object({
 export const quoteRequestSchema = z.object({
   originPort: z.string().min(1, "Origin port is required"),
   destinationPort: z.string().min(1, "Destination port is required"),
-  finalDestination: z.string().min(1, "Final destination is required"),
-  deliveryAddress: z.string().optional(),
+  deliveryAddress: z.string().min(1, "Delivery address is required"),
   containerType: z.enum(["20ft", "40ft", "40ft-hc", "partial"], {
     required_error: "Container type is required",
   }),

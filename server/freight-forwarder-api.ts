@@ -21,8 +21,7 @@ export interface FreightForwarderQuote {
 const freightForwarderQuoteRequest = z.object({
   originPort: z.string(),
   destinationPort: z.string(),
-  finalDestination: z.string(),
-  deliveryAddress: z.string().optional(),
+  deliveryAddress: z.string(),
   containerType: z.enum(['20ft', '40ft', '40ft-hc']),
   cargoValue: z.number(),
   weight: z.number(),
@@ -55,7 +54,7 @@ export class FreightForwarderService {
         services: {
           customsClearance: 850,
           portClearance: 450,
-          trucking: this.calculateTruckingCost(request.containerType, request.finalDestination, request.incoterm),
+          trucking: this.calculateTruckingCost(request.containerType, request.deliveryAddress, request.incoterm),
           documentation: 150,
           inspection: 200,
         },
@@ -83,7 +82,7 @@ export class FreightForwarderService {
         services: {
           customsClearance: 1200, // Updated SA customs clearance rate
           portClearance: 650, // Port handling
-          trucking: this.calculateTruckingCost(request.containerType, request.finalDestination, request.incoterm),
+          trucking: this.calculateTruckingCost(request.containerType, request.deliveryAddress, request.incoterm),
           documentation: 180,
         },
         totalCost: 0,
@@ -111,7 +110,7 @@ export class FreightForwarderService {
         services: {
           customsClearance: 920,
           portClearance: 480,
-          trucking: this.calculateTruckingCost(request.containerType, request.finalDestination, request.incoterm),
+          trucking: this.calculateTruckingCost(request.containerType, request.deliveryAddress, request.incoterm),
           documentation: 180,
           inspection: 250,
         },
@@ -139,7 +138,7 @@ export class FreightForwarderService {
         services: {
           customsClearance: 890,
           portClearance: 460,
-          trucking: this.calculateTruckingCost(request.containerType, request.finalDestination, request.incoterm),
+          trucking: this.calculateTruckingCost(request.containerType, request.deliveryAddress, request.incoterm),
           documentation: 160,
         },
         totalCost: 0,
@@ -315,7 +314,7 @@ export class FreightForwarderService {
       const accessToken = tokenData.access_token;
 
       // Step 2: Get quote from the provided DSV API endpoint
-      const deliveryLocation = request.deliveryAddress || request.finalDestination;
+      const deliveryLocation = request.deliveryAddress || request.deliveryAddress;
       const serviceLevel = this.getServiceLevelFromIncoterm(request.incoterm);
       
       const quotePayload = {

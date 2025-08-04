@@ -88,15 +88,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get all final destinations
-  app.get("/api/destinations", async (req, res) => {
-    try {
-      const destinations = await storage.getDestinations();
-      res.json(destinations);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch destinations" });
-    }
-  });
+
 
   // Get all cargo types
   app.get("/api/cargo-types", async (req, res) => {
@@ -235,32 +227,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Found ${destinations.length} destinations for trucking costs`);
       let destination;
       
-      // For exports, we don't need a SA destination (cargo goes to international port)
+      // For exports, minimal trucking costs (typically from business to port)
       if (originPort.country === "South Africa") {
-        // For exports, finalDestination is the international destination
-        // Use the origin location for local trucking costs
-        destination = destinations.find(d => 
-          d.name === validatedData.finalDestination || 
-          d.name.toLowerCase().includes(validatedData.finalDestination.toLowerCase()) ||
-          validatedData.finalDestination.toLowerCase().includes(d.name.toLowerCase())
-        );
-        // If not found, it's okay for exports - no local trucking at destination
-        if (!destination) {
-          destination = { 
-            fromDurban: 0, fromCapeTown: 0, fromPortElizabeth: 0, 
-            fromRichardsBay: 0, fromEastLondon: 0, fromMosselBay: 0, fromSaldanhaBay: 0 
-          };
-        }
+        // For exports, use minimal trucking costs from business to SA port
+        destination = { 
+          fromDurban: 2000, fromCapeTown: 2000, fromPortElizabeth: 2000, 
+          fromRichardsBay: 2000, fromEastLondon: 2000, fromMosselBay: 2000, fromSaldanhaBay: 2000 
+        };
       } else {
-        // For imports, finalDestination must be a SA destination
-        destination = destinations.find(d => 
-          d.name === validatedData.finalDestination || 
-          d.name.toLowerCase().includes(validatedData.finalDestination.toLowerCase()) ||
-          validatedData.finalDestination.toLowerCase().includes(d.name.toLowerCase())
-        );
-        if (!destination) {
-          return res.status(400).json({ message: "Invalid final destination" });
-        }
+        // For imports, we'll calculate trucking costs using the deliveryAddress
+        // This will be handled by the address autocomplete system
+        destination = null; // Will be calculated via delivery address
       }
 
       // Get cargo type for duty calculation - be flexible with advanced customs lookup
@@ -489,8 +466,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const quote = {
         originPort: originPort.name,
         destinationPort: destinationPort.name,
-        finalDestination: validatedData.finalDestination,
-        deliveryAddress: validatedData.deliveryAddress || "",
+        deliveryAddress: validatedData.deliveryAddress,
         containerType: validatedData.containerType,
         cargoType: validatedData.cargoType,
         incoterm: validatedData.incoterm,
