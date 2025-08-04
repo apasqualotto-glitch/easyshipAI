@@ -104,7 +104,7 @@ export function ChatPopup({ conversationId: propsConversationId, context, initia
       <Button
         onClick={() => setIsOpen(true)}
         className={cn(
-          "fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg z-40",
+          "fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg z-[9999]",
           "bg-primary-600 hover:bg-primary-700 text-white",
           "transition-all duration-300 hover:scale-110"
         )}
@@ -119,7 +119,7 @@ export function ChatPopup({ conversationId: propsConversationId, context, initia
       {/* Chat popup */}
       {isOpen && (
         <Card className={cn(
-          "fixed z-50 shadow-2xl transition-all duration-300",
+          "fixed z-[10000] shadow-2xl transition-all duration-300",
           isMinimized ? "bottom-6 right-6 w-80 h-14" : "bottom-6 right-6 w-96 h-[600px]",
           "flex flex-col"
         )}>
