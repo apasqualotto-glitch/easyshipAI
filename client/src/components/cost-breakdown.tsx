@@ -7,24 +7,31 @@ import { useState } from "react";
 import { ChatPopup } from "@/components/chat-popup";
 
 interface CostBreakdownProps {
-  quoteData: QuoteRequest | null;
-  quoteResult: any;
+  quoteData?: QuoteRequest | null;
+  quoteResult?: any;
+  quote?: any;
+  showBookingButton?: boolean;
+  onBookNow?: () => void;
 }
 
-export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownProps) {
+export default function CostBreakdown({ quoteData, quoteResult, quote, showBookingButton, onBookNow }: CostBreakdownProps) {
   const [showChat, setShowChat] = useState(false);
   const formatCurrency = (amount: number) => {
     return `R ${amount.toLocaleString()}`;
   };
+
+  // Use quote data from either prop structure
+  const currentQuote = quote || quoteResult;
+  const currentQuoteData = quoteData;
 
   return (
     <div className="space-y-6">
       <Card className="shadow-material sticky top-8">
         <CardContent className="p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Cost Breakdown</h3>
-          {quoteResult && quoteResult.id && (
+          {currentQuote && currentQuote.id && (
             <div className="mb-4 p-2 bg-green-100 text-green-800 rounded text-sm flex items-center justify-between">
-              <span>✅ Quote generated! Booking section available below.</span>
+              <span>✅ Quote generated! {showBookingButton ? "Ready to book" : "Booking section available below"}.</span>
               <Button 
                 size="sm" 
                 variant="ghost" 
@@ -38,15 +45,15 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
           )}
           
           {/* Incoterm Information */}
-          {quoteResult?.incotermExplanation && (
+          {currentQuote?.incotermExplanation && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
               <div className="flex items-start gap-2">
                 <div className="flex-shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
-                  <span className="text-blue-600 text-xs font-semibold">{quoteResult.incoterm}</span>
+                  <span className="text-blue-600 text-xs font-semibold">{currentQuote.incoterm}</span>
                 </div>
                 <div className="flex-1">
                   <h4 className="text-sm font-medium text-blue-900 mb-1">Incoterm Cost Impact</h4>
-                  <p className="text-xs text-blue-700">{quoteResult.incotermExplanation}</p>
+                  <p className="text-xs text-blue-700">{currentQuote.incotermExplanation}</p>
                 </div>
               </div>
             </div>
@@ -57,8 +64,8 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
               <div className="flex items-center">
                 <span className="material-icons text-primary-500 text-sm mr-2">directions_boat</span>
                 <div className="flex flex-col">
-                  <span className="text-sm text-gray-700">Sea Freight {quoteResult?.incoterm && `(${quoteResult.incoterm})`}</span>
-                  {quoteResult?.liveRateInfo && (
+                  <span className="text-sm text-gray-700">Sea Freight {currentQuote?.incoterm && `(${currentQuote.incoterm})`}</span>
+                  {currentQuote?.liveRateInfo && (
                     <div className="flex items-center space-x-1 mt-1">
                       <Zap className="h-3 w-3 text-blue-500" />
                       <span className="text-xs text-blue-600">{quoteResult.liveRateInfo.carrier}</span>
@@ -80,9 +87,9 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
               </div>
               <div className="flex flex-col items-end">
                 <span className="text-sm font-medium">
-                  {quoteResult ? formatCurrency(quoteResult.seaFreightCost) : "—"}
+                  {currentQuote ? formatCurrency(currentQuote.seaFreightCost) : "—"}
                 </span>
-                {quoteResult?.hasLiveRates && (
+                {currentQuote?.hasLiveRates && (
                   <Badge variant="secondary" className="text-xs mt-1">
                     <Zap className="h-3 w-3 mr-1" />
                     Live Rate
@@ -97,7 +104,7 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
                 <span className="text-sm text-gray-700">Trucking</span>
               </div>
               <span className="text-sm font-medium">
-                {quoteResult ? formatCurrency(quoteResult.truckingCost) : "—"}
+                {currentQuote ? formatCurrency(currentQuote.truckingCost) : "—"}
               </span>
             </div>
 
@@ -107,23 +114,23 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
                   <span className="material-icons text-secondary-500 text-sm mr-2">account_balance</span>
                   <div className="flex flex-col">
                     <span className="text-sm text-gray-700">Customs Duties</span>
-                    {quoteResult?.customsInfo?.isAdvancedCalculation && (
+                    {currentQuote?.customsInfo?.isAdvancedCalculation && (
                       <div className="flex items-center space-x-1 mt-1">
                         <Badge variant="outline" className="text-xs">
-                          HS: {quoteResult.customsInfo.hsCode}
+                          HS: {currentQuote.customsInfo.hsCode}
                         </Badge>
                         <span className="text-xs text-blue-600">
-                          {(quoteResult.customsInfo.dutyRate * 100).toFixed(1)}% rate
+                          {(currentQuote.customsInfo.dutyRate * 100).toFixed(1)}% rate
                         </span>
                       </div>
                     )}
                   </div>
                 </div>
                 <span className="text-sm font-medium">
-                  {quoteResult ? formatCurrency(quoteResult.customsDuties) : "—"}
+                  {currentQuote ? formatCurrency(currentQuote.customsDuties) : "—"}
                 </span>
               </div>
-              {quoteResult?.customsInfo?.breakdown && (
+              {currentQuote?.customsInfo?.breakdown && (
                 <div className="mt-2 p-3 bg-gray-50 rounded-lg text-xs space-y-1">
                   <div className="text-gray-600 font-medium">SARS Duty Calculation (FOB Basis):</div>
                   <div>FOB Value (USD): ${quoteResult.customsInfo.breakdown.fobValueUSD?.toLocaleString() || quoteResult.value.toLocaleString()}</div>
@@ -144,10 +151,10 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
                   <span className="text-sm text-gray-700">VAT (15%)</span>
                 </div>
                 <span className="text-sm font-medium">
-                  {quoteResult ? formatCurrency(quoteResult.vat) : "—"}
+                  {currentQuote ? formatCurrency(currentQuote.vat) : "—"}
                 </span>
               </div>
-              {quoteResult?.customsInfo?.breakdown && (
+              {currentQuote?.customsInfo?.breakdown && (
                 <div className="mt-2 p-3 bg-blue-50 rounded-lg text-xs space-y-1">
                   <div className="text-gray-600 font-medium">SARS VAT Calculation:</div>
                   <div>FOB Value (ZAR): {formatCurrency(quoteResult.customsInfo.breakdown.fobValueZAR || quoteResult.valueZAR || 0)}</div>
@@ -172,29 +179,29 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
                 <span className="text-sm text-gray-700">Handling & Fees</span>
               </div>
               <span className="text-sm font-medium">
-                {quoteResult ? formatCurrency(quoteResult.handlingFees) : "—"}
+                {currentQuote ? formatCurrency(currentQuote.handlingFees) : "—"}
               </span>
             </div>
 
             <div className="flex justify-between items-center pt-4 border-t-2 border-gray-200">
               <span className="text-lg font-medium text-gray-900">Total Cost</span>
               <span className="text-lg font-bold text-primary-600">
-                {quoteResult ? formatCurrency(quoteResult.totalCost) : "—"}
+                {currentQuote ? formatCurrency(currentQuote.totalCost) : "—"}
               </span>
             </div>
 
-            {quoteResult && (
+            {currentQuote && (
               <div className="space-y-3 mt-4">
                 <div className="bg-primary-50 rounded-lg p-3">
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-primary-700">Cost per kg</span>
                     <span className="text-sm font-medium text-primary-700">
-                      {formatCurrency(quoteResult.costPerKg)}
+                      {formatCurrency(currentQuote.costPerKg)}
                     </span>
                   </div>
                 </div>
                 
-                {quoteData?.incoterm && (
+                {(currentQuoteData?.incoterm || currentQuote?.incoterm) && (
                   <div className="bg-accent-50 rounded-lg p-3">
                     <div className="flex items-center">
                       <span className="material-icons text-accent-600 text-sm mr-2">assignment</span>

@@ -98,16 +98,15 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
     },
     onSuccess: (result) => {
       onQuoteResult(result);
-      setCurrentStep(3);
-      const rateSource = result.hasLiveRates ? "live carrier rates" : "estimates";
-      const savings = result.liveRateInfo?.savings || 0;
-      const savingsText = savings > 0 ? ` (Save R ${Math.abs(savings).toLocaleString()})` : 
-                        savings < 0 ? ` (R ${Math.abs(savings).toLocaleString()} higher)` : "";
       
-      toast({
-        title: "Quote calculated successfully! ✅",
-        description: `Total cost: R ${result.totalCost.toLocaleString()} | Weight: ${result.weight}kg | Origin: ${result.originCountry || 'Unknown'} using ${rateSource}${savingsText}`,
-      });
+      // Navigate to quote results page
+      if (result.id) {
+        window.location.href = `/quote/${result.id}`;
+      } else {
+        // Fallback if no ID, store result temporarily and navigate
+        sessionStorage.setItem('latestQuote', JSON.stringify(result));
+        window.location.href = `/quote/latest`;
+      }
     },
     onError: (error: any) => {
       toast({
