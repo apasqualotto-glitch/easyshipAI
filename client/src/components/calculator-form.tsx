@@ -178,7 +178,7 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
       form.reset({
         originPort: "",
         destinationPort: "",
-        finalDestination: "",
+        deliveryAddress: "",
         containerType: "20ft",
         cargoType: "",
         incoterm: "",
@@ -196,7 +196,7 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
       setTimeout(() => {
         form.setValue("originPort", "");
         form.setValue("destinationPort", "");
-        form.setValue("finalDestination", "");
+        form.setValue("deliveryAddress", "");
         form.setValue("containerType", "20ft");
         form.setValue("cargoType", "");
         form.setValue("incoterm", "");
