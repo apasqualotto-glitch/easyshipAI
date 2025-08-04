@@ -587,7 +587,7 @@ export default function BookingPage() {
                           Local Trucking ({quote?.incoterm || 'FOB'}):
                         </span>
                         <span className="font-medium text-indigo-600">
-                          {formatCurrency(quote?.freightForwarders?.[0]?.services?.trucking || 1800)}
+                          {formatCurrency(quote?.truckingCost || 1800)}
                         </span>
                       </div>
                       <div className="flex justify-between">
@@ -624,14 +624,14 @@ export default function BookingPage() {
                     </div>
                   </div>
 
-                  {/* Final Total */}
+                  {/* Final Total - Using integrated DSV trucking costs */}
                   <div className="p-3 bg-green-50 rounded-lg border-2 border-green-400">
                     <div className="flex justify-between text-lg font-bold text-green-800">
                       <span>Complete Total:</span>
-                      <span>R 196,320</span>
+                      <span>{formatCurrency(quote?.totalCost || 196320)}</span>
                     </div>
                     <p className="text-xs text-green-700 mt-1">
-                      All-inclusive door-to-door shipping with full service
+                      All-inclusive door-to-door shipping (no double-charging)
                     </p>
                   </div>
                 </div>

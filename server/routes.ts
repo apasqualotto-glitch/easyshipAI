@@ -308,40 +308,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Apply Incoterm-based cost adjustments (will be calculated after exchange rate)
       let seaFreightCost = baseSeaFreightCost; // Default to base cost, will be adjusted below
 
-      // Calculate trucking cost
-      let truckingCost = 0;
-      
-      // For exports: trucking from origin location to SA port
-      // For imports: trucking from SA port to final destination
-      if (originPort.country === "South Africa") {
-        // Export: minimal handling at port (no trucking to destination)
-        truckingCost = 1000; // Basic port handling fee
-      } else {
-        // Import: trucking from port to final destination
-        switch (destinationPort.code) {
-          case "ZADUR":
-            truckingCost = destination.fromDurban;
-            break;
-          case "ZACPT":
-            truckingCost = destination.fromCapeTown;
-            break;
-          case "ZAPEZ":
-            truckingCost = destination.fromPortElizabeth;
-            break;
-          case "ZARBD":
-            truckingCost = destination.fromRichardsBay;
-            break;
-          case "ZAELS":
-            truckingCost = destination.fromEastLondon;
-            break;
-          case "ZAMOB":
-            truckingCost = destination.fromMosselBay;
-            break;
-          case "ZASDB":
-            truckingCost = destination.fromSaldanhaBay;
-            break;
-        }
-      }
+      // NOTE: Trucking cost will be calculated by DSV API integration
+      // This avoids double-charging - DSV provides the actual trucking quotes
+      // that are displayed in the freight forwarder breakdown
+      let truckingCost = 0; // Will be populated from DSV quotes
 
       // Use the origin port we already found and validated earlier
       const originCountry = originPort.country;
@@ -721,12 +691,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const freightForwarderQuotes = await freightForwarderService.getQuotes(freightForwarderRequest);
 
-      res.json({
+      // Use DSV trucking cost instead of generic calculation to avoid double-charging
+      const dsvQuote = freightForwarderQuotes.find(q => q.provider === 'DSV South Africa');
+      const actualTruckingCost = dsvQuote ? dsvQuote.services.trucking : 1800; // Fallback to R1800
+      
+      // Recalculate total with actual DSV trucking cost
+      const adjustedTotal = enhancedQuote.totalCost - enhancedQuote.truckingCost + actualTruckingCost;
+      
+      const finalQuote = {
         ...enhancedQuote,
+        truckingCost: actualTruckingCost, // Use DSV trucking cost
+        totalCost: adjustedTotal,
+        costPerKg: adjustedTotal / validatedData.weight,
+        breakdown: {
+          ...enhancedQuote.breakdown,
+          trucking: actualTruckingCost, // Update breakdown trucking
+          total: adjustedTotal
+        },
         hasLiveRates: liveRates.length > 0,
         rateSource: liveRates.length > 0 ? "live" : "estimate",
         freightForwarders: freightForwarderQuotes
-      });
+      };
+
+      res.json(finalQuote);
 
     } catch (error) {
       console.error("Enhanced quote calculation error:", error);

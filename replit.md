@@ -15,6 +15,8 @@ FreightCalc SA is a comprehensive shipping marketplace that connects importers a
 - **Delivery Address Precision**: DSV API now uses exact delivery addresses for precise port-to-door trucking quotes instead of generic destination areas
 - **Dynamic Cost Display**: Booking page shows real-time trucking costs based on selected Incoterm and delivery location (R1,800 for CIF Cape Town vs R2,960 for DDP Johannesburg)
 - **Enhanced Quote Breakdown**: Complete supplier breakdown on booking page with Incoterm-specific service levels and accurate distance-based pricing
+- **Double-Charging Eliminated**: Fixed trucking cost duplication between main quote calculation and DSV freight forwarder quotes
+- **Integrated Cost Structure**: DSV trucking costs properly integrated into main quote total calculation to prevent double-billing
 
 ## User Preferences
 
