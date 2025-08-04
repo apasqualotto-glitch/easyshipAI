@@ -17,6 +17,7 @@ import { Port, Destination, CargoType, Incoterm } from "@shared/schema";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import UnifiedCargoSearch from "./unified-cargo-search";
+import { AddressAutocomplete } from "./address-autocomplete";
 
 interface CustomsTariff {
   hsCode: string;
@@ -477,18 +478,24 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
                 <div className="tooltip-trigger relative inline-block ml-1">
                   <span className="material-icons text-gray-400 text-sm cursor-help">help_outline</span>
                   <div className="tooltip absolute bottom-6 left-0 bg-gray-900 text-white text-xs p-2 rounded opacity-0 invisible whitespace-nowrap z-10">
-                    Enter the specific delivery address for your cargo
+                    Start typing for intelligent address suggestions with distance-based trucking costs
                   </div>
                 </div>
               </Label>
-              <Input
-                id="deliveryAddress"
-                placeholder="123 Business Street, Industrial Area, City"
-                {...form.register("deliveryAddress")}
-                className="h-10"
+              <AddressAutocomplete
+                value={form.watch("deliveryAddress")}
+                onChange={(address, addressData) => {
+                  form.setValue("deliveryAddress", address);
+                  // Note: Distance data will be used by backend API for precise calculations
+                  // No need to store in form as backend will calculate from address
+                }}
+                portCode={form.watch("destinationPort")}
+                incoterm={form.watch("incoterm")}
+                placeholder="Start typing your delivery address..."
+                className="mt-1"
               />
               <p className="text-xs text-gray-500 mt-1">
-                📍 Trucking cost is calculated from the SA port to the destination city above
+                🎯 Interactive address lookup with precise distance-based trucking costs
               </p>
             </div>
           </div>

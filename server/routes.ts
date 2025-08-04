@@ -9,6 +9,7 @@ import { bookingService, type BookingRequest, type BookingResponse } from "./boo
 import { generateChatResponse } from "./ai-service";
 import { z } from "zod";
 import { freightForwarderService } from "./freight-forwarder-api";
+import addressService from "./address-autocomplete";
 
 // Enhanced currency conversion service with multiple API sources
 async function getCurrentExchangeRate(): Promise<{ rate: number; source: string; timestamp: string }> {
@@ -1398,6 +1399,45 @@ What specific shipping question can I help you with?`;
       res.json(events);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Address autocomplete endpoints
+  app.get("/api/addresses/search", async (req, res) => {
+    try {
+      const { q } = req.query;
+      if (!q || typeof q !== 'string' || q.length < 2) {
+        return res.json([]);
+      }
+      
+      const addresses = addressService.searchAddresses(q, 8);
+      res.json(addresses);
+    } catch (error) {
+      console.error("Address search error:", error);
+      res.status(500).json({ message: "Failed to search addresses" });
+    }
+  });
+
+  app.post("/api/addresses/calculate-distance", async (req, res) => {
+    try {
+      const { addressId, portCode, incoterm } = req.body;
+      
+      if (!addressId || !portCode) {
+        return res.status(400).json({ message: "Missing addressId or portCode" });
+      }
+
+      // Find address by ID directly
+      const address = addressService.getAddressById(addressId);
+      
+      if (!address) {
+        return res.status(404).json({ message: "Address not found" });
+      }
+
+      const result = addressService.getDistanceAndCost(address, portCode, incoterm || 'FOB');
+      res.json(result);
+    } catch (error) {
+      console.error("Distance calculation error:", error);
+      res.status(500).json({ message: "Failed to calculate distance" });
     }
   });
 
