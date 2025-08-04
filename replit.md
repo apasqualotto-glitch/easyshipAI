@@ -35,7 +35,7 @@ Form auto-population: AI chat extracts shipping information from conversation an
 Layout preference: Calculator form should be fully visible below chat interface, not hidden or requiring button clicks to access.
 Homepage design: AI chat interface at top providing detailed quotes, manual calculator form always visible below for additional carrier options.
 No auto-scroll: Page stays at top when users type or AI responds, with loading animation instead of screen jumping.
-Quote display preference: Quotes should display inline in the calculator sidebar tabs, not redirect to separate pages - maintains workflow continuity.
+Quote display preference: Quotes should redirect to a dedicated quote results page with professional layout and comprehensive breakdown.
 
 ## System Architecture
 
