@@ -76,6 +76,13 @@ export function AddressAutocomplete({
 
     return () => clearTimeout(timeoutId);
   }, [query]);
+  
+  // Update parent value when query changes
+  useEffect(() => {
+    if (value !== query) {
+      setQuery(value);
+    }
+  }, [value]);
 
   // Calculate distance when address is selected
   const calculateDistance = async (address: Address | { formattedAddress: string }) => {
@@ -125,7 +132,7 @@ export function AddressAutocomplete({
       setDistanceData(null);
     }
     
-    // Always call onChange for manual input
+    // Always pass the exact typed value to parent
     onChange(newValue);
   };
 
@@ -160,7 +167,17 @@ export function AddressAutocomplete({
           type="text"
           value={query}
           onChange={handleInputChange}
-          onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+          onFocus={() => query.length >= 2 && setShowSuggestions(true)}
+          onBlur={() => {
+            // Ensure the typed value is saved when user leaves the field
+            setTimeout(() => {
+              setShowSuggestions(false);
+              // If no address was selected from dropdown, use what they typed
+              if (!selectedAddress || query !== selectedAddress.formattedAddress) {
+                onChange(query);
+              }
+            }, 200);
+          }}
           placeholder={placeholder}
           className="pl-10 pr-4"
         />
@@ -227,17 +244,21 @@ export function AddressAutocomplete({
                       className="w-full mt-3"
                       onClick={() => {
                         setShowSuggestions(false);
-                        // Calculate distance for custom address
-                        calculateDistance({ formattedAddress: query });
-                        setSelectedAddress({
+                        // Use exactly what the user typed
+                        const customAddress = {
                           id: `custom_${Date.now()}`,
-                          formattedAddress: query,
+                          formattedAddress: query, // Use exact typed text
                           city: 'Custom Location',
                           province: 'Custom',
                           postalCode: '0000',
                           lat: -26.2041,
                           lng: 28.0473
-                        });
+                        };
+                        setSelectedAddress(customAddress);
+                        // Pass the exact typed address to parent
+                        onChange(query);
+                        // Calculate distance for custom address
+                        calculateDistance({ formattedAddress: query });
                       }}
                     >
                       Use This Custom Address
