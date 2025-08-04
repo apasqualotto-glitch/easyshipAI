@@ -22,6 +22,7 @@ const freightForwarderQuoteRequest = z.object({
   originPort: z.string(),
   destinationPort: z.string(),
   finalDestination: z.string(),
+  deliveryAddress: z.string().optional(),
   containerType: z.enum(['20ft', '40ft', '40ft-hc']),
   cargoValue: z.number(),
   weight: z.number(),
@@ -54,7 +55,7 @@ export class FreightForwarderService {
         services: {
           customsClearance: 850,
           portClearance: 450,
-          trucking: this.calculateTruckingCost(request.containerType, request.finalDestination),
+          trucking: this.calculateTruckingCost(request.containerType, request.finalDestination, request.incoterm),
           documentation: 150,
           inspection: 200,
         },
@@ -82,7 +83,7 @@ export class FreightForwarderService {
         services: {
           customsClearance: 1200, // Updated SA customs clearance rate
           portClearance: 650, // Port handling
-          trucking: this.calculateTruckingCost(request.containerType, request.finalDestination),
+          trucking: this.calculateTruckingCost(request.containerType, request.finalDestination, request.incoterm),
           documentation: 180,
         },
         totalCost: 0,
@@ -110,7 +111,7 @@ export class FreightForwarderService {
         services: {
           customsClearance: 920,
           portClearance: 480,
-          trucking: this.calculateTruckingCost(request.containerType, request.finalDestination),
+          trucking: this.calculateTruckingCost(request.containerType, request.finalDestination, request.incoterm),
           documentation: 180,
           inspection: 250,
         },
@@ -138,7 +139,7 @@ export class FreightForwarderService {
         services: {
           customsClearance: 890,
           portClearance: 460,
-          trucking: this.calculateTruckingCost(request.containerType, request.finalDestination),
+          trucking: this.calculateTruckingCost(request.containerType, request.finalDestination, request.incoterm),
           documentation: 160,
         },
         totalCost: 0,
@@ -162,7 +163,7 @@ export class FreightForwarderService {
     return quotes.sort((a, b) => a.totalCost - b.totalCost);
   }
   
-  private calculateTruckingCost(containerType: string, destination: string): number {
+  private calculateTruckingCost(containerType: string, destination: string, incoterm: string): number {
     // Base trucking rates by container type (fallback when DSV API unavailable)
     const baseRates: Record<string, number> = {
       '20ft': 1200,
@@ -172,18 +173,37 @@ export class FreightForwarderService {
     
     let rate = baseRates[containerType] || 1200;
     
-    // Add distance-based surcharges for South African destinations
-    if (destination.toLowerCase().includes('johannesburg') || destination.toLowerCase().includes('gauteng')) {
-      rate += 400; // Inland delivery surcharge to JHB/Gauteng
-    } else if (destination.toLowerCase().includes('eastern cape') || destination.toLowerCase().includes('port elizabeth')) {
-      rate += 300; // Eastern Cape delivery
-    } else if (destination.toLowerCase().includes('western cape') || destination.toLowerCase().includes('cape town')) {
-      rate += 0; // Cape Town is closer to port
-    } else if (destination.toLowerCase().includes('kwazulu') || destination.toLowerCase().includes('durban')) {
-      rate += 200; // KZN delivery
+    // Incoterm-based adjustments
+    if (incoterm === 'EXW' || incoterm === 'FCA') {
+      // Buyer responsible for transport - minimal port-to-gate only
+      rate = rate * 0.3;
+    } else if (incoterm === 'FOB' || incoterm === 'CFR' || incoterm === 'CIF') {
+      // Standard door-to-door service
+      // Add distance-based surcharges for South African destinations
+      if (destination.toLowerCase().includes('johannesburg') || destination.toLowerCase().includes('gauteng')) {
+        rate += 600; // Inland delivery surcharge to JHB/Gauteng
+      } else if (destination.toLowerCase().includes('eastern cape') || destination.toLowerCase().includes('port elizabeth')) {
+        rate += 400; // Eastern Cape delivery
+      } else if (destination.toLowerCase().includes('western cape') || destination.toLowerCase().includes('cape town')) {
+        rate += 0; // Cape Town is closer to port
+      } else if (destination.toLowerCase().includes('kwazulu') || destination.toLowerCase().includes('durban')) {
+        rate += 300; // KZN delivery
+      } else {
+        rate += 500; // Other provinces
+      }
+    } else if (incoterm === 'DDP' || incoterm === 'DAP') {
+      // Premium door-to-door with additional services
+      rate = rate * 1.2;
+      if (destination.toLowerCase().includes('johannesburg') || destination.toLowerCase().includes('gauteng')) {
+        rate += 800; // Premium inland delivery
+      } else if (destination.toLowerCase().includes('eastern cape')) {
+        rate += 600;
+      } else if (destination.toLowerCase().includes('kwazulu')) {
+        rate += 500;
+      }
     }
     
-    return rate;
+    return Math.round(rate);
   }
 
   // Helper functions for DSV API
@@ -218,6 +238,44 @@ export class FreightForwarderService {
       '40ft-hc': 76.0 // CBM
     };
     return volumes[containerType] || 67.5;
+  }
+
+  private getServiceLevelFromIncoterm(incoterm: string): string {
+    switch (incoterm) {
+      case 'EXW':
+      case 'FCA':
+        return 'BASIC'; // Minimal service
+      case 'FOB':
+      case 'CFR':
+      case 'CIF':
+        return 'STANDARD'; // Standard door-to-door
+      case 'DDP':
+      case 'DAP':
+        return 'PREMIUM'; // Full service with customs
+      default:
+        return 'STANDARD';
+    }
+  }
+
+  private getRequiredServices(incoterm: string): string[] {
+    const baseServices = ['PORT_HANDLING', 'DOCUMENTATION'];
+    
+    switch (incoterm) {
+      case 'EXW':
+        return ['PORT_PICKUP']; // Minimal - just port pickup
+      case 'FCA':
+        return [...baseServices]; // Basic services
+      case 'FOB':
+      case 'CFR':
+        return [...baseServices, 'TRUCKING']; // Standard transport
+      case 'CIF':
+        return [...baseServices, 'TRUCKING', 'CUSTOMS_CLEARANCE']; // With customs
+      case 'DDP':
+      case 'DAP':
+        return [...baseServices, 'TRUCKING', 'CUSTOMS_CLEARANCE', 'DUTY_PAYMENT', 'DOOR_DELIVERY']; // Full service
+      default:
+        return [...baseServices, 'TRUCKING', 'CUSTOMS_CLEARANCE'];
+    }
   }
   
   // Future implementation for real API calls
@@ -257,33 +315,39 @@ export class FreightForwarderService {
       const accessToken = tokenData.access_token;
 
       // Step 2: Get quote from the provided DSV API endpoint
+      const deliveryLocation = request.deliveryAddress || request.finalDestination;
+      const serviceLevel = this.getServiceLevelFromIncoterm(request.incoterm);
+      
       const quotePayload = {
         mode: 'ROAD',
-        service: 'STANDARD',
+        service: serviceLevel,
         pickup: {
           country: 'ZA',
           city: this.extractCity(request.destinationPort),
           postalCode: this.getPostalCode(request.destinationPort),
-          address: 'Port Area'
+          address: 'Container Terminal'
         },
         delivery: {
           country: 'ZA', 
-          city: this.extractCity(request.finalDestination),
-          postalCode: this.getPostalCode(request.finalDestination),
-          address: 'Commercial Area'
+          city: this.extractCity(deliveryLocation),
+          postalCode: this.getPostalCode(deliveryLocation),
+          address: request.deliveryAddress || 'Commercial District'
         },
         goods: [{
           weight: request.weight,
           volume: this.calculateVolume(request.containerType),
           pieces: 1,
-          commodity: 'GENERAL_CARGO',
-          description: `Container ${request.containerType} import goods`
+          commodity: 'CONTAINERIZED_CARGO',
+          description: `${request.containerType} container import - ${request.incoterm} delivery`,
+          containerType: request.containerType
         }],
         declaredValue: {
           amount: request.cargoValue,
           currency: 'USD'
         },
-        services: ['CUSTOMS_CLEARANCE', 'PORT_HANDLING', 'DOCUMENTATION']
+        incoterm: request.incoterm,
+        services: this.getRequiredServices(request.incoterm),
+        specialRequirements: request.isHazardous ? ['HAZMAT_CERTIFIED'] : []
       };
 
       // Use the provided DSV API endpoint

@@ -710,6 +710,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         originPort: standardQuote.originPort,
         destinationPort: standardQuote.destinationPort,
         finalDestination: validatedData.finalDestination,
+        deliveryAddress: validatedData.deliveryAddress, // Use delivery address for precise trucking costs
         containerType: validatedData.containerType === "partial" ? "20ft" : validatedData.containerType as "20ft" | "40ft" | "40ft-hc",
         cargoValue: validatedData.value,
         weight: validatedData.weight,
@@ -762,6 +763,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         originPort,
         destinationPort,
         finalDestination: finalDestination || destinationPort,
+        deliveryAddress: req.body.deliveryAddress, // Use actual delivery address from form
         containerType,
         cargoValue,
         weight,

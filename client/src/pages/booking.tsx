@@ -583,8 +583,12 @@ export default function BookingPage() {
                         <span className="font-medium text-indigo-600">R 650</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Local Trucking:</span>
-                        <span className="font-medium text-indigo-600">R 1,800</span>
+                        <span className="text-gray-600">
+                          Local Trucking ({quote?.incoterm || 'FOB'}):
+                        </span>
+                        <span className="font-medium text-indigo-600">
+                          {formatCurrency(quote?.freightForwarders?.[0]?.services?.trucking || 1800)}
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">Documentation:</span>
@@ -592,7 +596,7 @@ export default function BookingPage() {
                       </div>
                       <div className="border-t border-indigo-300 pt-1 mt-2 flex justify-between font-medium text-indigo-800">
                         <span>DSV South Africa Total:</span>
-                        <span>R 3,830</span>
+                        <span>{formatCurrency((quote?.freightForwarders?.[0]?.totalCost || 3830))}</span>
                       </div>
                     </div>
                   </div>

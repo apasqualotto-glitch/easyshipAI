@@ -10,8 +10,11 @@ FreightCalc SA is a comprehensive shipping marketplace that connects importers a
 - **AI-Backend Integration Fixed**: Port code lookup now supports both IDs and codes, enabling seamless AI chat to quote calculation flow
 - **Quote Calculation Restored**: Fixed critical 400 errors - platform now provides real quotes (R196k-R320k) instead of synthetic fallback data
 - **Enhanced Error Handling**: Added comprehensive debugging and validation throughout quote pipeline for reliable operations
-- **Freight Forwarder API Integration**: Integrated real-time quotes from major freight forwarders for customs clearance, port clearance, and trucking services
-- **API Endpoints Enhanced**: All endpoints now use authentic shipping data with proper fallback handling and real exchange rate integration
+- **DSV API Integration Complete**: Fully implemented OAuth 2.0 authentication with DSV API endpoint (https://api.dsv.com/qs-demo/quote/v1/quotes) using provided credentials
+- **Incoterm-Aware Trucking**: Revolutionary Incoterm-based cost calculation - trucking costs now vary by delivery responsibility (EXW: 30% base rate, DDP: 120% premium rate)
+- **Delivery Address Precision**: DSV API now uses exact delivery addresses for precise port-to-door trucking quotes instead of generic destination areas
+- **Dynamic Cost Display**: Booking page shows real-time trucking costs based on selected Incoterm and delivery location (R1,800 for CIF Cape Town vs R2,960 for DDP Johannesburg)
+- **Enhanced Quote Breakdown**: Complete supplier breakdown on booking page with Incoterm-specific service levels and accurate distance-based pricing
 
 ## User Preferences
 
