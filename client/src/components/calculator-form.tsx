@@ -76,25 +76,30 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
 
   const calculateQuoteMutation = useMutation({
     mutationFn: async (data: QuoteRequest) => {
-      // First validate the data for consistency
-      const validation = await validateQuoteMutation.mutateAsync(data);
-      
-      if (!validation.isValid) {
-        throw new Error(`Data validation failed: ${validation.errors.join(", ")}`);
-      }
+      try {
+        // First validate the data for consistency
+        const validation = await validateQuoteMutation.mutateAsync(data);
+        
+        if (!validation.isValid) {
+          throw new Error(`Data validation failed: ${validation.errors.join(", ")}`);
+        }
 
-      // Show warnings about data consistency if any
-      if (validation.warnings && validation.warnings.length > 0) {
-        toast({
-          title: "Data Check Warning",
-          description: validation.warnings[0], // Show first warning
-          variant: "default",
-        });
-      }
+        // Show warnings about data consistency if any
+        if (validation.warnings && validation.warnings.length > 0) {
+          toast({
+            title: "Data Check Warning",
+            description: validation.warnings[0], // Show first warning
+            variant: "default",
+          });
+        }
 
-      const endpoint = useLiveRates ? "/api/calculate-quote-with-live" : "/api/calculate-quote";
-      const response = await apiRequest("POST", endpoint, data);
-      return response.json();
+        const endpoint = useLiveRates ? "/api/calculate-quote-with-live" : "/api/calculate-quote";
+        const response = await apiRequest("POST", endpoint, data);
+        return response.json();
+      } catch (error: any) {
+        console.error("Quote calculation error:", error);
+        throw error;
+      }
     },
     onSuccess: (result) => {
       onQuoteResult(result);
@@ -102,28 +107,13 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
       // Store the quote data and navigate to results page
       const quoteData = {
         ...result,
-        requestData: {
-          originPort: data.originPort,
-          destinationPort: data.destinationPort,
-          deliveryAddress: data.deliveryAddress,
-          containerType: data.containerType,
-          cargoType: data.cargoType,
-          incoterm: data.incoterm,
-          weight: data.weight,
-          value: data.value,
-        }
+        requestData: data
       };
       
       sessionStorage.setItem('latestQuote', JSON.stringify(quoteData));
       
-      // Create a link element to open in new tab
-      const link = document.createElement('a');
-      link.href = '/quote/latest';
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // Navigate to new page in same window (will appear as new page)
+      window.location.href = '/quote/latest';
     },
     onError: (error: any) => {
       toast({
