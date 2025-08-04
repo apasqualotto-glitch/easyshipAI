@@ -63,8 +63,38 @@ export default function BookingPage() {
     }
   }, [carrier, freightForwarder]);
   
+  // Define quote type based on API response
+  interface Quote {
+    id: string;
+    originPort: string;
+    destinationPort: string;
+    deliveryAddress: string;
+    containerType: string;
+    cargoType: string;
+    incoterm: string;
+    weight: number;
+    value: number;
+    seaFreightCost: number;
+    truckingCost: number;
+    customsDuties: number;
+    vat: number;
+    handlingFees: number;
+    totalCost: number;
+    freightForwarders?: Array<{
+      provider: string;
+      services: {
+        customsClearance: number;
+        portClearance: number;
+        trucking: number;
+      };
+      documentation: number;
+      insurance: number;
+      totalCost: number;
+    }>;
+  }
+
   // Fetch quote details
-  const { data: quote, isLoading: quoteLoading } = useQuery({
+  const { data: quote, isLoading: quoteLoading } = useQuery<Quote>({
     queryKey: [`/api/quotes/${quoteId}`],
     enabled: !!quoteId,
   });
@@ -553,18 +583,18 @@ export default function BookingPage() {
                         <div className="flex justify-between">
                           <span className="text-gray-600">Sea Freight:</span>
                           <span className="font-medium text-blue-600">
-                            {formatCurrency(Math.round((quote?.breakdown?.seaFreight || 0) * 0.85))}
+                            {formatCurrency(Math.round((quote?.seaFreightCost || 0) * 0.85))}
                           </span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-600">Terminal Handling:</span>
                           <span className="font-medium text-blue-600">
-                            {formatCurrency(Math.round((quote?.breakdown?.handling || 0) * 0.7))}
+                            {formatCurrency(Math.round((quote?.handlingFees || 0) * 0.7))}
                           </span>
                         </div>
                         <div className="border-t border-blue-300 pt-1 mt-2 flex justify-between font-medium text-blue-800">
                           <span>{selectedCarrier} Total:</span>
-                          <span>{formatCurrency(Math.round(((quote?.breakdown?.seaFreight || 0) * 0.85) + ((quote?.breakdown?.handling || 0) * 0.7)))}</span>
+                          <span>{formatCurrency(Math.round(((quote?.seaFreightCost || 0) * 0.85) + ((quote?.handlingFees || 0) * 0.7)))}</span>
                         </div>
                       </div>
                     </div>
@@ -608,18 +638,18 @@ export default function BookingPage() {
                       <div className="flex justify-between">
                         <span className="text-gray-600">Customs Duties:</span>
                         <span className="font-medium text-orange-600">
-                          {formatCurrency(quote?.breakdown?.customs || 0)}
+                          {formatCurrency(quote?.customsDuties || 0)}
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">VAT (15%):</span>
                         <span className="font-medium text-orange-600">
-                          {formatCurrency(quote?.breakdown?.vat || 0)}
+                          {formatCurrency(quote?.vat || 0)}
                         </span>
                       </div>
                       <div className="border-t border-orange-300 pt-1 mt-2 flex justify-between font-medium text-orange-800">
                         <span>Government Total:</span>
-                        <span>{formatCurrency((quote?.breakdown?.customs || 0) + (quote?.breakdown?.vat || 0))}</span>
+                        <span>{formatCurrency((quote?.customsDuties || 0) + (quote?.vat || 0))}</span>
                       </div>
                     </div>
                   </div>
@@ -628,7 +658,7 @@ export default function BookingPage() {
                   <div className="p-3 bg-green-50 rounded-lg border-2 border-green-400">
                     <div className="flex justify-between text-lg font-bold text-green-800">
                       <span>Complete Total:</span>
-                      <span>{formatCurrency(quote?.totalCost || 196320)}</span>
+                      <span>{formatCurrency(quote?.totalCost || 0)}</span>
                     </div>
                     <p className="text-xs text-green-700 mt-1">
                       All-inclusive door-to-door shipping (no double-charging)
