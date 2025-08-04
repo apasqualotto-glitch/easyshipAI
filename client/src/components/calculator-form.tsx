@@ -466,6 +466,7 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
                 }}
                 portCode={form.watch("destinationPort")}
                 incoterm={form.watch("incoterm")}
+                containerType={form.watch("containerType")}
                 placeholder="Start typing your delivery address..."
                 className="mt-1"
               />

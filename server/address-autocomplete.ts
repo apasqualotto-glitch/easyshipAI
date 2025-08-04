@@ -131,10 +131,29 @@ export function calculateDistance(lat1: number, lng1: number, lat2: number, lng2
   return R * c; // Distance in kilometers
 }
 
-// Calculate trucking cost based on distance and Incoterm
-export function calculateTruckingCost(distanceKm: number, incoterm: string): number {
+// Calculate trucking cost based on distance, container type, and Incoterm
+export function calculateTruckingCost(distanceKm: number, incoterm: string, containerType: string = '20ft'): number {
   const baseRatePerKm = 18; // R18 per kilometer base rate
   let incotermMultiplier = 1.0;
+  let containerMultiplier = 1.0;
+  
+  // Apply container size-based pricing
+  switch (containerType?.toLowerCase()) {
+    case '20ft':
+      containerMultiplier = 1.0; // Base rate
+      break;
+    case '40ft':
+      containerMultiplier = 1.4; // 40% premium for 40ft container
+      break;
+    case '40ft-hc':
+      containerMultiplier = 1.5; // 50% premium for high cube
+      break;
+    case 'partial':
+      containerMultiplier = 0.6; // 40% discount for LCL/partial shipments
+      break;
+    default:
+      containerMultiplier = 1.0;
+  }
   
   // Apply Incoterm-based pricing
   switch (incoterm?.toUpperCase()) {
@@ -155,9 +174,16 @@ export function calculateTruckingCost(distanceKm: number, incoterm: string): num
       incotermMultiplier = 1.0;
   }
   
-  // Minimum charge
-  const minimumCharge = 1200;
-  const calculatedCost = Math.max(distanceKm * baseRatePerKm * incotermMultiplier, minimumCharge);
+  // Base minimum charges by container type
+  const minimumCharges = {
+    '20ft': 1200,
+    '40ft': 1600,
+    '40ft-hc': 1800,
+    'partial': 800
+  };
+  
+  const minimumCharge = minimumCharges[containerType as keyof typeof minimumCharges] || 1200;
+  const calculatedCost = Math.max(distanceKm * baseRatePerKm * containerMultiplier * incotermMultiplier, minimumCharge);
   
   // Round to nearest R10
   return Math.round(calculatedCost / 10) * 10;
@@ -332,14 +358,14 @@ export function createCustomAddress(addressString: string): Address {
 }
 
 // Get distance and cost from port to address
-export function getDistanceAndCost(address: Address, portCode: string, incoterm: string = 'FOB') {
+export function getDistanceAndCost(address: Address, portCode: string, incoterm: string = 'FOB', containerType: string = '20ft') {
   const port = portCoordinates[portCode as keyof typeof portCoordinates];
   if (!port) {
     return { distance: 0, cost: 1800, error: 'Port not found' };
   }
   
   const distance = calculateDistance(port.lat, port.lng, address.lat, address.lng);
-  const cost = calculateTruckingCost(distance, incoterm);
+  const cost = calculateTruckingCost(distance, incoterm, containerType);
   
   return {
     distance: Math.round(distance),

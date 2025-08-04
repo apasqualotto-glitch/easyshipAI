@@ -29,6 +29,7 @@ interface AddressAutocompleteProps {
   onChange: (address: string, addressData?: { distance: number; cost: number }) => void;
   portCode?: string;
   incoterm?: string;
+  containerType?: string;
   placeholder?: string;
   className?: string;
 }
@@ -38,6 +39,7 @@ export function AddressAutocomplete({
   onChange, 
   portCode = 'ZACPT', 
   incoterm = 'FOB',
+  containerType = '20ft',
   placeholder = "Start typing your delivery address...",
   className 
 }: AddressAutocompleteProps) {
@@ -97,7 +99,8 @@ export function AddressAutocomplete({
           addressId: 'id' in address ? address.id : undefined,
           addressString: address.formattedAddress,
           portCode,
-          incoterm
+          incoterm,
+          containerType
         })
       });
       

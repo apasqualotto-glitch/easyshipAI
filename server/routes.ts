@@ -1398,7 +1398,7 @@ What specific shipping question can I help you with?`;
 
   app.post("/api/addresses/calculate-distance", async (req, res) => {
     try {
-      const { addressId, addressString, portCode, incoterm } = req.body;
+      const { addressId, addressString, portCode, incoterm, containerType } = req.body;
       
       if ((!addressId && !addressString) || !portCode) {
         return res.status(400).json({ message: "Missing address or portCode" });
@@ -1418,7 +1418,7 @@ What specific shipping question can I help you with?`;
         return res.status(404).json({ message: "Address not found" });
       }
 
-      const result = addressService.getDistanceAndCost(address, portCode, incoterm || 'FOB');
+      const result = addressService.getDistanceAndCost(address, portCode, incoterm || 'FOB', containerType || '20ft');
       res.json(result);
     } catch (error) {
       console.error("Distance calculation error:", error);
