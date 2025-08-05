@@ -120,7 +120,7 @@ export function ChatPopup({ conversationId: propsConversationId, context, initia
       {isOpen && (
         <Card className={cn(
           "fixed z-[10000] shadow-2xl transition-all duration-300",
-          isMinimized ? "bottom-6 right-6 w-80 h-14" : "bottom-6 right-6 w-96 h-[600px]",
+          isMinimized ? "bottom-6 right-6 w-80 h-14" : "bottom-6 right-6 w-96 h-[700px]",
           "flex flex-col"
         )}>
           {/* Header */}
