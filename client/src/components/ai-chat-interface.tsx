@@ -696,7 +696,7 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
             {/* Chat Messages - Extended height for better conversation viewing */}
             <ScrollArea className={cn(
               "mb-4",
-              context === "calculator" || context === "homepage" ? "h-80" : "h-96"
+              context === "calculator" || context === "homepage" ? "h-96" : "h-96"
             )}>
               <div className="space-y-4 px-2">
                 {messages.map((message) => (

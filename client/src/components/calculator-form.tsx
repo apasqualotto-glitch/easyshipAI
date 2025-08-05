@@ -218,6 +218,61 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
     console.log('🚀 Form submission triggered with data:', data);
     console.log('📊 Form errors:', form.formState.errors);
     
+    // Validate required fields and show user-friendly error messages
+    const errors: string[] = [];
+    
+    if (!data.originPort || data.originPort === "") {
+      errors.push("Please select a port of origin");
+    }
+    
+    if (!data.destinationPort || data.destinationPort === "") {
+      errors.push("Please select a destination port");
+    }
+    
+    if (!data.deliveryAddress || data.deliveryAddress.trim() === "") {
+      errors.push("Please enter your delivery address");
+    }
+    
+    if (!data.containerType || data.containerType === "") {
+      errors.push("Please select a container type");
+    }
+    
+    if (!data.cargoType || data.cargoType.trim() === "") {
+      errors.push("Please describe your cargo type");
+    }
+    
+    if (!data.incoterm || data.incoterm === "") {
+      errors.push("Please select an Incoterm");
+    }
+    
+    if (!data.weight || data.weight <= 0) {
+      errors.push("Please enter the cargo weight");
+    }
+    
+    if (!data.value || data.value <= 0) {
+      errors.push("Please enter the cargo value");
+    }
+    
+    // Show error messages if any required fields are missing
+    if (errors.length > 0) {
+      toast({
+        title: "Missing Information ⚠️",
+        description: (
+          <div className="space-y-1">
+            <p className="font-medium">Please complete the following:</p>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              {errors.map((error, index) => (
+                <li key={index}>{error}</li>
+              ))}
+            </ul>
+          </div>
+        ) as any,
+        variant: "destructive",
+        duration: 6000,
+      });
+      return; // Stop form submission
+    }
+    
     // Include customs tariff information if selected
     const enhancedData = {
       ...data,
@@ -707,6 +762,12 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
               console.log('📝 Current form values:', form.getValues());
               console.log('🔍 Form valid?', form.formState.isValid);
               console.log('❌ Form errors:', form.formState.errors);
+              
+              // If form has validation errors, prevent default and show specific guidance
+              if (!form.formState.isValid && Object.keys(form.formState.errors).length > 0) {
+                e.preventDefault();
+                console.log('❌ Form validation failed, preventing submission');
+              }
             }}
           >
             {calculateQuoteMutation.isPending ? (
