@@ -86,7 +86,7 @@ function PaymentForm({ bookingId, commission, onSuccess }: {
         {isProcessing ? (
           <>Processing...</>
         ) : (
-          <>Pay Commission R{commission.toLocaleString()}</>
+          <>Pay Commission {formatCurrency(commission)}</>
         )}
       </Button>
     </form>
@@ -107,19 +107,19 @@ export function CommissionPayment({
   // Calculate shipping services cost (excluding customs/VAT)
   const shippingServicesCost = breakdown ? 
     (breakdown.oceanFreight + breakdown.trucking + breakdown.handling) : 
-    (totalCost * 0.7); // Fallback estimate if no breakdown provided
+    (totalCost * 0.2); // Only 20% of total for services, rest are government fees
     
   // Calculate 5% commission on shipping services only
   const commission = Math.round(shippingServicesCost * 0.05);
-  const carrierReceives = shippingServicesCost - commission;
+  const actualPaymentAmount = commission; // Only charge commission, not the full shipping cost
 
   // Create payment intent mutation
   const createPaymentMutation = useMutation({
     mutationFn: async () => {
       const response = await apiRequest("POST", "/api/create-commission-payment", {
         bookingId,
-        amount: commission,
-        description: `Booking commission for ${carrierName}${freightForwarderName ? ` and ${freightForwarderName}` : ''}`
+        amount: actualPaymentAmount,
+        description: `Platform commission for ${carrierName}${freightForwarderName ? ` and ${freightForwarderName}` : ''} shipping services`
       });
       return response.json();
     },
@@ -192,14 +192,24 @@ export function CommissionPayment({
                   </div>
                 </>
               )}
+              <div className="bg-blue-50 p-2 rounded text-sm mb-2">
+                <div className="flex justify-between">
+                  <span className="text-blue-700">Carriers/Freight Forwarders Receive:</span>
+                  <span className="font-medium text-blue-700">{formatCurrency(shippingServicesCost)}</span>
+                </div>
+                <p className="text-xs text-blue-600 mt-1">✅ Paid directly by FreightCalc after your commission</p>
+              </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Platform Commission (5%):</span>
+                <span className="text-gray-600">Platform Commission (5% of services):</span>
                 <span className="font-medium text-blue-600">{formatCurrency(commission)}</span>
               </div>
               <div className="flex justify-between text-lg font-bold border-t pt-2 bg-green-100 px-2 py-2 rounded">
-                <span className="text-green-800">Total Payment:</span>
-                <span className="text-green-800">{formatCurrency(shippingServicesCost + commission)}</span>
+                <span className="text-green-800">Your Payment:</span>
+                <span className="text-green-800">{formatCurrency(actualPaymentAmount)}</span>
               </div>
+              <p className="text-xs text-green-600 mt-2 bg-green-50 p-2 rounded">
+                💡 You only pay our 5% commission. We handle paying the carriers and freight forwarders directly.
+              </p>
             </div>
           </div>
 
