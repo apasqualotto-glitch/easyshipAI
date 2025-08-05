@@ -602,7 +602,7 @@ export default function BookingPage() {
 
                   {/* DSV South Africa (Freight Forwarder) - Always show for complete bookings */}
                   <div className="mb-4 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
-                    <h5 className="font-medium text-indigo-800 mb-2">DSV South Africa (Logistics)</h5>
+                    <h5 className="font-medium text-indigo-800 mb-2">{selectedCarrier ? selectedCarrier.split(' + ')[0] : 'Selected Carrier'} (Ocean Carrier)</h5>
                     <div className="text-sm space-y-1">
                       <div className="flex justify-between">
                         <span className="text-gray-600">Customs Clearance:</span>
