@@ -221,26 +221,7 @@ export function Homepage() {
           </div>
         </div>
       </section>
-      {/* Stats Section */}
-      <section className="py-16 bg-white">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {STATS.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-4xl font-bold text-blue-600 mb-2">
-                  {stat.number}
-                </div>
-                <div className="font-semibold text-gray-900 mb-1">
-                  {stat.label}
-                </div>
-                <div className="text-sm text-gray-600">
-                  {stat.subtext}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      
       {/* Benefits Section */}
       <section className="py-16 px-4">
         <div className="max-w-6xl mx-auto">
