@@ -212,9 +212,14 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
               <CardDescription className="text-xl text-gray-700 font-medium">
                 Total Door-to-Door Shipping Cost
               </CardDescription>
-              <p className="text-sm text-gray-600 mt-3 bg-white p-3 rounded-lg">
-                This is your complete cost including sea freight, trucking to your destination, all customs duties, VAT, and handling fees. No hidden charges.
-              </p>
+              <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <p className="text-amber-800 text-sm font-medium mb-2">
+                  ⚠️ <strong>Important Cost Information:</strong>
+                </p>
+                <p className="text-amber-700 text-sm leading-relaxed">
+                  VAT, customs duties, and government fees shown are <strong>estimates for transparency only</strong>. These will be paid separately to SARS or your freight forwarder upon arrival. Our platform only charges for carrier shipping and freight forwarding services - never for your customs duties or VAT.
+                </p>
+              </div>
             </CardHeader>
           </Card>
 
@@ -234,10 +239,15 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                 <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                   <div className="text-center">
                     <h3 className="text-xl font-bold text-blue-800 mb-2">Quote Summary</h3>
-                    <p className="text-sm text-blue-700">
-                      Your quote includes sea freight, local trucking, customs duties, VAT, and handling fees. 
+                    <p className="text-sm text-blue-700 mb-3">
+                      Your quote includes carrier shipping, trucking, documentation, plus estimated customs/VAT for transparency. 
                       Select specific carriers below to see detailed breakdowns and exact pricing.
                     </p>
+                    <div className="bg-blue-100 p-3 rounded border border-blue-300">
+                      <p className="text-blue-800 text-xs font-medium">
+                        💳 <strong>Payment Structure:</strong> You pay shipping services to us, customs/VAT separately to authorities
+                      </p>
+                    </div>
                   </div>
                 </div>
                 
@@ -278,12 +288,13 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                     <div className="flex justify-between items-center mb-2">
                       <div className="flex items-center gap-3">
                         <FileText className="h-5 w-5 text-orange-600" />
-                        <span className="font-medium">Customs & VAT</span>
+                        <span className="font-medium">Customs & VAT (Estimates)</span>
+                        <span className="bg-orange-200 text-orange-800 text-xs px-2 py-1 rounded">You Pay Separately</span>
                       </div>
                       <span className="font-bold text-lg">{formatCurrency(breakdown.customs + breakdown.vat)}</span>
                     </div>
                     <p className="text-sm text-orange-700 mb-3">
-                      SARS import duties & 15% VAT - Government taxes on imported goods
+                      Estimated SARS import duties & 15% VAT - Government taxes paid directly to authorities upon clearance
                     </p>
                     {/* Detailed calculations */}
                     {quote?.customsInfo?.breakdown && (
@@ -706,21 +717,32 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                       </div>
                     </div>
 
-                    {/* Government Fees */}
+                    {/* Government Fees - Estimates Only */}
                     <div className="mb-6 p-4 bg-orange-50 rounded-lg border border-orange-200">
-                      <h4 className="text-lg font-semibold text-orange-800 mb-3">Government Fees (SARS)</h4>
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="text-lg font-semibold text-orange-800">Government Fees (SARS) - Estimates</h4>
+                        <span className="bg-orange-100 text-orange-800 text-xs font-medium px-2 py-1 rounded">For Planning Only</span>
+                      </div>
+                      
+                      <div className="mb-3 p-3 bg-orange-100 rounded border border-orange-200">
+                        <p className="text-orange-800 text-sm font-medium mb-1">📋 Important Notice:</p>
+                        <p className="text-orange-700 text-xs leading-relaxed">
+                          These are estimated costs for your planning. You will pay these directly to SARS or your customs broker upon arrival. <strong>FreightCalc does not collect or charge these fees.</strong>
+                        </p>
+                      </div>
+                      
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                         <div className="flex justify-between">
-                          <span className="text-gray-700">Customs Duties:</span>
+                          <span className="text-gray-700">Customs Duties (Est.):</span>
                           <span className="font-medium text-orange-600">{formatCurrency(breakdown.customs)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-700">VAT (15%):</span>
+                          <span className="text-gray-700">VAT 15% (Est.):</span>
                           <span className="font-medium text-orange-600">{formatCurrency(breakdown.vat)}</span>
                         </div>
                       </div>
                       <div className="border-t border-orange-300 pt-2 mt-3 flex justify-between font-bold text-orange-800">
-                        <span>Government Total:</span>
+                        <span>Estimated Government Total:</span>
                         <span className="text-lg">{formatCurrency(breakdown.customs + breakdown.vat)}</span>
                       </div>
                     </div>
@@ -728,12 +750,15 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
 
                   {/* Final Total */}
                   <div className="text-center p-6 bg-white rounded-lg border-2 border-green-500">
-                    <div className="text-xl text-gray-700 mb-2 font-semibold">Complete Door-to-Door Total</div>
+                    <div className="text-xl text-gray-700 mb-2 font-semibold">Total Estimated Door-to-Door Cost</div>
                     <div className="text-4xl font-bold text-green-600 mb-3">
                       {formatCurrency(getDynamicTotal())}
                     </div>
-                    <div className="text-sm text-green-700 mb-4">
-                      All-inclusive: Ocean freight + Customs + VAT + Trucking + Documentation
+                    <div className="text-sm text-green-700 mb-2">
+                      Ocean freight + Trucking + Documentation + Est. Customs/VAT
+                    </div>
+                    <div className="text-xs text-green-600 bg-green-50 p-2 rounded border border-green-200">
+                      💡 <strong>You pay:</strong> Shipping services now, customs/VAT separately to authorities later
                     </div>
                     <Button 
                       size="lg"
@@ -780,7 +805,7 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                   <div className="text-3xl mb-3">🏢</div>
                   <h4 className="font-bold text-purple-800 mb-2">3. Customs Clearance</h4>
                   <p className="text-sm text-purple-700">
-                    We handle all SARS customs procedures, pay duties and VAT, then arrange final delivery to your door
+                    We handle all SARS customs procedures and documentation. You pay duties and VAT directly to SARS/customs broker, then we arrange final delivery
                   </p>
                 </div>
               </div>
@@ -792,7 +817,7 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
         <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="text-sm text-gray-600 dark:text-gray-400">
-              <strong>Quote Validity:</strong> This quote is valid for 7 days. Final costs may vary based on actual cargo weight and customs inspection. All prices include door-to-door delivery.
+              <strong>Quote Validity:</strong> Valid for 7 days. Shipping service costs paid to FreightCalc, customs/VAT paid separately to authorities. Final costs may vary based on actual cargo weight and inspection.
             </div>
             <div className="flex gap-3">
               <Button variant="outline" onClick={onClose}>

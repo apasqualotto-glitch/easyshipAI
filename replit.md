@@ -24,6 +24,7 @@ FreightCalc SA is a comprehensive shipping marketplace that connects importers a
 - **Universal Address Support**: Implemented custom address entry system allowing users to input ANY South African address, not limited to pre-defined database
 - **Intelligent Address Parser**: Custom addresses automatically extract city, province, and postal code from free-form text input
 - **Enhanced UI Feedback**: Clear visual indicators show when addresses are from database vs custom entry, with real-time trucking cost calculations for all locations
+- **QUOTE TRANSPARENCY ENHANCED**: Added comprehensive explanations throughout quote results clarifying that VAT, customs, and duties estimates are for transparency only, paid separately to authorities, with clear emphasis that FreightCalc only charges for carrier/freight forwarder services
 
 ## User Preferences
 
