@@ -204,7 +204,7 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
 
         <div className="p-6 space-y-8">
           {/* Total Cost Prominent Display */}
-          <Card className="border-2 border-primary-300 bg-gradient-to-r from-blue-50 to-indigo-50">
+          <Card className="rounded-lg text-card-foreground shadow-sm border-2 border-primary-300 bg-gradient-to-r from-blue-50 to-indigo-50 pt-[-12px] pb-[-12px] mt-[-16px] mb-[-16px]"></Card>
             <CardHeader className="text-center pb-2">
               <CardTitle className="text-4xl font-bold text-primary-600 mb-2">
                 {formatCurrency(breakdown.total)}
