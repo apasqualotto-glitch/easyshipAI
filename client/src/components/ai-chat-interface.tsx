@@ -643,7 +643,7 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
                 variant="outline"
                 size="sm"
                 onClick={resetChat}
-                className="text-gray-600 hover:text-gray-800 hover:bg-gray-100"
+                className="text-gray-600 hover:text-gray-800 hover:bg-gray-100 ml-[0px] mr-[0px] pl-[8px] pr-[8px] pt-[0px] pb-[0px] mt-[-1px] mb-[-1px]"
                 title="Reset conversation and form"
               >
                 <RotateCcw className="h-4 w-4 mr-1" />
