@@ -215,6 +215,9 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
   }, [resetTrigger, form, toast]);
 
   const onSubmit = (data: QuoteRequest) => {
+    console.log('🚀 Form submission triggered with data:', data);
+    console.log('📊 Form errors:', form.formState.errors);
+    
     // Include customs tariff information if selected
     const enhancedData = {
       ...data,
@@ -227,6 +230,7 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
       } : undefined
     };
     
+    console.log('📦 Enhanced data being sent:', enhancedData);
     calculateQuoteMutation.mutate(enhancedData);
   };
 
@@ -698,6 +702,12 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
             type="submit"
             className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3"
             disabled={calculateQuoteMutation.isPending}
+            onClick={(e) => {
+              console.log('🖱️ Quote button clicked');
+              console.log('📝 Current form values:', form.getValues());
+              console.log('🔍 Form valid?', form.formState.isValid);
+              console.log('❌ Form errors:', form.formState.errors);
+            }}
           >
             {calculateQuoteMutation.isPending ? (
               <div className="flex items-center space-x-2">
