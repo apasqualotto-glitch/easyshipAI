@@ -731,7 +731,7 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
                   errors.push("Please enter your delivery address");
                 }
                 
-                if (!formValues.containerType || formValues.containerType === "") {
+                if (!formValues.containerType) {
                   errors.push("Please select a container type");
                 }
                 
