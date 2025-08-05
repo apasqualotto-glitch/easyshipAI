@@ -41,6 +41,12 @@ export default function BookingConfirmation() {
     enabled: !!params?.id,
   });
 
+  // Fetch quote details to get cost breakdown
+  const { data: quoteData } = useQuery({
+    queryKey: [`/api/quotes/${booking?.quoteId}`],
+    enabled: !!booking?.quoteId,
+  });
+
   if (isLoading) {
     return (
       <div className="min-h-screen pt-20 px-4">
@@ -120,6 +126,13 @@ export default function BookingConfirmation() {
                   carrierName={booking.carrierName}
                   freightForwarderName={booking.freightForwarderName}
                   onPaymentSuccess={handlePaymentSuccess}
+                  breakdown={quoteData ? {
+                    oceanFreight: quoteData.seaFreight || 0,
+                    trucking: quoteData.trucking || 0,
+                    handling: quoteData.handling || 0,
+                    customs: quoteData.customs || 0,
+                    vat: quoteData.vat || 0,
+                  } : undefined}
                 />
               </div>
             ) : (

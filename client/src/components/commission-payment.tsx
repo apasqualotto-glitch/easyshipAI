@@ -20,6 +20,14 @@ interface CommissionPaymentProps {
   carrierName: string;
   freightForwarderName?: string;
   onPaymentSuccess?: () => void;
+  // Optional breakdown for showing estimates
+  breakdown?: {
+    oceanFreight: number;
+    trucking: number;
+    handling: number;
+    customs: number;
+    vat: number;
+  };
 }
 
 function PaymentForm({ bookingId, commission, onSuccess }: { 
@@ -90,14 +98,20 @@ export function CommissionPayment({
   totalCost, 
   carrierName, 
   freightForwarderName,
-  onPaymentSuccess 
+  onPaymentSuccess,
+  breakdown
 }: CommissionPaymentProps) {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const { toast } = useToast();
   
-  // Calculate 5% commission
-  const commission = Math.round(totalCost * 0.05);
-  const carrierReceives = totalCost - commission;
+  // Calculate shipping services cost (excluding customs/VAT)
+  const shippingServicesCost = breakdown ? 
+    (breakdown.oceanFreight + breakdown.trucking + breakdown.handling) : 
+    (totalCost * 0.7); // Fallback estimate if no breakdown provided
+    
+  // Calculate 5% commission on shipping services only
+  const commission = Math.round(shippingServicesCost * 0.05);
+  const carrierReceives = shippingServicesCost - commission;
 
   // Create payment intent mutation
   const createPaymentMutation = useMutation({
@@ -141,33 +155,87 @@ export function CommissionPayment({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Commission Breakdown */}
-        <div className="bg-blue-50 rounded-lg p-4 space-y-3">
-          <div className="flex items-start gap-2">
-            <Info className="h-5 w-5 text-blue-600 mt-0.5" />
-            <div className="flex-1">
-              <h4 className="font-medium text-blue-900">How our commission works</h4>
-              <p className="text-sm text-blue-700 mt-1">
-                FreightCalc SA charges a 5% commission on all bookings to maintain our platform 
-                and provide you with the best shipping rates and services.
-              </p>
+        {/* Payment Breakdown */}
+        <div className="space-y-4">
+          {/* What You're Paying For */}
+          <div className="bg-green-50 rounded-lg p-4 space-y-3">
+            <div className="flex items-start gap-2">
+              <Info className="h-5 w-5 text-green-600 mt-0.5" />
+              <div className="flex-1">
+                <h4 className="font-medium text-green-900">Payment Breakdown</h4>
+                <p className="text-sm text-green-700 mt-1">
+                  You're only paying for carrier shipping and freight forwarding services. 
+                  Customs/VAT estimates are shown for transparency but paid separately to authorities.
+                </p>
+              </div>
+            </div>
+            
+            <div className="border-t border-green-200 pt-3 space-y-2">
+              <h5 className="font-medium text-green-800 text-sm">💳 Charged to Your Card:</h5>
+              {breakdown && (
+                <>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Ocean Freight:</span>
+                    <span className="font-medium">{formatCurrency(breakdown.oceanFreight)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Trucking & Delivery:</span>
+                    <span className="font-medium">{formatCurrency(breakdown.trucking)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Handling & Documentation:</span>
+                    <span className="font-medium">{formatCurrency(breakdown.handling)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm border-t pt-2">
+                    <span className="text-gray-700">Shipping Services Subtotal:</span>
+                    <span className="font-medium">{formatCurrency(shippingServicesCost)}</span>
+                  </div>
+                </>
+              )}
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Platform Commission (5%):</span>
+                <span className="font-medium text-blue-600">{formatCurrency(commission)}</span>
+              </div>
+              <div className="flex justify-between text-lg font-bold border-t pt-2 bg-green-100 px-2 py-2 rounded">
+                <span className="text-green-800">Total Payment:</span>
+                <span className="text-green-800">{formatCurrency(shippingServicesCost + commission)}</span>
+              </div>
             </div>
           </div>
-          
-          <div className="border-t border-blue-200 pt-3 space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Total Shipping Cost:</span>
-              <span className="font-medium">{formatCurrency(totalCost)}</span>
+
+          {/* Government Fees - Estimates Only */}
+          {breakdown && (breakdown.customs > 0 || breakdown.vat > 0) && (
+            <div className="bg-orange-50 rounded-lg p-4 space-y-3">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="h-5 w-5 text-orange-600 mt-0.5" />
+                <div className="flex-1">
+                  <h4 className="font-medium text-orange-900">Government Fees (Paid Separately)</h4>
+                  <p className="text-sm text-orange-700 mt-1">
+                    These estimates help you plan. You'll pay them directly to SARS or your customs broker upon arrival.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="border-t border-orange-200 pt-3 space-y-2">
+                <h5 className="font-medium text-orange-800 text-sm">🏛️ Paid to Authorities Later:</h5>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Customs Duties (Est.):</span>
+                  <span className="font-medium text-orange-600">{formatCurrency(breakdown.customs)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">VAT 15% (Est.):</span>
+                  <span className="font-medium text-orange-600">{formatCurrency(breakdown.vat)}</span>
+                </div>
+                <div className="flex justify-between text-sm font-medium border-t pt-2">
+                  <span className="text-orange-700">Est. Government Total:</span>
+                  <span className="text-orange-700">{formatCurrency(breakdown.customs + breakdown.vat)}</span>
+                </div>
+                <p className="text-xs text-orange-600 mt-2">
+                  ⚠️ Not included in your payment - for planning purposes only
+                </p>
+              </div>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Platform Commission (5%):</span>
-              <span className="font-medium text-blue-600">{formatCurrency(commission)}</span>
-            </div>
-            <div className="flex justify-between text-sm font-medium border-t pt-2">
-              <span className="text-gray-700">Carrier Receives:</span>
-              <span>{formatCurrency(carrierReceives)}</span>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Service Providers */}
