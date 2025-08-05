@@ -150,7 +150,7 @@ export function Homepage() {
         </div>
       </section>
       {/* Main Content Section */}
-      <section className="px-4 pb-8">
+      <section className="px-4 pb-8 mt-[-33px] mb-[-33px]">
         <div className="max-w-7xl mx-auto">
           {/* AI Chat Interface */}
           <div className="mb-8">
@@ -221,7 +221,6 @@ export function Homepage() {
           </div>
         </div>
       </section>
-      
       {/* Benefits Section */}
       <section className="py-16 px-4">
         <div className="max-w-6xl mx-auto">
