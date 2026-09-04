@@ -598,23 +598,23 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                               <h4 className="font-bold text-indigo-800 mb-2">Selected: {forwarder.provider}</h4>
                               <div className="text-sm text-indigo-700 space-y-1">
                                 <div className="flex justify-between">
-                                  <span>• DSV Customs Clearance:</span>
+                                  <span>• Customs Clearance:</span>
                                   <span className="font-medium">{formatCurrency(forwarder.services.customsClearance)}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                  <span>• DSV Port Clearance:</span>
+                                  <span>• Port Clearance:</span>
                                   <span className="font-medium">{formatCurrency(forwarder.services.portClearance)}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                  <span>• DSV Local Trucking:</span>
+                                  <span>• Local Trucking:</span>
                                   <span className="font-medium">{formatCurrency(forwarder.services.trucking)}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                  <span>• DSV Documentation:</span>
+                                  <span>• Documentation:</span>
                                   <span className="font-medium">{formatCurrency(forwarder.documentation)}</span>
                                 </div>
                                 <div className="border-t border-indigo-300 pt-1 mt-2 flex justify-between font-bold">
-                                  <span>DSV Total:</span>
+                                  <span>{forwarder.provider} Total:</span>
                                   <span>{formatCurrency(forwarder.totalCost)}</span>
                                 </div>
                               </div>

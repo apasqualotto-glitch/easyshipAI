@@ -70,7 +70,7 @@ export class FreightForwarderService {
       });
     }
     
-    // DSV Quote - Real API integration
+    // DSV Quote - live path when credentials configured
     const dsvQuote = await this.callDSVAPI(request);
     if (dsvQuote) {
       quotes.push(dsvQuote);
@@ -403,7 +403,7 @@ export class FreightForwarderService {
         transitTime: quoteData.quote?.transitTime || quoteData.transitDays ? `${quoteData.transitDays} days` : '3-5 business days',
         features: [
           'DSV Road Transport Network',
-          'Real-time API integration',
+          'API quote when credentials configured',
           'SARS customs clearance',
           'Door-to-door delivery',
           'Professional handling'
