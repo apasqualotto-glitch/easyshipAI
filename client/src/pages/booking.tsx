@@ -247,8 +247,8 @@ export default function BookingPage() {
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Booking Form */}
-          <div className="lg:col-span-2">
+          {/* Booking Form — below summary on mobile */}
+          <div className="lg:col-span-2 order-2 lg:order-1">
             <Card>
               <CardHeader>
                 <CardTitle>Shipment Details</CardTitle>
@@ -497,10 +497,11 @@ export default function BookingPage() {
                       </div>
                     </div>
                     
-                    <div className="flex justify-end">
+                    <div className="sticky bottom-0 z-10 -mx-6 px-6 py-3 bg-white/95 border-t border-gray-200 backdrop-blur sm:static sm:mx-0 sm:px-0 sm:py-0 sm:bg-transparent sm:border-0 sm:backdrop-blur-none flex justify-end">
                       <Button 
                         type="submit" 
                         size="lg"
+                        className="w-full sm:w-auto"
                         disabled={createBookingMutation.isPending}
                       >
                         {createBookingMutation.isPending ? (
@@ -519,9 +520,9 @@ export default function BookingPage() {
             </Card>
           </div>
           
-          {/* Quote Summary Sidebar */}
-          <div className="lg:col-span-1">
-            <Card className="sticky top-4">
+          {/* Quote Summary — above form on mobile; sticky sidebar on lg */}
+          <div className="lg:col-span-1 order-1 lg:order-2">
+            <Card className="lg:sticky lg:top-4">
               <CardHeader>
                 <CardTitle>Quote Summary</CardTitle>
                 <CardDescription>

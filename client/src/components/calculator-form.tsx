@@ -291,7 +291,7 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
                     <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[400px] p-0">
+                <PopoverContent className="w-[min(400px,calc(100vw-2rem))] p-0">
                   <Command>
                     <CommandInput placeholder="Search ports..." />
                     <CommandEmpty>No port found.</CommandEmpty>
@@ -396,7 +396,7 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
                     <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[400px] p-0">
+                <PopoverContent className="w-[min(400px,calc(100vw-2rem))] p-0">
                   <Command>
                     <CommandInput placeholder="Search destination ports..." />
                     <CommandEmpty>No port found.</CommandEmpty>
@@ -624,12 +624,13 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
               </div>
               <div>
                 <Label htmlFor="incoterm" className="flex items-center">
-                  Incoterm <span className="text-red-500 ml-1">*</span>
+                  Who pays / who takes risk (Incoterm) <span className="text-red-500 ml-1">*</span>
                   <HelpCircle className="ml-1 h-3.5 w-3.5 text-gray-400" title="Defines who pays for what and where risk transfers (e.g. FOB, CIF, DDP)" />
                 </Label>
+                <p className="text-xs text-gray-500 mb-1">Short codes like FOB, CIF, or DDP — who covers freight, insurance, and customs risk.</p>
                 <Select onValueChange={(value) => form.setValue("incoterm", value)} value={form.watch("incoterm")}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select incoterm" />
+                    <SelectValue placeholder="Select who pays / who takes risk" />
                   </SelectTrigger>
                   <SelectContent>
                     {(incoterms as Incoterm[]).map((incoterm) => (

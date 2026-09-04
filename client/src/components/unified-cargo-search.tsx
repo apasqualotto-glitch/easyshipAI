@@ -55,7 +55,7 @@ export default function UnifiedCargoSearch({
         id: customsTariff.hsCode,
         name: customsTariff.explanation,
         searchValue: customsTariff.hsCode,
-        category: 'Specific HS Code',
+        category: 'Product customs code (HS)',
         dutyRate: customsTariff.dutyRate,
         additionalFees: customsTariff.additionalFees,
         vatRate: customsTariff.vatRate,
@@ -202,7 +202,7 @@ export default function UnifiedCargoSearch({
                   </Badge>
                   {selectedResult.isSpecific && (
                     <Badge className="bg-purple-100 text-purple-800">
-                      Specific HS Code
+                      Product customs code (HS)
                     </Badge>
                   )}
                 </div>
@@ -318,7 +318,7 @@ export default function UnifiedCargoSearch({
         <div className="text-xs text-gray-500 space-y-1">
           <p className="flex items-center gap-1">
             <FileText className="h-3 w-3 text-green-600" />
-            <span className="font-medium">Specific HS codes</span> provide exact duty rates
+            <span className="font-medium">Product customs codes (HS)</span> provide exact duty rates
           </p>
           <p className="flex items-center gap-1">
             <Package className="h-3 w-3 text-blue-600" />

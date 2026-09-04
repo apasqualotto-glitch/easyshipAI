@@ -23,7 +23,7 @@ const FEATURES = [
   {
     icon: Calculator,
     title: "Smart Quote Calculator",
-    description: "Get instant shipping quotes with SARS-compliant customs calculations",
+    description: "Get instant shipping quotes with SARS (South African Revenue Service)-compliant customs calculations",
     link: "/calculator"
   },
   {
@@ -60,7 +60,7 @@ const BENEFITS = [
   {
     icon: Shield,
     title: "Secure & Reliable",
-    text: "Estimate-first quotes with clear SARS-aligned cost breakdowns"
+    text: "Estimate-first quotes with clear SARS-aligned (South African customs) cost breakdowns"
   },
   {
     icon: Clock,

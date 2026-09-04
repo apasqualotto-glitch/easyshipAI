@@ -908,7 +908,7 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
                         key={idx}
                         size="sm"
                         variant="outline"
-                        className="h-7 px-2 text-xs border-blue-200 hover:bg-blue-100"
+                        className="min-h-11 h-auto py-2 px-2 text-xs border-blue-200 hover:bg-blue-100"
                         onClick={() => handleQuickRefinement(refine.msg)}
                       >
                         {refine.label}

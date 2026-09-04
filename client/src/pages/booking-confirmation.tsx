@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { CheckCircle, Package, Truck, Calendar, FileText, ArrowLeft, CreditCard, AlertCircle } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { CommissionPayment } from "@/components/commission-payment";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface Booking {
   id: string;
@@ -33,7 +33,10 @@ interface Booking {
 export default function BookingConfirmation() {
   const [, params] = useRoute("/booking/confirmation/:id");
   const [, setLocation] = useLocation();
-  const [paymentCompleted, setPaymentCompleted] = useState(false);
+  const [paymentCompleted, setPaymentCompleted] = useState(() => {
+    if (typeof window === "undefined" || !params?.id) return false;
+    return localStorage.getItem(`booking-paid-${params.id}`) === "true";
+  });
 
   // Fetch booking details
   const { data: booking, isLoading } = useQuery<Booking>({
@@ -46,6 +49,37 @@ export default function BookingConfirmation() {
     queryKey: [`/api/quotes/${booking?.quoteId}`],
     enabled: !!booking?.quoteId,
   });
+
+  // Restore paid state after refresh (localStorage + Stripe return query + booking status)
+  useEffect(() => {
+    if (!params?.id) return;
+    const key = `booking-paid-${params.id}`;
+    const stored = localStorage.getItem(key) === "true";
+    const qs = new URLSearchParams(window.location.search);
+    const redirectStatus = qs.get("redirect_status") || qs.get("payment_status") || qs.get("payment");
+    const stripeSucceeded =
+      redirectStatus === "succeeded" ||
+      redirectStatus === "success" ||
+      redirectStatus === "paid";
+    if (stripeSucceeded) {
+      localStorage.setItem(key, "true");
+      setPaymentCompleted(true);
+      return;
+    }
+    if (stored) {
+      setPaymentCompleted(true);
+    }
+  }, [params?.id]);
+
+  useEffect(() => {
+    if (!booking?.status || !params?.id) return;
+    const s = booking.status.toLowerCase();
+    // Only treat explicitly paid statuses as paid (avoid "confirmed" at create-time)
+    if (["paid", "payment_completed", "payment_paid"].includes(s)) {
+      localStorage.setItem(`booking-paid-${params.id}`, "true");
+      setPaymentCompleted(true);
+    }
+  }, [booking?.status, params?.id]);
 
   if (isLoading) {
     return (
@@ -69,6 +103,9 @@ export default function BookingConfirmation() {
   }
 
   const handlePaymentSuccess = () => {
+    if (params?.id) {
+      localStorage.setItem(`booking-paid-${params.id}`, "true");
+    }
     setPaymentCompleted(true);
   };
 

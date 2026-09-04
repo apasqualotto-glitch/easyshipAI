@@ -255,7 +255,7 @@ export default function CustomsLookup() {
 
             {/* Cost Calculator */}
             <div className="space-y-3">
-              <Label htmlFor="cargo-value">Enter cargo value (CIF in ZAR) to calculate exact costs</Label>
+              <Label htmlFor="cargo-value">Goods value incl. shipping + insurance (CIF), ZAR — enter to calculate exact costs</Label>
               <Input
                 id="cargo-value"
                 type="number"

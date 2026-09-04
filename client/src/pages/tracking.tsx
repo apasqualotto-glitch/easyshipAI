@@ -231,7 +231,7 @@ export function Tracking() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleTrackingSearch} className="flex gap-4">
+            <form onSubmit={handleTrackingSearch} className="flex flex-col sm:flex-row gap-4">
               <Input
                 placeholder="e.g., MAEU123456789 or MSKU9876543"
                 value={trackingNumber}
@@ -260,6 +260,7 @@ export function Tracking() {
                 <Button 
                   variant="outline" 
                   size="sm"
+                  className="min-h-11"
                   onClick={() => setTrackingNumber("MAEU123456789")}
                 >
                   MAEU123456789 (In Transit)
@@ -267,6 +268,7 @@ export function Tracking() {
                 <Button 
                   variant="outline" 
                   size="sm"
+                  className="min-h-11"
                   onClick={() => setTrackingNumber("MSC987654321")}
                 >
                   MSC987654321 (At Customs)
