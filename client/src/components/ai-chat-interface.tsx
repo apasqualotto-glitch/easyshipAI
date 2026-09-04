@@ -52,7 +52,7 @@ const QUICK_QUESTIONS = [
   },
   {
     icon: HelpCircle,
-    question: "Export furniture from Durban to Europe — rough cost?",
+    question: "Export furniture from Durban to Europe Ã¢â‚¬â€ rough cost?",
     category: "Instant Quote"
   },
   {
@@ -70,8 +70,8 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
       id: '1',
       role: 'assistant',
       content: context === "homepage" || context === "calculator" 
-        ? "👋 Hi! I'm your EasyShip AI assistant. Describe your shipment in plain words (e.g. \"20ft laptops from Shanghai to Johannesburg\" or \"export furniture from Durban to Europe\") and I'll instantly give you a full cost breakdown with VAT, duties, Incoterms explained — even with minimal details. The more you tell me, the more accurate it gets."
-        : "👋 Welcome to EasyShip AI! I'm here to help you understand container shipping, customs, and Incoterms in simple terms. What would you like to know?",
+        ? "Ã°Å¸â€˜â€¹ Hi! I'm your EasyShip AI assistant. Describe your shipment in plain words (e.g. \"20ft laptops from Shanghai to Johannesburg\" or \"export furniture from Durban to Europe\") and I'll instantly give you a full cost breakdown with VAT, duties, Incoterms explained Ã¢â‚¬â€ even with minimal details. The more you tell me, the more accurate it gets."
+        : "Ã°Å¸â€˜â€¹ Welcome to EasyShip AI! I'm here to help you understand container shipping, customs, and Incoterms in simple terms. What would you like to know?",
       timestamp: new Date()
     }
   ]);
@@ -89,8 +89,8 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
       id: '1',
       role: 'assistant',
       content: context === "homepage" || context === "calculator" 
-        ? "👋 Hi! I'm your EasyShip AI assistant. Describe your shipment in plain words (e.g. \"20ft laptops from Shanghai to Johannesburg\" or \"export furniture from Durban to Europe\") and I'll instantly give you a full cost breakdown with VAT, duties, Incoterms explained — even with minimal details. The more you tell me, the more accurate it gets."
-        : "👋 Welcome to EasyShip AI! I'm here to help you understand container shipping, customs, and Incoterms in simple terms. What would you like to know?",
+        ? "Ã°Å¸â€˜â€¹ Hi! I'm your EasyShip AI assistant. Describe your shipment in plain words (e.g. \"20ft laptops from Shanghai to Johannesburg\" or \"export furniture from Durban to Europe\") and I'll instantly give you a full cost breakdown with VAT, duties, Incoterms explained Ã¢â‚¬â€ even with minimal details. The more you tell me, the more accurate it gets."
+        : "Ã°Å¸â€˜â€¹ Welcome to EasyShip AI! I'm here to help you understand container shipping, customs, and Incoterms in simple terms. What would you like to know?",
       timestamp: new Date()
     }]);
     setInputMessage("");
@@ -126,14 +126,14 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
   // Extract helper functions
   const getOriginPortId = (msg: string) => {
     const lower = msg.toLowerCase();
-    console.log(`🔍 Extracting origin from: "${lower}"`);
+    console.log(`Ã°Å¸â€Â Extracting origin from: "${lower}"`);
     
     // Check if this is an export FROM SA
     const isExport = lower.includes('export') || lower.includes('from south africa') || 
                     lower.includes('from sa') || lower.includes('from cape town') || 
                     lower.includes('from durban');
     
-    console.log(`📦 Is export: ${isExport}`);
+    console.log(`Ã°Å¸â€œÂ¦ Is export: ${isExport}`);
     
     if (isExport) {
       // For exports, origin is SA ports
@@ -148,7 +148,7 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
       // For imports, origin is international ports
       // Major Chinese ports (check first to prioritize specific matches)
       if (lower.includes('shanghai')) {
-        console.log(`✅ Found Shanghai, returning ID: 1`);
+        console.log(`Ã¢Å“â€¦ Found Shanghai, returning ID: 1`);
         return '1';
       }
       if (lower.includes('shenzhen') || lower.includes('yantian')) return '16';
@@ -159,7 +159,7 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
       
       // Asia Pacific ports - MUST CHECK BEFORE US (Hong Kong comes before general region checks)
       if (lower.includes('hong kong') || lower.includes('hk')) {
-        console.log(`✅ Found Hong Kong, returning ID: 29`);
+        console.log(`Ã¢Å“â€¦ Found Hong Kong, returning ID: 29`);
         return '29';
       }
       if (lower.includes('busan') || lower.includes('korea')) return '30';
@@ -307,7 +307,7 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
     const kgMatch = lower.match(/(\d+[,\d]*)\s*(?:kg|kilograms?)/);
     if (kgMatch) {
       const weight = parseInt(kgMatch[1].replace(/,/g, ''));
-      console.log(`🏋️ Extracted weight: ${weight} kg from "${kgMatch[0]}"`);
+      console.log(`Ã°Å¸Ââ€¹Ã¯Â¸Â Extracted weight: ${weight} kg from "${kgMatch[0]}"`);
       return weight;
     }
     
@@ -316,7 +316,7 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
     if (tonMatch) {
       const tons = parseInt(tonMatch[1].replace(/,/g, ''));
       const weightInKg = tons * 1000;
-      console.log(`🏋️ Extracted weight: ${tons} tons = ${weightInKg} kg from "${tonMatch[0]}"`);
+      console.log(`Ã°Å¸Ââ€¹Ã¯Â¸Â Extracted weight: ${tons} tons = ${weightInKg} kg from "${tonMatch[0]}"`);
       return weightInKg;
     }
     
@@ -325,7 +325,7 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
     if (lbMatch) {
       const pounds = parseInt(lbMatch[1].replace(/,/g, ''));
       const weightInKg = Math.round(pounds * 0.453592);
-      console.log(`🏋️ Extracted weight: ${pounds} lbs = ${weightInKg} kg from "${lbMatch[0]}"`);
+      console.log(`Ã°Å¸Ââ€¹Ã¯Â¸Â Extracted weight: ${pounds} lbs = ${weightInKg} kg from "${lbMatch[0]}"`);
       return weightInKg;
     }
     
@@ -437,7 +437,7 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
         setLiveEstimate(data.estimate);
         // Auto-feed the calculator form with the suggested values (origin, container, value, etc.)
         if (onExtractedData && data.estimate.suggestedFormValues) {
-          console.log("📊 Applying estimate suggestedFormValues to calculator:", data.estimate.suggestedFormValues);
+          console.log("Ã°Å¸â€œÅ  Applying estimate suggestedFormValues to calculator:", data.estimate.suggestedFormValues);
           onExtractedData(data.estimate.suggestedFormValues);
         }
       }
@@ -455,7 +455,7 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
       const isCompleteShippingRequest = hasSufficientInfo && (hasContainer || hasValue);
       
       // The live estimate card (powered by the backend) now handles provisional quotes even with minimal info.
-      // We keep this section lightweight — mostly for additional LLM guidance text.
+      // We keep this section lightweight Ã¢â‚¬â€ mostly for additional LLM guidance text.
       let estimateText = "";
       const hasEnoughForCard = hasOrigin && hasDestination;
       
@@ -481,9 +481,9 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
       
       // Add note about detailed quote for complete requests
       if (isCompleteShippingRequest || hasSufficientInfo) {
-        aiResponse += "\n\n📊 **Generating your detailed quote now...** It will appear below with full cost breakdown and carrier options.";
+        aiResponse += "\n\nÃ°Å¸â€œÅ  **Generating your detailed quote now...** It will appear below with full cost breakdown and carrier options.";
       } else if (hasShippingKeywords && !aiResponse.toLowerCase().includes('detailed quote')) {
-        aiResponse += "\n\n💡 **Need a detailed quote?** Provide your origin, destination, and container type, and I'll generate a comprehensive quote with live rates!";
+        aiResponse += "\n\nÃ°Å¸â€™Â¡ **Need a detailed quote?** Provide your origin, destination, and container type, and I'll generate a comprehensive quote with live rates!";
       }
       
       const assistantMessage: ChatMessage = {
@@ -556,14 +556,14 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
             const hsCodeHelpMessage: ChatMessage = {
               id: (Date.now() + 3).toString(),
               role: 'assistant',
-              content: `📦 **I noticed you're shipping ${cargoType}.** To get the most accurate customs calculation:\n\n• Use the cargo search field to find your specific product's HS code\n• Type keywords like "${getExampleProduct(cargoType)}" to see options\n• The HS code determines your exact duty rate (varies from 0% to 45%)\n\nWould you like me to help you find the right HS code for your specific items?`,
+              content: `Ã°Å¸â€œÂ¦ **I noticed you're shipping ${cargoType}.** To get the most accurate customs calculation:\n\nÃ¢â‚¬Â¢ Use the cargo search field to find your specific product's HS code\nÃ¢â‚¬Â¢ Type keywords like "${getExampleProduct(cargoType)}" to see options\nÃ¢â‚¬Â¢ The HS code determines your exact duty rate (varies from 0% to 45%)\n\nWould you like me to help you find the right HS code for your specific items?`,
               timestamp: new Date()
             };
             setMessages(prev => [...prev, hsCodeHelpMessage]);
           }, 2000);
         }
         
-        console.log('🔍 Extracted data from conversation:', extractedData);
+        console.log('Ã°Å¸â€Â Extracted data from conversation:', extractedData);
         
         if (Object.keys(extractedData).length > 0) {
           onExtractedData(extractedData);
@@ -663,7 +663,7 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
         }
       }
     } catch (e) {
-      // Non-fatal — the chat roundtrip below will still correct it
+      // Non-fatal Ã¢â‚¬â€ the chat roundtrip below will still correct it
     }
 
     // 2. Send the natural language message through the normal chat flow.
@@ -700,7 +700,7 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
                 variant="outline"
                 size="sm"
                 onClick={resetChat}
-                className="text-gray-600 hover:text-gray-800 hover:bg-gray-100 ml-[0px] mr-[0px] pl-[8px] pr-[8px] pt-[0px] pb-[0px] mt-[-1px] mb-[-1px]"
+                className="min-h-11 text-gray-600 hover:text-gray-800 hover:bg-gray-100 ml-[0px] mr-[0px] pl-[8px] pr-[8px] mt-[-1px] mb-[-1px]"
                 title="Reset conversation and form"
               >
                 <RotateCcw className="h-4 w-4 mr-1" />
@@ -751,10 +751,7 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
             )}
 
             {/* Chat Messages - Extended height for better conversation viewing */}
-            <ScrollArea className={cn(
-              "mb-4",
-              context === "calculator" || context === "homepage" ? "h-96" : "h-96"
-            )}>
+            <ScrollArea className="mb-4 h-64 sm:h-96">
               <div className="space-y-4 px-2">
                 {messages.map((message) => (
                   <div key={message.id} className={cn(
@@ -806,20 +803,20 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
             </ScrollArea>
 
             {/* ===================================================== */}
-            {/* LIVE PROVISIONAL QUOTE CARD — the heart of the "instant quote from minimal info + agent processes it" vision */}
+            {/* LIVE PROVISIONAL QUOTE CARD Ã¢â‚¬â€ the heart of the "instant quote from minimal info + agent processes it" vision */}
             {/* Appears / updates automatically as soon as the backend estimator has enough data from the conversation */}
             {/* ===================================================== */}
             {liveEstimate && (
               <div className="mb-4 p-4 rounded-xl border-2 border-blue-200 bg-blue-50/60 shadow-inner">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <div className="font-semibold text-blue-900">💰 Estimate (Provisional)</div>
+                    <div className="font-semibold text-blue-900">Ã°Å¸â€™Â° Estimate (Provisional)</div>
                     <Badge variant={liveEstimate.confidence === "high" ? "default" : "secondary"} className="text-[10px]">
                       {liveEstimate.confidence.toUpperCase()} CONFIDENCE
                     </Badge>
                     {liveEstimate.isExport && <Badge variant="outline" className="text-[10px]">EXPORT</Badge>}
                   </div>
-                  <div className="text-xs text-blue-700">ZAR • updates as you chat</div>
+                  <div className="text-xs text-blue-700">ZAR Ã¢â‚¬Â¢ updates as you chat</div>
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2 text-sm mb-3">
@@ -860,7 +857,7 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
                   <div className="text-xs bg-white/70 p-2 rounded mb-2 border border-blue-100">
                     <span className="font-medium text-blue-800">Assumptions we made:</span>{" "}
                     {liveEstimate.assumptions.slice(0, 2).join(" ")}
-                    {liveEstimate.assumptions.length > 2 && " …"}
+                    {liveEstimate.assumptions.length > 2 && " Ã¢â‚¬Â¦"}
                   </div>
                 )}
 
@@ -875,7 +872,7 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
                   <Button
                     size="sm"
                     variant="default"
-                    className="bg-blue-700 hover:bg-blue-800"
+                    className="min-h-11 bg-blue-700 hover:bg-blue-800"
                     onClick={() => {
                       if (onExtractedData && liveEstimate.suggestedFormValues) {
                         onExtractedData(liveEstimate.suggestedFormValues);
@@ -887,13 +884,14 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
                   <Button
                     size="sm"
                     variant="outline"
+                    className="min-h-11"
                     onClick={() => setLiveEstimate(null)}
                   >
                     Hide estimate
                   </Button>
                 </div>
 
-                {/* Quick refinement chips — this is what makes the agent feel like it's "processing" the quote live with minimal effort */}
+                {/* Quick refinement chips Ã¢â‚¬â€ this is what makes the agent feel like it's "processing" the quote live with minimal effort */}
                 <div className="mt-3">
                   <div className="text-[10px] text-blue-700 mb-1.5">Quick tweaks (click to update the live quote instantly):</div>
                   <div className="flex flex-wrap gap-1.5">
@@ -919,7 +917,7 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
 
                 {liveEstimate.tips?.length > 0 && (
                   <div className="mt-2 text-[10px] text-blue-700">
-                    💡 {liveEstimate.tips[0]}
+                    Ã°Å¸â€™Â¡ {liveEstimate.tips[0]}
                   </div>
                 )}
 
@@ -950,8 +948,8 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
 
             <div className="mt-3 text-xs text-gray-500 text-center">
               {context === "homepage" || context === "calculator" 
-                ? "💡 Tip: Describe your shipment in plain English. Use the quick tweak buttons on the live quote card or just say things like 'change to 40ft' or 'value is $12k' — I'll update the numbers instantly."
-                : "💡 Tip: Ask specific questions like 'What documents do I need?' or 'Explain FOB pricing'"}
+                ? "Ã°Å¸â€™Â¡ Tip: Describe your shipment in plain English. Use the quick tweak buttons on the live quote card or just say things like 'change to 40ft' or 'value is $12k' Ã¢â‚¬â€ I'll update the numbers instantly."
+                : "Ã°Å¸â€™Â¡ Tip: Ask specific questions like 'What documents do I need?' or 'Explain FOB pricing'"}
             </div>
           </CardContent>
         )}

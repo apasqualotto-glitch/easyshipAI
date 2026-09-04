@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { ArrowLeft, Package, Truck, DollarSign, Calendar, User, Building, Phone, Mail, MapPin, FileText } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
@@ -259,12 +260,16 @@ export default function BookingPage() {
               <CardContent>
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                    {/* Shipper Information */}
-                    <div>
-                      <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                        <User className="h-5 w-5" />
-                        Shipper Information (Origin)
-                      </h3>
+                    <Accordion type="multiple" defaultValue={["shipper"]} className="w-full">
+                      {/* Shipper Information */}
+                      <AccordionItem value="shipper" className="border rounded-lg px-3 mb-2">
+                        <AccordionTrigger className="text-base sm:text-lg font-semibold hover:no-underline py-3 min-h-11">
+                          <span className="flex items-center gap-2 text-left">
+                            <User className="h-5 w-5 shrink-0" />
+                            Shipper Information (Origin)
+                          </span>
+                        </AccordionTrigger>
+                        <AccordionContent>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormField
                           control={form.control}
@@ -340,16 +345,18 @@ export default function BookingPage() {
                           )}
                         />
                       </div>
-                    </div>
-                    
-                    <Separator />
-                    
-                    {/* Consignee Information */}
-                    <div>
-                      <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                        <Building className="h-5 w-5" />
-                        Consignee Information (Destination)
-                      </h3>
+                        </AccordionContent>
+                      </AccordionItem>
+
+                      {/* Consignee Information */}
+                      <AccordionItem value="consignee" className="border rounded-lg px-3 mb-2">
+                        <AccordionTrigger className="text-base sm:text-lg font-semibold hover:no-underline py-3 min-h-11">
+                          <span className="flex items-center gap-2 text-left">
+                            <Building className="h-5 w-5 shrink-0" />
+                            Consignee Information (Destination)
+                          </span>
+                        </AccordionTrigger>
+                        <AccordionContent>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormField
                           control={form.control}
@@ -425,17 +432,19 @@ export default function BookingPage() {
                           )}
                         />
                       </div>
-                    </div>
-                    
-                    <Separator />
-                    
-                    {/* Cargo Details */}
-                    <div>
-                      <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                        <Package className="h-5 w-5" />
-                        Cargo Details
-                      </h3>
-                      <FormField
+                        </AccordionContent>
+                      </AccordionItem>
+
+                      {/* Cargo Details */}
+                      <AccordionItem value="cargo" className="border rounded-lg px-3 mb-2">
+                        <AccordionTrigger className="text-base sm:text-lg font-semibold hover:no-underline py-3 min-h-11">
+                          <span className="flex items-center gap-2 text-left">
+                            <Package className="h-5 w-5 shrink-0" />
+                            Cargo Details
+                          </span>
+                        </AccordionTrigger>
+                        <AccordionContent>
+<FormField
                         control={form.control}
                         name="cargoDescription"
                         render={({ field }) => (
@@ -452,10 +461,11 @@ export default function BookingPage() {
                           </FormItem>
                         )}
                       />
-                    </div>
-                    
-                    <Separator />
-                    
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+
+                    <Separator className="my-4" />
                     {/* Additional Information */}
                     <div>
                       <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">

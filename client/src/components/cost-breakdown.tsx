@@ -125,13 +125,13 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
               </div>
               {quoteResult?.customsInfo?.breakdown && (
                 <div className="mt-2 p-3 bg-gray-50 rounded-lg text-xs space-y-1">
-                  <div className="text-gray-600 font-medium">SARS Duty Calculation (FOB Basis):</div>
-                  <div>FOB Value (USD): ${quoteResult.customsInfo.breakdown.fobValueUSD?.toLocaleString() || quoteResult.value.toLocaleString()}</div>
+                  <div className="text-gray-600 font-medium">Duty on cargo value before shipping (FOB):</div>
+                  <div>Cargo value before shipping (FOB), USD: ${quoteResult.customsInfo.breakdown.fobValueUSD?.toLocaleString() || quoteResult.value.toLocaleString()}</div>
                   <div>Exchange Rate: 1 USD = {quoteResult.customsInfo.breakdown.exchangeRate?.toFixed(4) || 'N/A'} ZAR</div>
-                  <div>FOB Value (ZAR): {formatCurrency(quoteResult.customsInfo.breakdown.fobValueZAR || quoteResult.valueZAR || 0)}</div>
+                  <div>Cargo value before shipping (FOB), ZAR: {formatCurrency(quoteResult.customsInfo.breakdown.fobValueZAR || quoteResult.valueZAR || 0)}</div>
                   <div>Duty Rate: {(quoteResult.customsInfo.breakdown.dutyRate * 100).toFixed(1)}%</div>
                   <div className="font-medium text-secondary-700">
-                    Formula: FOB Value (ZAR) × Duty Rate = {formatCurrency(quoteResult.customsDuties)}
+                    Formula: Cargo value before shipping (FOB, ZAR) × Duty Rate = {formatCurrency(quoteResult.customsDuties)}
                   </div>
                 </div>
               )}
@@ -150,7 +150,7 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
               {quoteResult?.customsInfo?.breakdown && (
                 <div className="mt-2 p-3 bg-blue-50 rounded-lg text-xs space-y-1">
                   <div className="text-gray-600 font-medium">SARS VAT Calculation:</div>
-                  <div>FOB Value (ZAR): {formatCurrency(quoteResult.customsInfo.breakdown.fobValueZAR || quoteResult.valueZAR || 0)}</div>
+                  <div>Cargo value before shipping (FOB), ZAR: {formatCurrency(quoteResult.customsInfo.breakdown.fobValueZAR || quoteResult.valueZAR || 0)}</div>
                   {quoteResult.customsInfo.breakdown.markupApplied && (
                     <div>10% Markup: {formatCurrency(quoteResult.customsInfo.breakdown.markupAmount)} (Non-SACU)</div>
                   )}

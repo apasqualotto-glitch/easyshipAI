@@ -102,7 +102,7 @@ export default function Calculator() {
                   Compare {carrierComparison && "✓"}
                 </TabsTrigger>
                 <TabsTrigger value="customs">Customs</TabsTrigger>
-                <TabsTrigger value="incoterms">Incoterms</TabsTrigger>
+                <TabsTrigger value="incoterms">Who pays / risk (Incoterms)</TabsTrigger>
                 <TabsTrigger value="carriers">Carriers</TabsTrigger>
               </TabsList>
               <TabsContent value="costs">

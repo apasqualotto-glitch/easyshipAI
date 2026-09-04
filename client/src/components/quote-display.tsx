@@ -301,10 +301,10 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                       <div className="bg-orange-100 p-3 rounded border text-xs space-y-1">
                         <div className="font-medium text-orange-800 mb-2">📊 Calculation Details:</div>
                         <div className="text-orange-700">
-                          <div>Cargo Value (FOB): ${quote.customsInfo.breakdown.fobValueUSD?.toLocaleString()} USD = {formatCurrency(quote.customsInfo.breakdown.fobValueZAR)}</div>
+                          <div>Cargo value before shipping (FOB): ${quote.customsInfo.breakdown.fobValueUSD?.toLocaleString()} USD = {formatCurrency(quote.customsInfo.breakdown.fobValueZAR)}</div>
                           <div>Exchange Rate: 1 USD = R{quote.customsInfo.breakdown.exchangeRate?.toFixed(4)}</div>
                           <div>Customs Duty Rate: {(quote.customsInfo.breakdown.dutyRate * 100).toFixed(1)}% = {formatCurrency(breakdown.customs)}</div>
-                          <div>VAT (15% on FOB + Duties): {formatCurrency(breakdown.vat)}</div>
+                          <div>VAT (15% on cargo value before shipping (FOB) + Duties): {formatCurrency(breakdown.vat)}</div>
                           <div className="border-t border-orange-300 pt-1 mt-1 font-medium">
                             Total: {formatCurrency(breakdown.customs + breakdown.vat)}
                           </div>

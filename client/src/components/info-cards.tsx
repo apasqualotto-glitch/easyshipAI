@@ -42,13 +42,13 @@ export default function InfoCards() {
               <span className="material-icons text-secondary-400 text-base mr-2">check</span>
               Packing List
             </li>
-            <li className="flex items-center">
+            <li className="flex items-start">
               <span className="material-icons text-secondary-400 text-base mr-2">check</span>
-              Bill of Lading
+              <span>Bill of Lading — carrier receipt for your cargo</span>
             </li>
-            <li className="flex items-center">
+            <li className="flex items-start">
               <span className="material-icons text-secondary-400 text-base mr-2">check</span>
-              Certificate of Origin
+              <span>Certificate of Origin — proves where goods were made</span>
             </li>
           </ul>
         </CardContent>

@@ -35,7 +35,7 @@ const FEATURES = [
   {
     icon: FileText,
     title: "Customs & Incoterms Guide",
-    description: "Learn FOB, CIF, DDP with plain language explanations",
+    description: "New to shipping terms? Plain-language walkthrough of FOB, CIF, DDP and more",
     link: "/guides"
   },
   {
@@ -55,7 +55,7 @@ const BENEFITS = [
   {
     icon: Globe,
     title: "South Africa Focused",
-    text: "SARS compliant with local customs regulations"
+    text: "SARS (South African Revenue Service) compliant with local customs regulations"
   },
   {
     icon: Shield,
@@ -106,7 +106,7 @@ export function Homepage() {
           destinationPort: 'Destination Port',
           containerType: 'Container Type',
           finalDestination: 'Final Destination',
-          incoterm: 'Incoterm',
+          incoterm: 'Who pays / who takes risk (Incoterm)',
           value: 'Cargo Value',
           cargoType: 'Cargo Type',
           weight: 'Weight'
