@@ -1324,7 +1324,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           apiStatus: process.env.MAERSK_API_KEY ? 'AVAILABLE' : 'SETUP_REQUIRED',
           services: ['FCL', 'LCL'],
           coverage: 'Global',
-          bookingSupport: true
+          bookingSupport: !!process.env.MAERSK_API_KEY
         },
         {
           code: 'MSCU',
@@ -1333,7 +1333,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           apiStatus: process.env.MSC_API_KEY ? 'AVAILABLE' : 'SETUP_REQUIRED',
           services: ['FCL', 'LCL'],
           coverage: 'Global',
-          bookingSupport: true
+          bookingSupport: !!process.env.MSC_API_KEY
         },
         {
           code: 'CMDU',

@@ -813,7 +813,7 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
               <div className="mb-4 p-4 rounded-xl border-2 border-blue-200 bg-blue-50/60 shadow-inner">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <div className="font-semibold text-blue-900">💰 Live Estimate (Provisional)</div>
+                    <div className="font-semibold text-blue-900">💰 Estimate (Provisional)</div>
                     <Badge variant={liveEstimate.confidence === "high" ? "default" : "secondary"} className="text-[10px]">
                       {liveEstimate.confidence.toUpperCase()} CONFIDENCE
                     </Badge>

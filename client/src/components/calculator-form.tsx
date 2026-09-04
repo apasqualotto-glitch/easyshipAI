@@ -643,28 +643,28 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
             </div>
           </div>
 
-          {/* Live Shipping Rates - Always Enabled */}
-          <div className="bg-green-50 p-4 rounded-lg border-2 border-green-200">
-            <div className="flex items-center justify-between">
+          {/* Rate source honesty � live only when carrier APIs return data */}
+          <div className="bg-blue-50 p-4 rounded-lg border-2 border-blue-200">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center space-x-3">
                 <div className="flex items-center space-x-2">
-                  <Zap className="h-5 w-5 text-green-600" />
-                  <span className="font-medium text-green-800">Live Carrier Rates Enabled</span>
+                  <Zap className="h-5 w-5 text-blue-600" />
+                  <span className="font-medium text-blue-800">Estimate rates</span>
                 </div>
-                <Badge className="bg-green-100 text-green-800 border-green-200">Active</Badge>
+                <Badge className="bg-blue-100 text-blue-800 border-blue-200">Provisional</Badge>
               </div>
-              <div className="text-sm text-green-700">
-                Getting real-time rates from all major carriers
+              <div className="text-sm text-blue-700">
+                Live rates when carrier APIs return data
               </div>
             </div>
             
-            <div className="mt-3 text-sm text-green-600">
+            <div className="mt-3 text-sm text-blue-700">
               <div className="flex items-start space-x-2">
-                <span className="inline-block w-3 h-3 mt-0.5 flex-shrink-0 rounded-full bg-green-500" />
+                <span className="inline-block w-3 h-3 mt-0.5 flex-shrink-0 rounded-full bg-blue-500" />
                 <div>
-                  <p className="font-medium mb-1">All Carrier Options Included</p>
+                  <p className="font-medium mb-1">Honest pricing labels</p>
                   <p className="text-xs leading-relaxed">
-                    Comparing real-time rates from Maersk, MSC, CMA CGM, and other major shipping lines to get you the best price and transit time.
+                    Quotes start as estimates. Carrier names and live pricing appear only when an API key is configured and the carrier returns real rates - we never claim Maersk, MSC, or CMA CGM real-time rates otherwise.
                   </p>
                 </div>
               </div>

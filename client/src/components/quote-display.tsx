@@ -355,7 +355,7 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                   {quote?.hasLiveRates && (
                     <div className="flex items-center gap-2 col-span-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-green-600">Live carrier rates included</span>
+                      <span className="text-green-600">Live carrier rates included (API returned data)</span>
                     </div>
                   )}
                 </div>
@@ -538,7 +538,7 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                                 <Clock className="h-4 w-4 text-gray-500" />
                                 <span>Processing: {forwarder.processingTime}</span>
                               </div>
-                              <Badge className="mt-2">Full Service Provider</Badge>
+                              <Badge className="mt-2" variant="outline">Illustrative full-service package</Badge>
                             </div>
                           </div>
                           
@@ -570,7 +570,7 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                               {formatCurrency(forwarder.totalCost)}
                             </div>
                             <div className="text-xs text-gray-500 mt-1">
-                              All-inclusive service package
+                              Estimated service package (illustrative until booked)
                             </div>
                           </div>
                         </div>
@@ -586,7 +586,7 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                               ))
                             ) : (
                               <div className="col-span-full text-sm text-gray-500 text-center py-2">
-                                Professional logistics services included
+                                Estimated logistics services (illustrative)
                               </div>
                             )}
                           </div>
@@ -801,7 +801,7 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                   <div className="text-3xl mb-3">🚢</div>
                   <h4 className="font-bold text-blue-800 mb-2">2. Ocean Transport</h4>
                   <p className="text-sm text-blue-700">
-                    Your cargo travels by sea from {route.origin} to {route.destination} with real-time tracking updates
+                    Your cargo travels by sea from {route.origin} to {route.destination}; tracking updates when the carrier provides them
                   </p>
                 </div>
                 <div className="text-center p-4 bg-purple-50 rounded-lg border border-purple-200">

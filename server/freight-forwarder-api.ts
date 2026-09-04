@@ -91,7 +91,7 @@ export class FreightForwarderService {
         features: [
           'DSV Road Transport Network',
           'SARS customs clearance',
-          'Real-time tracking',
+          'Tracking when available (estimate)',
           'Door-to-door delivery',
           'Temperature-controlled options'
         ]

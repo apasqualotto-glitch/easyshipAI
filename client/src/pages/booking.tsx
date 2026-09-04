@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLocation, useRoute } from "wouter";
+import { useLocation, useRoute, Link } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -53,6 +53,9 @@ export default function BookingPage() {
   const quoteId = urlParams.get("quoteId") || urlParams.get("quote");
   const carrier = urlParams.get("carrier") || "";
   const freightForwarder = urlParams.get("freightForwarder") || "";
+  const urlService = urlParams.get("service") || "";
+  const urlRateParam = urlParams.get("rate");
+  const urlRate = urlRateParam ? Number(urlRateParam) : null;
   const [localQuote, setLocalQuote] = useState<any>(null);
   
   useEffect(() => {
@@ -202,13 +205,21 @@ export default function BookingPage() {
   }
   
   if (!quoteId || !quote) {
+    const noQuoteYet = !quoteId;
     return (
       <div className="min-h-screen pt-20 px-4">
-        <div className="container mx-auto px-4 py-8 text-center">
-          <h1 className="text-2xl font-bold mb-4">Quote Not Found</h1>
-          <p className="text-gray-600 mb-6">The quote you're looking for doesn't exist or has expired. Open booking from a generated quote, or start a new one.</p>
-          <Button onClick={() => setLocation("/calculator")}>
-            Get New Quote
+        <div className="container mx-auto px-4 py-8 text-center max-w-lg">
+          <Package className="h-12 w-12 mx-auto mb-4 text-blue-500" />
+          <h1 className="text-2xl font-bold mb-4">
+            {noQuoteYet ? "Get a quote first" : "Quote not found"}
+          </h1>
+          <p className="text-gray-600 mb-6">
+            {noQuoteYet
+              ? "Booking needs a shipping quote. Use the calculator to get rates, then continue to book from your quote."
+              : "This quote doesn't exist or has expired. Generate a new quote to continue booking."}
+          </p>
+          <Button asChild className="bg-primary-600 hover:bg-primary-700">
+            <Link href="/calculator">Get a quote first</Link>
           </Button>
         </div>
       </div>
@@ -583,15 +594,23 @@ export default function BookingPage() {
                   {selectedCarrier ? (
                     <div className="space-y-2">
                       <div className="text-sm font-medium text-gray-800">
-                        Selected Carrier: {selectedCarrier} + DSV South Africa
+                        Selected Carrier: {selectedCarrier}
+                        {urlService ? (" - " + urlService) : ""}
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-wrap">
                         <Badge variant="default" className="text-xs bg-blue-600">
                           {selectedCarrier}
                         </Badge>
-                        <Badge variant="secondary" className="text-xs bg-indigo-600 text-white">
-                          DSV South Africa
-                        </Badge>
+                        {urlService && (
+                          <Badge variant="outline" className="text-xs">
+                            {urlService}
+                          </Badge>
+                        )}
+                        {selectedFreightForwarder && (
+                          <Badge variant="secondary" className="text-xs bg-indigo-600 text-white">
+                            {selectedFreightForwarder}
+                          </Badge>
+                        )}
                       </div>
                     </div>
                   ) : (
@@ -608,61 +627,86 @@ export default function BookingPage() {
                     Cost Breakdown by Provider
                   </h4>
                   
-                  {/* MSC (Ocean Carrier) */}
+                  {/* Selected ocean rate from quote / URL � never invent alternate *0.85 lines */}
                   {selectedCarrier && (
                     <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
                       <h5 className="font-medium text-blue-800 mb-2">{selectedCarrier} (Ocean Carrier)</h5>
                       <div className="text-sm space-y-1">
+                        {urlService && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Service:</span>
+                            <span className="font-medium text-blue-600">{urlService}</span>
+                          </div>
+                        )}
                         <div className="flex justify-between">
                           <span className="text-gray-600">Sea Freight:</span>
                           <span className="font-medium text-blue-600">
-                            {formatCurrency(Math.round((quote?.seaFreightCost || 0) * 0.85))}
+                            {formatCurrency(
+                              urlRate && !Number.isNaN(urlRate)
+                                ? Math.round(urlRate)
+                                : Math.round(quote?.seaFreightCost || 0)
+                            )}
                           </span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Terminal Handling:</span>
-                          <span className="font-medium text-blue-600">
-                            {formatCurrency(Math.round((quote?.handlingFees || 0) * 0.7))}
-                          </span>
-                        </div>
+                        {!(urlRate && !Number.isNaN(urlRate)) && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Handling:</span>
+                            <span className="font-medium text-blue-600">
+                              {formatCurrency(Math.round(quote?.handlingFees || 0))}
+                            </span>
+                          </div>
+                        )}
                         <div className="border-t border-blue-300 pt-1 mt-2 flex justify-between font-medium text-blue-800">
                           <span>{selectedCarrier} Total:</span>
-                          <span>{formatCurrency(Math.round(((quote?.seaFreightCost || 0) * 0.85) + ((quote?.handlingFees || 0) * 0.7)))}</span>
+                          <span>
+                            {formatCurrency(
+                              urlRate && !Number.isNaN(urlRate)
+                                ? Math.round(urlRate)
+                                : Math.round((quote?.seaFreightCost || 0) + (quote?.handlingFees || 0))
+                            )}
+                          </span>
                         </div>
+                        {urlRate && !Number.isNaN(urlRate) && (
+                          <p className="text-xs text-blue-600 mt-1">Rate from your selected quote option</p>
+                        )}
                       </div>
                     </div>
                   )}
 
-                  {/* DSV South Africa (Freight Forwarder) - Always show for complete bookings */}
-                  <div className="mb-4 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
-                    <h5 className="font-medium text-indigo-800 mb-2">{selectedCarrier ? selectedCarrier.split(' + ')[0] : 'Selected Carrier'} (Ocean Carrier)</h5>
-                    <div className="text-sm space-y-1">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Customs Clearance:</span>
-                        <span className="font-medium text-indigo-600">R 1,200</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Port Clearance:</span>
-                        <span className="font-medium text-indigo-600">R 650</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">
-                          Local Trucking ({quote?.incoterm || 'FOB'}):
-                        </span>
-                        <span className="font-medium text-indigo-600">
-                          {formatCurrency(quote?.truckingCost || 1800)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Documentation:</span>
-                        <span className="font-medium text-indigo-600">R 180</span>
-                      </div>
-                      <div className="border-t border-indigo-300 pt-1 mt-2 flex justify-between font-medium text-indigo-800">
-                        <span>DSV South Africa Total:</span>
-                        <span>{formatCurrency((quote?.freightForwarders?.[0]?.totalCost || 3830))}</span>
-                      </div>
-                    </div>
-                  </div>
+                  {/* Freight forwarder only when actually selected � no hard-coded fake DSV as selected rate */}
+                  {selectedFreightForwarder && quote?.freightForwarders?.length ? (
+                    (() => {
+                      const ff = quote.freightForwarders.find((f: any) => f.provider === selectedFreightForwarder)
+                        || quote.freightForwarders[0];
+                      return (
+                        <div className="mb-4 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
+                          <h5 className="font-medium text-indigo-800 mb-2">{ff.provider} (estimate)</h5>
+                          <div className="text-sm space-y-1">
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Customs Clearance:</span>
+                              <span className="font-medium text-indigo-600">{formatCurrency(ff.services?.customsClearance || 0)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Port Clearance:</span>
+                              <span className="font-medium text-indigo-600">{formatCurrency(ff.services?.portClearance || 0)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Local Trucking:</span>
+                              <span className="font-medium text-indigo-600">{formatCurrency(ff.services?.trucking || quote?.truckingCost || 0)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Documentation:</span>
+                              <span className="font-medium text-indigo-600">{formatCurrency(ff.documentation || 0)}</span>
+                            </div>
+                            <div className="border-t border-indigo-300 pt-1 mt-2 flex justify-between font-medium text-indigo-800">
+                              <span>{ff.provider} Total:</span>
+                              <span>{formatCurrency(ff.totalCost || 0)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()
+                  ) : null}
 
                   {/* Government Fees (SARS) */}
                   <div className="mb-4 p-3 bg-orange-50 rounded-lg border border-orange-200">
@@ -687,14 +731,14 @@ export default function BookingPage() {
                     </div>
                   </div>
 
-                  {/* Final Total - Using integrated DSV trucking costs */}
+                  {/* Final Total � from quote (not invented alternate lines) */}
                   <div className="p-3 bg-green-50 rounded-lg border-2 border-green-400">
                     <div className="flex justify-between text-lg font-bold text-green-800">
                       <span>Complete Total:</span>
                       <span>{formatCurrency(quote?.totalCost || 0)}</span>
                     </div>
                     <p className="text-xs text-green-700 mt-1">
-                      All-inclusive door-to-door shipping (no double-charging)
+                      Quote total from your estimate (final invoice may vary)
                     </p>
                   </div>
                 </div>

@@ -256,8 +256,8 @@ export function BookingForm({ quoteData, onBookingCreated }: BookingFormProps) {
                         selectedCarrier === carrier.code 
                           ? 'border-primary bg-primary/5' 
                           : 'border-gray-200 hover:border-gray-300'
-                      } ${!carrier.bookingSupport ? 'opacity-50' : ''}`}
-                      onClick={() => carrier.bookingSupport && setSelectedCarrier(carrier.code)}
+                      } ${!(carrier.bookingSupport && carrier.apiStatus === 'AVAILABLE') ? 'opacity-50' : ''}`}
+                      onClick={() => carrier.bookingSupport && carrier.apiStatus === 'AVAILABLE' && setSelectedCarrier(carrier.code)}
                     >
                       <div className="flex items-center justify-between">
                         <div>
