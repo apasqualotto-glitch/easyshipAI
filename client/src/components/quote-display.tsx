@@ -70,7 +70,7 @@ const generateCarrierOptions = (breakdown: any): CarrierOption[] => {
       reliability: 4.8,
       price: baseCarrierCost, // Base rate
       priceRating: 'standard',
-      features: ['Real-time tracking', 'Door-to-door service', 'Insurance included']
+      features: ['Tracking available', 'Door-to-door service', 'Insurance options']
     },
     {
       name: "MSC",
@@ -403,9 +403,12 @@ export function QuoteDisplay({ quote, isVisible, onClose, onBookShipment }: Quot
                                   {carrier.reliability}/5.0 reliability
                                 </span>
                               </div>
-                              <Badge className={`mt-2 ${getPriceBadgeColor(carrier.priceRating)}`}>
-                                {carrier.priceRating} option
-                              </Badge>
+                              <div className="flex flex-wrap gap-2 mt-2">
+                                <Badge className={getPriceBadgeColor(carrier.priceRating)}>
+                                  {carrier.priceRating} option
+                                </Badge>
+                                <Badge className="bg-amber-100 text-amber-800">ESTIMATE</Badge>
+                              </div>
                             </div>
                           </div>
                           

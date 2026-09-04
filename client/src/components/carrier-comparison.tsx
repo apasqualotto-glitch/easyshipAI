@@ -24,11 +24,22 @@ interface CarrierComparisonProps {
   containerType: string;
   route: string;
   quoteId?: string;
+  rateSource?: 'live' | 'estimate' | 'none';
 }
 
-export default function CarrierComparison({ rates, baseCost, containerType, route, quoteId }: CarrierComparisonProps) {
+export default function CarrierComparison({ rates, baseCost, containerType, route, quoteId, rateSource }: CarrierComparisonProps) {
   const formatCurrency = (amount: number) => {
     return `R ${amount.toLocaleString()}`;
+  };
+
+  const isLive = rateSource === 'live' && rates.length >= 1;
+  const sourceBadge = isLive
+    ? <Badge className="bg-green-100 text-green-800">LIVE</Badge>
+    : <Badge className="bg-amber-100 text-amber-800">ESTIMATE</Badge>;
+
+  const handleSelectRate = (rate: CarrierRate) => {
+    if (!quoteId) return;
+    window.location.href = `/booking?quoteId=${quoteId}&carrier=${encodeURIComponent(rate.carrier)}&service=${encodeURIComponent(rate.service)}&rate=${rate.totalCost}`;
   };
 
   const getReliabilityColor = (reliability: number) => {
@@ -62,7 +73,7 @@ export default function CarrierComparison({ rates, baseCost, containerType, rout
         <CardContent>
           <div className="text-center py-8">
             <Ship className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">No live rates available for comparison</p>
+            <p className="text-gray-500">No carrier rates available for comparison</p>
             <p className="text-sm text-gray-400 mt-2">Using standard estimated rates</p>
           </div>
         </CardContent>
@@ -77,9 +88,12 @@ export default function CarrierComparison({ rates, baseCost, containerType, rout
           <Ship className="h-5 w-5 text-blue-600" />
           Carrier Rate Comparison
         </CardTitle>
-        <p className="text-sm text-gray-600">
-          Comparing {rates.length} live rates for {containerType} container on {route}
-        </p>
+        <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
+          <span>
+            Comparing {rates.length} {isLive ? 'live' : 'estimated'} rates for {containerType} container on {route}
+          </span>
+          {sourceBadge}
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -188,15 +202,16 @@ export default function CarrierComparison({ rates, baseCost, containerType, rout
                   <Button 
                     size="sm" 
                     variant={index === 0 ? "default" : "outline"}
-                    className={`flex-1 ${index === 0 ? "bg-green-600 hover:bg-green-700" : ""}`}
+                    className={`flex-1 min-h-11 ${index === 0 ? "bg-green-600 hover:bg-green-700" : ""}`}
+                    onClick={() => handleSelectRate(rate)}
                   >
                     {index === 0 ? "✓ Best Rate" : "Select Rate"}
                   </Button>
                   {quoteId && (
                     <Button 
                       size="sm" 
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-4"
-                      onClick={() => window.location.href = `/booking?quote=${quoteId}&carrier=${encodeURIComponent(rate.carrier)}&service=${encodeURIComponent(rate.service)}&rate=${rate.totalCost}`}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 min-h-11"
+                      onClick={() => handleSelectRate(rate)}
                     >
                       🚢 Book Now
                     </Button>

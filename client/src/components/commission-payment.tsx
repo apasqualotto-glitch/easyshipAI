@@ -51,7 +51,7 @@ function PaymentForm({ bookingId, commission, onSuccess }: {
       const { error } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/booking/confirmation?bookingId=${bookingId}`,
+          return_url: `${window.location.origin}/booking/confirmation/${bookingId}`,
         },
       });
 
@@ -118,7 +118,6 @@ export function CommissionPayment({
     mutationFn: async () => {
       const response = await apiRequest("POST", "/api/create-commission-payment", {
         bookingId,
-        amount: actualPaymentAmount,
         description: `Platform commission for ${carrierName}${freightForwarderName ? ` and ${freightForwarderName}` : ''} shipping services`
       });
       return response.json();
@@ -298,17 +297,22 @@ export function CommissionPayment({
         </div>
 
         {/* Payment Form */}
-        {!clientSecret && (
+        {!stripePromise ? (
+          <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg space-y-2">
+            <p className="text-amber-900 font-medium text-sm">Payments unavailable</p>
+            <p className="text-amber-800 text-sm">
+              Stripe is not configured (missing VITE_STRIPE_PUBLIC_KEY). Commission amount shown above is for planning only — card payment cannot be started yet.
+            </p>
+          </div>
+        ) : !clientSecret ? (
           <Button 
             onClick={() => createPaymentMutation.mutate()}
             disabled={createPaymentMutation.isPending}
-            className="w-full"
+            className="w-full min-h-11"
           >
             {createPaymentMutation.isPending ? "Setting up payment..." : "Proceed to Payment"}
           </Button>
-        )}
-
-        {clientSecret && stripePromise ? (
+        ) : (
           <Elements stripe={stripePromise} options={{ clientSecret }}>
             <PaymentForm 
               bookingId={bookingId} 
@@ -316,13 +320,7 @@ export function CommissionPayment({
               onSuccess={handlePaymentSuccess}
             />
           </Elements>
-        ) : clientSecret && !stripePromise ? (
-          <div className="p-4 bg-amber-50 rounded-lg">
-            <p className="text-amber-800 text-sm">
-              Payment processing is not configured. Please contact support to complete your booking.
-            </p>
-          </div>
-        ) : null}
+        )}
 
         {/* Terms */}
         <div className="text-xs text-gray-500 text-center">

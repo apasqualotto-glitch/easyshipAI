@@ -15,6 +15,7 @@ import { estimateQuote, estimateFromLooseText, type EstimateRequest } from "./es
 import { z } from "zod";
 import { freightForwarderService } from "./freight-forwarder-api";
 import addressService from "./address-autocomplete";
+import Stripe from "stripe";
 
 // Cached currency conversion service with multiple API sources
 async function getCurrentExchangeRate(): Promise<{
@@ -639,12 +640,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       const liveRates = await liveShippingService.getAllRates(liveRateRequest);
+      const source = liveRates.length > 0 ? "live" : "estimate";
       
       res.json({
         rates: liveRates,
-        source: "live",
+        source,
         timestamp: new Date().toISOString(),
-        message: liveRates.length > 0 ? `Found ${liveRates.length} live rates` : "No live rates available, using estimates"
+        message: liveRates.length > 0
+          ? `Found ${liveRates.length} live rates`
+          : "No live rates available, using estimates"
       });
 
     } catch (error) {
@@ -1232,20 +1236,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Commission payment endpoint for 5% platform fee
+  // Commission payment endpoint for 5% platform fee (amount computed server-side)
   app.post("/api/create-commission-payment", async (req, res) => {
     try {
-      const { bookingId, amount, description } = req.body;
+      const { bookingId, description } = req.body;
 
-      if (!bookingId || !amount) {
-        return res.status(400).json({ message: "Missing required fields" });
+      if (!bookingId) {
+        return res.status(400).json({ message: "Missing required field: bookingId" });
       }
 
-      // Create payment intent for commission only (5% of total)
+      const stripeSecret = process.env.STRIPE_SECRET_KEY;
+      if (!stripeSecret) {
+        return res.status(503).json({
+          message: "Payment processing is not configured. STRIPE_SECRET_KEY is missing."
+        });
+      }
+
+      const booking = await storage.getBooking(bookingId);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+
+      const quote = await storage.getQuote(booking.quoteId);
+      // 5% of shipping services only (exclude customs/VAT); never trust client amount
+      let servicesCost = 0;
+      if (quote) {
+        servicesCost = (quote.seaFreightCost || 0) + (quote.truckingCost || 0) + (quote.handlingFees || 0);
+      }
+      if (servicesCost <= 0) {
+        servicesCost = (booking.quotedAmount || 0) * 0.2;
+      }
+      const commissionAmount = Math.round(servicesCost * 0.05);
+      if (commissionAmount <= 0) {
+        return res.status(400).json({ message: "Unable to compute commission for this booking" });
+      }
+
+      const stripe = new Stripe(stripeSecret);
       const paymentIntent = await stripe.paymentIntents.create({
-        amount: Math.round(amount * 100), // Convert to cents
+        amount: Math.round(commissionAmount * 100), // Convert to cents
         currency: "zar",
-        description: description || `FreightCalc SA booking commission - ${bookingId}`,
+        description: description || `EasyShip AI booking commission - ${bookingId}`,
         metadata: {
           bookingId,
           type: "commission",
@@ -1255,7 +1285,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ 
         clientSecret: paymentIntent.client_secret,
-        commissionAmount: amount 
+        commissionAmount
       });
     } catch (error: any) {
       console.error("Commission payment error:", error);

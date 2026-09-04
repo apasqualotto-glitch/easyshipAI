@@ -127,11 +127,11 @@ export default function BookingConfirmation() {
                   freightForwarderName={booking.freightForwarderName}
                   onPaymentSuccess={handlePaymentSuccess}
                   breakdown={quoteData ? {
-                    oceanFreight: quoteData.seaFreight || 0,
-                    trucking: quoteData.trucking || 0,
-                    handling: quoteData.handling || 0,
-                    customs: quoteData.customs || 0,
-                    vat: quoteData.vat || 0,
+                    oceanFreight: (quoteData as any).seaFreightCost || (quoteData as any).seaFreight || 0,
+                    trucking: (quoteData as any).truckingCost || (quoteData as any).trucking || 0,
+                    handling: (quoteData as any).handlingFees || (quoteData as any).handling || 0,
+                    customs: (quoteData as any).customsDuties || (quoteData as any).customs || 0,
+                    vat: (quoteData as any).vat || 0,
                   } : undefined}
                 />
               </div>

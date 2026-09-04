@@ -28,8 +28,8 @@ const FEATURES = [
   },
   {
     icon: Ship,
-    title: "Live Carrier Rates",
-    description: "Compare real-time rates from Maersk, MSC, CMA CGM and more",
+    title: "Carrier Rate Estimates",
+    description: "Compare estimated rates for Maersk, MSC, CMA CGM and more",
     link: "/calculator"
   },
   {
@@ -41,7 +41,7 @@ const FEATURES = [
   {
     icon: TrendingUp,
     title: "Shipment Tracking",
-    description: "Real-time tracking from port to your door",
+    description: "Follow your container from port toward your door (demo tracking available)",
     link: "/tracking"
   }
 ];
@@ -60,7 +60,7 @@ const BENEFITS = [
   {
     icon: Shield,
     title: "Secure & Reliable",
-    text: "Direct API connections to major shipping lines"
+    text: "Estimate-first quotes with clear SARS-aligned cost breakdowns"
   },
   {
     icon: Clock,
@@ -256,12 +256,14 @@ export function Homepage() {
             Join thousands of South African businesses saving time and money on container imports
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100">
-              <Calculator className="mr-2 h-5 w-5" />
-              Get Started Free
-            </Button>
+            <Link href="/calculator">
+              <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 min-h-11">
+                <Calculator className="mr-2 h-5 w-5" />
+                Get Started Free
+              </Button>
+            </Link>
             <Link href="/guides">
-              <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10">
+              <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10 min-h-11">
                 Learn More
               </Button>
             </Link>

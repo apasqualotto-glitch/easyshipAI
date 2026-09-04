@@ -1,4 +1,3 @@
-import Header from "../components/header";
 import Hero from "../components/hero";
 import CalculatorForm from "../components/calculator-form";
 import CostBreakdown from "../components/cost-breakdown";
@@ -68,8 +67,6 @@ export default function Calculator() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
-      
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-20">
         <Hero />
         
@@ -97,7 +94,7 @@ export default function Calculator() {
           
           <div className="lg:col-span-1">
             <Tabs defaultValue="costs" className="w-full">
-              <TabsList className="grid w-full grid-cols-5 text-xs">
+              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 gap-1 h-auto text-xs flex-wrap">
                 <TabsTrigger value="costs" className={quoteResult ? "bg-green-100 text-green-800" : ""}>
                   Costs {quoteResult && "✓"}
                 </TabsTrigger>
@@ -121,6 +118,7 @@ export default function Calculator() {
                   containerType={quoteData?.containerType || ""}
                   route={carrierComparison?.route || ""}
                   quoteId={quoteResult?.id}
+                  rateSource={carrierComparison?.rateSource === 'live' && (carrierComparison?.carrierRates?.length || 0) >= 1 ? 'live' : 'estimate'}
                 />
               </TabsContent>
               <TabsContent value="customs">

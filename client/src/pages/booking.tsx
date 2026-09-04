@@ -48,11 +48,12 @@ export default function BookingPage() {
   const [selectedCarrier, setSelectedCarrier] = useState<string>("");
   const [selectedFreightForwarder, setSelectedFreightForwarder] = useState<string>("");
   
-  // Get quote ID and carrier from URL params
+  // Get quote ID and carrier from URL params (quoteId preferred; legacy ?quote= supported)
   const urlParams = new URLSearchParams(window.location.search);
-  const quoteId = urlParams.get("quoteId");
+  const quoteId = urlParams.get("quoteId") || urlParams.get("quote");
   const carrier = urlParams.get("carrier") || "";
   const freightForwarder = urlParams.get("freightForwarder") || "";
+  const [localQuote, setLocalQuote] = useState<any>(null);
   
   useEffect(() => {
     if (carrier) {
@@ -62,6 +63,17 @@ export default function BookingPage() {
       setSelectedFreightForwarder(freightForwarder);
     }
   }, [carrier, freightForwarder]);
+
+  // Fallback: quote cached in localStorage by cost-breakdown / book CTAs
+  useEffect(() => {
+    if (!quoteId) return;
+    try {
+      const raw = localStorage.getItem(`quote-${quoteId}`);
+      if (raw) setLocalQuote(JSON.parse(raw));
+    } catch {
+      // ignore corrupt cache
+    }
+  }, [quoteId]);
   
   // Define quote type based on API response
   interface Quote {
@@ -94,10 +106,12 @@ export default function BookingPage() {
   }
 
   // Fetch quote details
-  const { data: quote, isLoading: quoteLoading } = useQuery<Quote>({
+  const { data: apiQuote, isLoading: quoteLoading } = useQuery<Quote>({
     queryKey: [`/api/quotes/${quoteId}`],
     enabled: !!quoteId,
   });
+
+  const quote = apiQuote || localQuote;
   
   // Initialize form
   const form = useForm<BookingFormValues>({
@@ -118,6 +132,25 @@ export default function BookingPage() {
       preferredDeparture: "",
     },
   });
+
+  // Prefill safe fields from loaded quote
+  useEffect(() => {
+    if (!quote) return;
+    if (quote.deliveryAddress && !form.getValues("consigneeAddress")) {
+      form.setValue("consigneeAddress", quote.deliveryAddress);
+    }
+    if (!form.getValues("cargoDescription")) {
+      const hints = [
+        quote.cargoType,
+        quote.containerType ? `Container: ${quote.containerType}` : null,
+        quote.weight ? `Weight: ${quote.weight} kg` : null,
+        quote.value ? `Value: $${quote.value}` : null,
+      ].filter(Boolean);
+      if (hints.length) {
+        form.setValue("cargoDescription", hints.join(" · "));
+      }
+    }
+  }, [quote, form]);
   
   // Create booking mutation
   const createBookingMutation = useMutation({
@@ -158,7 +191,7 @@ export default function BookingPage() {
     createBookingMutation.mutate(data);
   };
   
-  if (quoteLoading) {
+  if (quoteLoading && !localQuote) {
     return (
       <div className="min-h-screen pt-20 px-4">
         <div className="h-screen flex items-center justify-center">
@@ -168,12 +201,12 @@ export default function BookingPage() {
     );
   }
   
-  if (!quote) {
+  if (!quoteId || !quote) {
     return (
       <div className="min-h-screen pt-20 px-4">
         <div className="container mx-auto px-4 py-8 text-center">
           <h1 className="text-2xl font-bold mb-4">Quote Not Found</h1>
-          <p className="text-gray-600 mb-6">The quote you're looking for doesn't exist or has expired.</p>
+          <p className="text-gray-600 mb-6">The quote you're looking for doesn't exist or has expired. Open booking from a generated quote, or start a new one.</p>
           <Button onClick={() => setLocation("/calculator")}>
             Get New Quote
           </Button>

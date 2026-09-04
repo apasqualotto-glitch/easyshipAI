@@ -82,10 +82,10 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
                 <span className="text-sm font-medium">
                   {quoteResult ? formatCurrency(quoteResult.seaFreightCost) : "—"}
                 </span>
-                {quoteResult?.hasLiveRates && (
-                  <Badge variant="secondary" className="text-xs mt-1">
+                {quoteResult && (
+                  <Badge variant="secondary" className={`text-xs mt-1 ${quoteResult?.hasLiveRates ? '' : 'bg-amber-100 text-amber-800'}`}>
                     <Zap className="h-3 w-3 mr-1" />
-                    Live Rate
+                    {quoteResult?.hasLiveRates ? 'Live Rate' : 'ESTIMATE'}
                   </Badge>
                 )}
               </div>
@@ -285,7 +285,7 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
                 Email Quote
               </Button>
               <Button 
-                className="w-full bg-green-600 hover:bg-green-700 text-white"
+                className="w-full min-h-11 bg-green-600 hover:bg-green-700 text-white"
                 onClick={() => {
                   // Store quote data in localStorage for booking page access
                   if (quoteResult?.id) {
@@ -308,7 +308,7 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
                       handlingFees: quoteResult.handlingFees
                     };
                     localStorage.setItem(`quote-${quoteResult.id}`, JSON.stringify(quoteInfo));
-                    window.open(`/booking?quote=${quoteResult.id}`, '_blank');
+                    window.open(`/booking?quoteId=${quoteResult.id}`, '_blank');
                   } else {
                     alert('Please generate a quote first to proceed with booking.');
                   }
@@ -393,8 +393,8 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
 
                 <div className="flex flex-col sm:flex-row gap-3">
                   <a 
-                    href={`/booking?quote=${quoteResult.id}`}
-                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold text-center flex-1"
+                    href={`/booking?quoteId=${quoteResult.id}`}
+                    className="bg-blue-600 text-white px-6 py-3 min-h-11 rounded-lg hover:bg-blue-700 transition-colors font-semibold text-center flex-1"
                   >
                     🚢 Start Booking Process
                   </a>
@@ -411,7 +411,7 @@ export default function CostBreakdown({ quoteData, quoteResult }: CostBreakdownP
                 </div>
                 
                 <p className="text-xs text-gray-500">
-                  Direct API integration with major carrier booking systems
+                  Booking uses your quote estimates — confirm final rates with your carrier
                 </p>
               </div>
             </div>

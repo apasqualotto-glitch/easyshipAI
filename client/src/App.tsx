@@ -1,4 +1,4 @@
-import { Switch, Route, Link, useLocation } from "wouter";
+﻿import { Switch, Route, Link, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -20,7 +20,8 @@ import {
   TrendingUp, 
   Home,
   Menu,
-  X
+  X,
+  Package
 } from "lucide-react";
 import { useState } from "react";
 import { ChatProvider } from "@/contexts/chat-context";
@@ -38,6 +39,7 @@ function Navigation() {
   const navItems = [
     { path: "/", label: "Home", icon: Home },
     { path: "/calculator", label: "Calculator", icon: CalculatorIcon },
+    { path: "/booking", label: "Book", icon: Package },
     { path: "/guides", label: "Guides", icon: BookOpen },
     { path: "/tracking", label: "Tracking", icon: TrendingUp }
   ];
@@ -140,6 +142,18 @@ function Router() {
   );
 }
 
+function ConditionalChatPopup() {
+  const [location] = useLocation();
+  // Hide floating chat when page already mounts AIChatInterface (avoid dual chat)
+  const hasInlineAiChat =
+    location === "/" ||
+    location.startsWith("/calculator") ||
+    location.startsWith("/guides") ||
+    location.startsWith("/tracking");
+  if (hasInlineAiChat) return null;
+  return <ChatPopup />;
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -150,7 +164,7 @@ function App() {
             <Router />
           </div>
           <Toaster />
-          <ChatPopup />
+          <ConditionalChatPopup />
         </TooltipProvider>
       </ChatProvider>
     </QueryClientProvider>

@@ -60,13 +60,13 @@ export default function InfoCards() {
             <span className="material-icons text-accent-500 mr-3">support_agent</span>
             <h3 className="text-lg font-medium text-gray-900">Need Help?</h3>
           </div>
-          <p className="text-sm text-gray-600 mb-4">Our freight experts are here to help with your shipment.</p>
+          <p className="text-sm text-gray-600 mb-4">Use the AI chat for instant help. Expert call booking is not available yet.</p>
           <div className="space-y-2">
-            <Button className="w-full bg-accent-500 hover:bg-accent-600 text-sm">
-              Contact Expert
+            <Button className="w-full bg-accent-500 hover:bg-accent-600 text-sm min-h-11" disabled title="Coming soon">
+              Contact Expert (Coming soon)
             </Button>
-            <Button variant="outline" className="w-full text-sm">
-              Schedule Call
+            <Button variant="outline" className="w-full text-sm min-h-11" disabled title="Coming soon">
+              Schedule Call (Coming soon)
             </Button>
           </div>
         </CardContent>

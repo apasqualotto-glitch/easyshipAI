@@ -213,7 +213,7 @@ export function Tracking() {
             Track Your Shipment
           </h1>
           <p className="text-xl text-blue-100 max-w-2xl mx-auto">
-            Get real-time updates on your container's journey from origin to destination
+            Preview shipment progress with demo tracking — live carrier feeds coming later
           </p>
         </div>
       </div>
@@ -305,6 +305,9 @@ export function Tracking() {
         {/* Tracking Results */}
         {trackingResult && (
           <div className="space-y-6">
+            <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-amber-900 text-sm font-medium sticky top-16 z-10">
+              Demo mode — this tracking result is sample data for demonstration only, not a live carrier feed.
+            </div>
             {/* Shipment Overview */}
             <Card>
               <CardHeader>

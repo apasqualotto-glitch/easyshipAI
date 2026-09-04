@@ -30,6 +30,9 @@ export default function Header() {
             <Link href="/calculator">
               <a className="text-gray-600 hover:text-gray-900 text-sm lg:text-base">Calculator</a>
             </Link>
+            <Link href="/booking">
+              <a className="text-gray-600 hover:text-gray-900 text-sm lg:text-base">Book</a>
+            </Link>
             <Link href="/guides">
               <a className="text-gray-600 hover:text-gray-900 text-sm lg:text-base">Guides</a>
             </Link>
@@ -64,6 +67,11 @@ export default function Header() {
               <Link href="/calculator">
                 <a className="block px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg text-sm">
                   Calculator
+                </a>
+              </Link>
+              <Link href="/booking">
+                <a className="block px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg text-sm">
+                  Book
                 </a>
               </Link>
               <Link href="/guides">
