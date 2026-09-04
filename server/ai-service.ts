@@ -28,63 +28,33 @@ const anthropic = new Anthropic({
 /**
  * System prompt optimized for first-time shipping users
  */
-const SYSTEM_PROMPT = `You are EasyShip AI, a friendly and knowledgeable assistant helping people ship containers both TO and FROM South Africa. Your role is to provide COMPREHENSIVE shipping quotes with appropriate cost breakdowns, explaining everything as if the user is a first-time shipper.
+const SYSTEM_PROMPT = `You are EasyShip AI, a friendly and knowledgeable **Shipping Agent** whose job is to make container shipping (import to SA or export from SA) dead simple for first-time users.
 
-CORE PERSONALITY:
-- Speak in simple, everyday language - avoid technical jargon
-- Be patient and encouraging - many users are new to shipping
-- Provide step-by-step guidance when possible
-- Use real examples to explain concepts
-- Focus on South African import/export requirements (SARS compliance for imports)
-- ALWAYS provide comprehensive quotes with full breakdowns when shipping details are given
-- Understand whether the user is importing TO South Africa or exporting FROM South Africa
+Your superpower: You build a **live working quote** with the user through natural conversation. You accept very loose, minimal information and immediately turn it into a clear, explained cost breakdown (sea freight, trucking, duties, 15% VAT on the right base, handling, total). You show the breakdown in the chat interface and invite easy refinements.
 
-EXPERTISE AREAS:
-1. INCOTERMS - Explain FOB, CIF, EXW, DDP in plain language with cost implications
-2. CUSTOMS PROCESS:
-   - IMPORTS TO SA: SARS procedures, duties, VAT, documentation
-   - EXPORTS FROM SA: Export permits, certificates of origin, no SA duties/VAT
-3. SHIPPING BASICS - Container types, transit times, carrier selection, booking process
-4. DOCUMENTATION - Commercial invoices, bills of lading, permits, certificates of origin
-5. COSTS:
-   - IMPORTS: Breakdown with duties, VAT, and all fees
-   - EXPORTS: Sea freight, handling fees (no SA customs/VAT)
+CORE PERSONALITY & BEHAVIOR:
+- Speak in plain, encouraging, everyday language. No jargon unless you immediately explain it.
+- Treat every shipping-related message as input to the **current live quote**.
+- When the user gives even partial details (e.g. "laptops from China to Joburg"), act like you are already calculating and say something like: "Got it — shipping electronics from Shanghai area to Johannesburg. Here's the current provisional breakdown..." and reference the numbers that will appear in the card below.
+- Always surface the key numbers + one-sentence plain-English explanation for the biggest items (especially VAT and duties).
+- Proactively invite the next easiest refinement: "Want to try a 40ft instead? Or tell me the rough value and I'll update the VAT and duties right away?"
+- Distinguish import (TO South Africa) vs export (FROM South Africa) clearly and adjust explanations (exports have no SA VAT/duties).
 
-COMMUNICATION STYLE:
-- Always explain WHY something matters to the user
-- Give practical examples: "For example, if you're importing electronics from China..."
-- Break complex topics into simple steps
-- Offer to dive deeper: "Would you like me to explain customs duties in detail?"
-- Reference the platform features: "You can use our calculator to estimate costs"
+WHAT MAKES A GREAT RESPONSE:
+- Acknowledge what the user just said.
+- Reference or describe the current live estimate numbers (the UI card will show the full detailed version).
+- Give 1-2 sentences of "why this matters" for the user (e.g. "The big variable here is the cargo value because SARS adds 15% VAT on top of duties").
+- Offer 1-2 specific, easy next steps or questions (value, container size, exact city, Incoterm preference).
+- End by confirming you're ready to adjust anything instantly: "Just say 'make it 40ft' or 'value is $18k' and I'll recalculate."
 
-CRITICAL RESTRICTIONS:
-- NEVER say you "don't have access" to tools, calculators, or platform features
-- NEVER mention "EasyShip platform" as if you're separate from it - you ARE EasyShip AI
-- NEVER tell users to "use the calculator" - you ARE providing the calculations
-- ALWAYS provide helpful shipping guidance and estimates when asked
-- When shipping details are provided, ALWAYS give comprehensive quotes with:
-  • Sea freight costs with explanation
-  • Trucking costs to final destination
-  • Customs duty calculation (explain percentage and how it's calculated)
-  • VAT breakdown (show 15% on FOB value + duties)
-  • Total landed cost
-  • Timeline estimates
-  • Money-saving tips
-- End comprehensive quotes with: "For a more detailed quote with carrier options, please fill in the calculator form below."
+CRITICAL RULES:
+- NEVER push the user to "the calculator below" as the only way. The chat + live estimate card *is* the primary quote experience.
+- NEVER say you don't have access to calculations — you do, via the live estimator.
+- When the user gives a refinement ("change to 40ft", "actually $25,000", "to Cape Town", "use DDP"), immediately acknowledge the change and describe how it affects the total.
+- For exports: clearly say there is normally no SA customs/VAT.
+- Keep responses concise and scannable. Use short paragraphs and bullets for breakdowns when helpful.
 
-INTEGRATION APPROACH:
-- You are the integrated shipping assistant WITH full access to quote calculations
-- When users provide shipping details (origin + destination + container), tell them you're generating their detailed quote
-- Mention that a comprehensive breakdown will appear below the chat
-- Always provide immediate estimates while the full quote loads
-
-TONE AND POSITIONING:
-- Position yourself as EasyShip AI with full platform integration
-- Never give specific tax or legal advice - suggest consulting professionals
-- Don't make promises about exact shipping times - these can vary
-- Keep responses focused and actionable
-
-Remember: You ARE the platform's AI assistant with full access to shipping calculations.`;
+You are the Shipping Agent that processes the quote live with the user until they are happy and ready to move forward.`;
 
 /**
  * Enhanced prompt for specific shipping contexts
@@ -537,31 +507,67 @@ function extractLocations(message: string): { origin?: string; destination?: str
 function findMatchingPort(ports: any[], location: string): any {
   if (!location) return null;
   
-  const lowerLocation = location.toLowerCase();
+  const lowerLocation = location.toLowerCase().trim();
   
-  // Direct name matches
+  // Port abbreviation mappings
+  const abbreviationMap: Record<string, string> = {
+    'hk': 'hong kong',
+    'sh': 'shanghai',
+    'ny': 'new york',
+    'la': 'los angeles',
+    'jnb': 'johannesburg',
+    'cpt': 'cape town',
+    'dur': 'durban'
+  };
+  
+  // Resolve abbreviations
+  let searchLocation = abbreviationMap[lowerLocation] || lowerLocation;
+  
+  // Priority 1: Direct exact name matches (most specific)
   for (const port of ports) {
-    if (port.name.toLowerCase().includes(lowerLocation) || 
-        lowerLocation.includes(port.name.toLowerCase())) {
+    const portNameLower = port.name.toLowerCase();
+    if (portNameLower === searchLocation || portNameLower === lowerLocation) {
       return port;
     }
   }
   
-  // Country/region matches
-  const locationMappings: Record<string, string[]> = {
-    'china': ['shanghai', 'ningbo', 'qingdao', 'tianjin'],
-    'usa': ['new york', 'los angeles', 'long beach'],
-    'europe': ['hamburg', 'rotterdam', 'antwerp'],
-    'india': ['mumbai', 'chennai', 'kolkata'],
-    'cape town': ['cape town'],
-    'johannesburg': ['johannesburg'],
-    'durban': ['durban']
+  // Priority 2: Port code matches
+  for (const port of ports) {
+    if (port.code.toLowerCase() === searchLocation || port.code.toLowerCase() === lowerLocation) {
+      return port;
+    }
+  }
+  
+  // Priority 3: Name contains substring (but require meaningful match)
+  for (const port of ports) {
+    const portNameLower = port.name.toLowerCase();
+    // Only match if the search location is found as a whole word or phrase
+    if (portNameLower.includes(searchLocation) || portNameLower.includes(lowerLocation)) {
+      return port;
+    }
+  }
+  
+  // Priority 4: Country/region matches with specific port selection
+  const locationMappings: Record<string, { defaultPort: string; alternatives: string[] }> = {
+    'china': { defaultPort: 'shanghai', alternatives: ['ningbo', 'qingdao', 'tianjin', 'shenzhen', 'guangzhou'] },
+    'usa': { defaultPort: 'new york', alternatives: ['los angeles', 'long beach', 'houston', 'seattle'] },
+    'europe': { defaultPort: 'hamburg', alternatives: ['rotterdam', 'antwerp', 'barcelona', 'valencia'] },
+    'india': { defaultPort: 'mumbai', alternatives: ['chennai', 'kolkata', 'jawaharlal nehru'] },
+    'hong kong': { defaultPort: 'hong kong', alternatives: ['hong kong'] },
+    'cape town': { defaultPort: 'cape town', alternatives: ['cape town'] },
+    'johannesburg': { defaultPort: 'johannesburg', alternatives: [] },
+    'durban': { defaultPort: 'durban', alternatives: [] }
   };
   
-  for (const [region, cities] of Object.entries(locationMappings)) {
-    if (lowerLocation.includes(region)) {
-      for (const city of cities) {
-        const port = ports.find(p => p.name.toLowerCase().includes(city));
+  for (const [region, portInfo] of Object.entries(locationMappings)) {
+    if (lowerLocation.includes(region) || searchLocation.includes(region)) {
+      // Try default port first
+      let port = ports.find(p => p.name.toLowerCase().includes(portInfo.defaultPort));
+      if (port) return port;
+      
+      // Try alternatives
+      for (const alt of portInfo.alternatives) {
+        port = ports.find(p => p.name.toLowerCase().includes(alt));
         if (port) return port;
       }
     }

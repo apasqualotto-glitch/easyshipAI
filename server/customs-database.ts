@@ -924,20 +924,23 @@ export class CustomsDatabase {
   }
 
   // Calculate customs cost with country-specific rates
-  calculateDetailedCustomsCostByCountry(hsCode: string, cifValue: number, originCountry: string) {
+  calculateDetailedCustomsCostByCountry(hsCode: string, fobValue: number, originCountry: string, isSacuCountry: boolean = false) {
     const tariff = this.getByHSCode(hsCode);
     if (!tariff) {
       return {
         error: "HS Code not found",
         hsCode,
-        cifValue,
+        fobValue,
         originCountry
       };
     }
 
     const countryRate = this.getDutyRateByCountry(hsCode, originCountry);
-    const customsDuty = cifValue * countryRate.dutyRate;
-    const dutiableAmount = cifValue + customsDuty;
+    // SARS: Apply 10% markup to FOB value for non-SACU countries before calculating duty
+    const markupAmount = isSacuCountry ? 0 : fobValue * 0.10;
+    const atvValue = fobValue + markupAmount;
+    const customsDuty = atvValue * countryRate.dutyRate;
+    const dutiableAmount = atvValue + customsDuty;
     const vat = tariff.vatRate > 0 ? dutiableAmount * tariff.vatRate : 0;
     const additionalFees = tariff.additionalFees;
     const totalCustomsCost = customsDuty + vat + additionalFees;
@@ -952,7 +955,9 @@ export class CustomsDatabase {
         dutyRate: countryRate.dutyRate
       },
       calculations: {
-        cifValue,
+        fobValue,
+        markupAmount,
+        atvValue,
         customsDuty,
         dutiableAmount,
         vat,
@@ -961,20 +966,30 @@ export class CustomsDatabase {
       },
       breakdown: [
         {
-          item: "CIF Value",
-          amount: cifValue,
-          description: "Cost, Insurance, Freight value"
+          item: "FOB Value",
+          amount: fobValue,
+          description: "Free on Board value (cargo value only)"
+        },
+        {
+          item: "Markup",
+          amount: markupAmount,
+          description: markupAmount > 0 ? "10% markup for non-SACU countries per SARS" : "No markup (SACU country)"
+        },
+        {
+          item: "ATV (Added Tax Value)",
+          amount: atvValue,
+          description: "Base for duty and VAT calculations"
         },
         {
           item: "Customs Duty",
           amount: customsDuty,
-          description: `${(countryRate.dutyRate * 100).toFixed(1)}% of CIF value (${countryRate.agreementName})`
+          description: `${(countryRate.dutyRate * 100).toFixed(1)}% of ATV (${countryRate.agreementName})`
         },
         {
           item: "VAT",
           amount: vat,
-          description: tariff.vatRate > 0 
-            ? `${(tariff.vatRate * 100).toFixed(0)}% of (CIF + Duty)`
+          description: tariff.vatRate > 0
+            ? `${(tariff.vatRate * 100).toFixed(0)}% of (ATV + Duty) per SARS`
             : "VAT exempt"
         },
         {

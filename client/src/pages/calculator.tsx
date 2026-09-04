@@ -73,8 +73,11 @@ export default function Calculator() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-20">
         <Hero />
         
-        {/* AI Chat Interface directly in the page flow */}
+        {/* AI Chat Interface directly in the page flow - Recommended starting point for easy quotes */}
         <div className="mb-8">
+          <div className="mb-2 flex items-center gap-2">
+            <span className="text-sm font-medium text-blue-700">💡 Recommended: Start here for instant quotes with minimal info</span>
+          </div>
           <AIChatInterface 
             context="calculator" 
             onExtractedData={handleAIChatExtraction}

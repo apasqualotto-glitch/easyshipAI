@@ -72,8 +72,12 @@ export interface IStorage {
   markNotificationRead(id: string): Promise<void>;
 }
 
-// Import database functions
-import { db } from "./db";
+// Import database functions (optional - gracefully degrades to pure in-memory when no DATABASE_URL)
+import { db, hasDatabase } from "./db";
+
+// Drizzle symbols are only needed for real DB persistence paths.
+// Current implementation uses in-memory Maps for all data (reference data is seeded on startup).
+// When hasDatabase=false, db will be null and we stay 100% in-memory (data resets on restart).
 import { eq, and, desc } from "drizzle-orm";
 import { 
   ports, 

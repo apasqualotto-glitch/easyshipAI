@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Truck, Ship, Zap, Search } from "lucide-react";
+import { Truck, Ship, Zap, Search, HelpCircle, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import ProgressStepper from "./progress-stepper";
@@ -17,7 +17,6 @@ import { Port, Destination, CargoType, Incoterm } from "@shared/schema";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import UnifiedCargoSearch from "./unified-cargo-search";
-import { AddressAutocomplete } from "./address-autocomplete";
 
 interface CustomsTariff {
   hsCode: string;
@@ -275,13 +274,8 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <Label htmlFor="originPort" className="flex items-center">
-                Port of Origin
-                <div className="tooltip-trigger relative inline-block ml-1">
-                  <span className="material-icons text-gray-400 text-sm cursor-help">help_outline</span>
-                  <div className="tooltip absolute bottom-6 left-0 bg-gray-900 text-white text-xs p-2 rounded opacity-0 invisible whitespace-nowrap z-10">
-                    Search and select the port where your cargo will be shipped from
-                  </div>
-                </div>
+                Port of Origin <span className="text-red-500 ml-1">*</span>
+                <HelpCircle className="ml-1 h-3.5 w-3.5 text-gray-400" title="Search and select the port where your cargo will be shipped from" />
               </Label>
               <Popover open={originPortOpen} onOpenChange={setOriginPortOpen}>
                 <PopoverTrigger asChild>
@@ -385,13 +379,8 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
 
             <div>
               <Label htmlFor="destinationPort" className="flex items-center">
-                Destination Port
-                <div className="tooltip-trigger relative inline-block ml-1">
-                  <span className="material-icons text-gray-400 text-sm cursor-help">help_outline</span>
-                  <div className="tooltip absolute bottom-6 left-0 bg-gray-900 text-white text-xs p-2 rounded opacity-0 invisible whitespace-nowrap z-10">
-                    Choose the port where your cargo will arrive
-                  </div>
-                </div>
+                Destination Port <span className="text-red-500 ml-1">*</span>
+                <HelpCircle className="ml-1 h-3.5 w-3.5 text-gray-400" title="Choose the port where your cargo will arrive in South Africa (or for exports)" />
               </Label>
               <Popover open={destinationPortOpen} onOpenChange={setDestinationPortOpen}>
                 <PopoverTrigger asChild>
@@ -450,44 +439,28 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
           </div>
 
           <div>
-            <div>
-              <Label htmlFor="deliveryAddress" className="flex items-center">
-                Delivery Address
-                <div className="tooltip-trigger relative inline-block ml-1">
-                  <span className="material-icons text-gray-400 text-sm cursor-help">help_outline</span>
-                  <div className="tooltip absolute bottom-6 left-0 bg-gray-900 text-white text-xs p-2 rounded opacity-0 invisible whitespace-nowrap z-10">
-                    Start typing for intelligent address suggestions with distance-based trucking costs
-                  </div>
-                </div>
-              </Label>
-              <AddressAutocomplete
-                value={form.watch("deliveryAddress")}
-                onChange={(address, addressData) => {
-                  form.setValue("deliveryAddress", address);
-                  // Note: Distance data will be used by backend API for precise calculations
-                  // No need to store in form as backend will calculate from address
-                }}
-                portCode={form.watch("destinationPort")}
-                incoterm={form.watch("incoterm")}
-                containerType={form.watch("containerType")}
-                placeholder="Start typing your delivery address..."
-                className="mt-1"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                🎯 Interactive address lookup with precise distance-based trucking costs
-              </p>
-            </div>
+            <Label htmlFor="deliveryAddress" className="flex items-center">
+              Delivery Address <span className="text-red-500 ml-1">*</span>
+              <div className="ml-1 text-xs text-gray-400">(type any address, city, suburb or full details)</div>
+            </Label>
+            <Input
+              id="deliveryAddress"
+              placeholder="e.g. 123 Main Street, Sandton, Johannesburg 2196 or simply 'Johannesburg'"
+              {...form.register("deliveryAddress")}
+              className="mt-1"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Enter any delivery address or city in South Africa. We'll use the closest port for accurate trucking estimates.
+            </p>
+            {form.formState.errors.deliveryAddress && (
+              <p className="text-xs text-red-500 mt-1">{form.formState.errors.deliveryAddress.message}</p>
+            )}
           </div>
 
           <div>
             <Label className="flex items-center mb-3">
-              Container Type & Size
-              <div className="tooltip-trigger relative inline-block ml-1">
-                <span className="material-icons text-gray-400 text-sm cursor-help">help_outline</span>
-                <div className="tooltip absolute bottom-6 left-0 bg-gray-900 text-white text-xs p-2 rounded opacity-0 invisible whitespace-nowrap z-10">
-                  Choose based on your cargo volume. HC = High Cube (extra height). Partial = Shared container space.
-                </div>
-              </div>
+              Container Type & Size <span className="text-red-500 ml-1">*</span>
+              <HelpCircle className="ml-1 h-3.5 w-3.5 text-gray-400" title="Choose based on your cargo volume. HC = High Cube (extra height). Partial = Shared container space." />
             </Label>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {containerOptions.map((option) => (
@@ -502,7 +475,7 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
                     option.value === "partial" ? "bg-blue-50 border-blue-200" : ""
                   }`}>
                     <div className="text-center">
-                      <span className="material-icons text-3xl text-gray-600 mb-2">{option.icon}</span>
+                      <div className="text-3xl mb-2">📦</div>
                       <h4 className="font-medium text-gray-900">{option.title}</h4>
                       <p className="text-sm text-gray-500">{option.dimensions}</p>
                       <p className="text-xs text-gray-400 mt-1">{option.weight}</p>
@@ -519,7 +492,7 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
             {form.watch("containerType") === "partial" && (
               <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <h5 className="font-medium text-blue-900 mb-4 flex items-center">
-                  <span className="material-icons text-blue-600 mr-2">info</span>
+                  <AlertCircle className="h-4 w-4 text-blue-600 mr-2" />
                   Partial Shipment Details
                 </h5>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -527,7 +500,7 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
                     <Label htmlFor="cargoVolume" className="flex items-center">
                       Cargo Volume (CBM)
                       <div className="tooltip-trigger relative inline-block ml-1">
-                        <span className="material-icons text-gray-400 text-sm cursor-help">help_outline</span>
+                        <HelpCircle className="h-3 w-3 text-gray-400" />
                         <div className="tooltip absolute bottom-6 left-0 bg-gray-900 text-white text-xs p-2 rounded opacity-0 invisible whitespace-nowrap z-10">
                           Cubic meters (Length × Width × Height in meters)
                         </div>
@@ -610,13 +583,16 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
             <h4 className="font-medium text-gray-900 mb-4">Cargo Details</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="weight">Total Weight (kg)</Label>
+                <Label htmlFor="weight">Total Weight (kg) <span className="text-red-500">*</span></Label>
                 <Input
                   id="weight"
                   type="number"
                   placeholder="e.g., 15000"
                   {...form.register("weight", { valueAsNumber: true })}
                 />
+                {form.formState.errors.weight && (
+                  <p className="text-xs text-red-500 mt-1">{form.formState.errors.weight.message}</p>
+                )}
               </div>
               <div className="md:col-span-2">
                 <UnifiedCargoSearch
@@ -634,24 +610,22 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <div>
-                <Label htmlFor="value">Cargo Value (USD)</Label>
+                <Label htmlFor="value">Cargo Value (USD) <span className="text-red-500">*</span></Label>
                 <Input
                   id="value"
                   type="number"
                   placeholder="e.g., 50000"
                   {...form.register("value", { valueAsNumber: true })}
                 />
-                <p className="text-xs text-gray-500 mt-1">Used for customs duty calculation</p>
+                <p className="text-xs text-gray-500 mt-1">Used for customs duty & VAT calculation</p>
+                {form.formState.errors.value && (
+                  <p className="text-xs text-red-500 mt-1">{form.formState.errors.value.message}</p>
+                )}
               </div>
               <div>
                 <Label htmlFor="incoterm" className="flex items-center">
-                  Incoterm
-                  <div className="tooltip-trigger relative inline-block ml-1">
-                    <span className="material-icons text-gray-400 text-sm cursor-help">help_outline</span>
-                    <div className="tooltip absolute bottom-6 left-0 bg-gray-900 text-white text-xs p-2 rounded opacity-0 invisible whitespace-nowrap z-10">
-                      Defines who pays for what and where risk transfers
-                    </div>
-                  </div>
+                  Incoterm <span className="text-red-500 ml-1">*</span>
+                  <HelpCircle className="ml-1 h-3.5 w-3.5 text-gray-400" title="Defines who pays for what and where risk transfers (e.g. FOB, CIF, DDP)" />
                 </Label>
                 <Select onValueChange={(value) => form.setValue("incoterm", value)} value={form.watch("incoterm")}>
                   <SelectTrigger>
@@ -686,7 +660,7 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
             
             <div className="mt-3 text-sm text-green-600">
               <div className="flex items-start space-x-2">
-                <span className="material-icons text-green-500 text-sm mt-0.5 flex-shrink-0">check_circle</span>
+                <span className="inline-block w-3 h-3 mt-0.5 flex-shrink-0 rounded-full bg-green-500" />
                 <div>
                   <p className="font-medium mb-1">All Carrier Options Included</p>
                   <p className="text-xs leading-relaxed">
@@ -697,97 +671,39 @@ export default function CalculatorForm({ onQuoteUpdate, onQuoteResult, initialVa
             </div>
           </div>
 
+          {/* Form validation errors summary */}
+          {Object.keys(form.formState.errors).length > 0 && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+              <p className="font-medium mb-1">Please fix the following to calculate your quote:</p>
+              <ul className="list-disc list-inside text-xs space-y-0.5">
+                {Object.entries(form.formState.errors).map(([field, error]) => (
+                  <li key={field}>{(error as any)?.message || field}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <Button
             type="submit"
-            className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3"
+            className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 text-base font-medium"
             disabled={calculateQuoteMutation.isPending}
-            onClick={async (e) => {
-              console.log('🖱️ Quote button clicked');
-              const formValues = form.getValues();
-              console.log('📝 Current form values:', formValues);
-              
-              // Manually trigger form validation
-              const isValid = await form.trigger();
-              console.log('🔍 Form valid after trigger?', isValid);
-              console.log('❌ Form errors:', form.formState.errors);
-              
-              // If button clicked but form invalid, show our custom error message
-              if (!isValid) {
-                e.preventDefault();
-                console.log('❌ Form validation failed, showing custom error');
-                
-                // Custom validation with user-friendly messages
-                const errors: string[] = [];
-                
-                if (!formValues.originPort || formValues.originPort === "") {
-                  errors.push("Please select a port of origin");
-                }
-                
-                if (!formValues.destinationPort || formValues.destinationPort === "") {
-                  errors.push("Please select a destination port");
-                }
-                
-                if (!formValues.deliveryAddress || formValues.deliveryAddress.trim() === "") {
-                  errors.push("Please enter your delivery address");
-                }
-                
-                if (!formValues.containerType) {
-                  errors.push("Please select a container type");
-                }
-                
-                if (!formValues.cargoType || formValues.cargoType.trim() === "") {
-                  errors.push("Please describe your cargo type");
-                }
-                
-                if (!formValues.incoterm || formValues.incoterm === "") {
-                  errors.push("Please select an Incoterm");
-                }
-                
-                if (!formValues.weight || formValues.weight <= 0) {
-                  errors.push("Please enter the cargo weight");
-                }
-                
-                if (!formValues.value || formValues.value <= 0) {
-                  errors.push("Please enter the cargo value");
-                }
-                
-                // Show error messages if any required fields are missing
-                if (errors.length > 0) {
-                  toast({
-                    title: "Missing Information ⚠️",
-                    description: (
-                      <div className="space-y-1">
-                        <p className="font-medium">Please complete the following:</p>
-                        <ul className="list-disc list-inside space-y-1 text-sm">
-                          {errors.map((error, index) => (
-                            <li key={index}>{error}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    ) as any,
-                    variant: "destructive",
-                    duration: 6000,
-                  });
-                }
-                return;
-              }
-              
-              // If valid, let the form submission proceed
-              console.log('✅ Form is valid, allowing submission');
-            }}
           >
             {calculateQuoteMutation.isPending ? (
               <div className="flex items-center space-x-2">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                <span>Calculating...</span>
+                <span>Calculating your quote...</span>
               </div>
             ) : (
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center justify-center space-x-2">
                 <Truck className="h-5 w-5" />
                 <span>Calculate Shipping Quote</span>
               </div>
             )}
           </Button>
+
+          <p className="text-center text-xs text-gray-500">
+            Or use the AI Chat above to get an instant provisional estimate with minimal details — it will auto-fill this form!
+          </p>
         </form>
       </CardContent>
     </Card>

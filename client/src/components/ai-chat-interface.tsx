@@ -42,8 +42,8 @@ interface AIChatInterfaceProps {
 const QUICK_QUESTIONS = [
   {
     icon: Ship,
-    question: "What is the difference between FOB and CIF?",
-    category: "Incoterms"
+    question: "20ft electronics from Shanghai to Johannesburg",
+    category: "Instant Quote"
   },
   {
     icon: FileText,
@@ -52,8 +52,8 @@ const QUICK_QUESTIONS = [
   },
   {
     icon: HelpCircle,
-    question: "How long does sea freight from China take?",
-    category: "Shipping"
+    question: "Export furniture from Durban to Europe — rough cost?",
+    category: "Instant Quote"
   },
   {
     icon: BookOpen,
@@ -70,13 +70,14 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
       id: '1',
       role: 'assistant',
       content: context === "homepage" || context === "calculator" 
-        ? "👋 Hi! I'm your shipping assistant. Tell me about your shipment and I'll provide a comprehensive quote with full customs and VAT breakdown, then automatically fill in the calculator form below for more detailed quotes!"
+        ? "👋 Hi! I'm your EasyShip AI assistant. Describe your shipment in plain words (e.g. \"20ft laptops from Shanghai to Johannesburg\" or \"export furniture from Durban to Europe\") and I'll instantly give you a full cost breakdown with VAT, duties, Incoterms explained — even with minimal details. The more you tell me, the more accurate it gets."
         : "👋 Welcome to EasyShip AI! I'm here to help you understand container shipping, customs, and Incoterms in simple terms. What would you like to know?",
       timestamp: new Date()
     }
   ]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [liveEstimate, setLiveEstimate] = useState<any>(null); // Real provisional quote from backend estimator (powers instant minimal-info quotes)
   // Removed messagesEndRef to prevent auto-scrolling
 
   // Remove auto-scroll to prevent page jumping
@@ -88,12 +89,13 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
       id: '1',
       role: 'assistant',
       content: context === "homepage" || context === "calculator" 
-        ? "👋 Hi! I'm your shipping assistant. Tell me about your shipment and I'll provide a comprehensive quote with full customs and VAT breakdown, then automatically fill in the calculator form below for more detailed quotes!"
+        ? "👋 Hi! I'm your EasyShip AI assistant. Describe your shipment in plain words (e.g. \"20ft laptops from Shanghai to Johannesburg\" or \"export furniture from Durban to Europe\") and I'll instantly give you a full cost breakdown with VAT, duties, Incoterms explained — even with minimal details. The more you tell me, the more accurate it gets."
         : "👋 Welcome to EasyShip AI! I'm here to help you understand container shipping, customs, and Incoterms in simple terms. What would you like to know?",
       timestamp: new Date()
     }]);
     setInputMessage("");
     setIsLoading(false);
+    setLiveEstimate(null); // clear the live provisional quote card
     
     // Call parent reset callback if provided
     if (onReset) {
@@ -155,14 +157,21 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
       if (lower.includes('tianjin')) return '3';
       if (lower.includes('china') && !lower.includes('specific')) return '1'; // Default to Shanghai for China
       
+      // Asia Pacific ports - MUST CHECK BEFORE US (Hong Kong comes before general region checks)
+      if (lower.includes('hong kong') || lower.includes('hk')) {
+        console.log(`✅ Found Hong Kong, returning ID: 29`);
+        return '29';
+      }
+      if (lower.includes('busan') || lower.includes('korea')) return '30';
+      if (lower.includes('kaohsiung') || lower.includes('taiwan')) return '52';
+      if (lower.includes('bangkok') || lower.includes('thailand')) return '28';
+      
       // Major US ports
       if (lower.includes('houston') || lower.includes('hou')) return '40'; // Houston
       if (lower.includes('new york') || lower.includes('ny')) return '34';
-      if (lower.includes('los angeles') || lower.includes('la')) {
-        console.log(`⚠️ Found Los Angeles, returning ID: 32`);
-        return '32';
-      }
+      if (lower.includes('los angeles') || lower.includes('long beach')) return '32';
       if (lower.includes('miami')) return '35';
+      if (lower.includes('seattle')) return '61';
       if (lower.includes('usa') || lower.includes('america')) return '34'; // Default to New York for USA
       
       // European ports
@@ -210,6 +219,7 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
       if (lower.includes('felixstowe') || lower.includes('uk')) return '6';
       
       // Other destinations
+      if (lower.includes('hong kong') || lower.includes('hk')) return '29';
       if (lower.includes('singapore')) return '8';
       if (lower.includes('mumbai') || lower.includes('india')) return '7';
       if (lower.includes('jebel ali') || lower.includes('dubai') || lower.includes('uae')) return '38';
@@ -325,36 +335,41 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
   const getCargoType = (msg: string) => {
     const lower = msg.toLowerCase();
     
+    // Must return exact names from database: General Cargo, Electronics, Textiles & Clothing, Machinery, Automotive Parts, Food Products, Chemicals, Furniture, Other
+    
     // Electronics & Technology
     if (lower.includes('electronics') || lower.includes('phones') || lower.includes('computers') || 
-        lower.includes('laptops') || lower.includes('tablets') || lower.includes('gadgets')) return 'electronics';
+        lower.includes('laptops') || lower.includes('tablets') || lower.includes('gadgets')) return 'Electronics';
     
     // Textiles & Clothing
     if (lower.includes('shoes') || lower.includes('footwear') || lower.includes('clothing') || 
         lower.includes('textiles') || lower.includes('apparel') || lower.includes('garments') ||
-        lower.includes('fashion') || lower.includes('shirts') || lower.includes('pants')) return 'textiles';
+        lower.includes('fashion') || lower.includes('shirts') || lower.includes('pants')) return 'Textiles & Clothing';
     
     // Machinery & Equipment
     if (lower.includes('machinery') || lower.includes('equipment') || lower.includes('tools') || 
-        lower.includes('industrial') || lower.includes('motor') || lower.includes('engine')) return 'machinery';
+        lower.includes('industrial') || lower.includes('motor') || lower.includes('engine')) return 'Machinery';
     
-    // Food & Agricultural
+    // Food & Agricultural - map to Food Products
     if (lower.includes('food') || lower.includes('agricultural') || lower.includes('grain') || 
-        lower.includes('coffee') || lower.includes('tea') || lower.includes('spices')) return 'food';
+        lower.includes('coffee') || lower.includes('tea') || lower.includes('spices')) return 'Food Products';
     
-    // Medical & Healthcare
+    // Medical & Healthcare - map to Chemicals (closest match for pharma)
     if (lower.includes('medical') || lower.includes('pharmaceutical') || lower.includes('healthcare') || 
-        lower.includes('medicine') || lower.includes('drugs')) return 'medical';
+        lower.includes('medicine') || lower.includes('drugs')) return 'Chemicals';
     
-    // Automotive
+    // Automotive - map to Automotive Parts
     if (lower.includes('automotive') || lower.includes('car parts') || lower.includes('vehicle') || 
-        lower.includes('auto')) return 'automotive';
+        lower.includes('auto')) return 'Automotive Parts';
     
     // Furniture & Home
-    if (lower.includes('furniture') || lower.includes('home goods') || lower.includes('appliances')) return 'furniture';
+    if (lower.includes('furniture') || lower.includes('home goods') || lower.includes('appliances')) return 'Furniture';
+    
+    // Chemicals
+    if (lower.includes('chemicals') || lower.includes('chemical')) return 'Chemicals';
     
     // Default to general cargo
-    return 'general';
+    return 'General Cargo';
   };
 
   const getIncoterm = (msg: string) => {
@@ -415,6 +430,17 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
       if (data.conversationId && !conversationId) {
         setConversationId(data.conversationId);
       }
+
+      // === Capture real backend estimate (from /api/estimate-quote via chat) ===
+      // This is the core of "instant quote even with minimal information"
+      if (data.estimate) {
+        setLiveEstimate(data.estimate);
+        // Auto-feed the calculator form with the suggested values (origin, container, value, etc.)
+        if (onExtractedData && data.estimate.suggestedFormValues) {
+          console.log("📊 Applying estimate suggestedFormValues to calculator:", data.estimate.suggestedFormValues);
+          onExtractedData(data.estimate.suggestedFormValues);
+        }
+      }
       
       // Enhanced shipping detection and estimation
       const fullConversation = messages.map(m => m.content).concat(messageContent).join(' ');
@@ -428,50 +454,14 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
       const hasSufficientInfo = hasOrigin && hasDestination;
       const isCompleteShippingRequest = hasSufficientInfo && (hasContainer || hasValue);
       
-      // Only generate estimate if we have ALL required information from user
+      // The live estimate card (powered by the backend) now handles provisional quotes even with minimal info.
+      // We keep this section lightweight — mostly for additional LLM guidance text.
       let estimateText = "";
-      const missingInfo = [];
+      const hasEnoughForCard = hasOrigin && hasDestination;
       
-      if (hasOrigin && hasDestination) {
-        const originId = getOriginPortId(fullConversation);
-        const destId = getDestinationPortId(fullConversation);
-        const containerType = getContainerType(fullConversation);
-        const cargoValue = getCargoValue(fullConversation);
-        const cargoType = getCargoType(fullConversation);
-        
-        const weight = getWeight(fullConversation);
-        
-        // Check for missing required information
-        if (!containerType) missingInfo.push("container size (20ft, 40ft, or 40ft-hc)");
-        if (cargoValue === 0) missingInfo.push("cargo value in USD");
-        if (weight === 0) missingInfo.push("cargo weight (kg or tons)");
-        
-        // Only generate estimate if we have all required info
-        if (missingInfo.length === 0) {
-          // Quick calculation based on common routes - using only user-provided data
-          const routeEstimates: Record<string, Record<string, number>> = {
-            '1': { '9': 48500, '10': 51000, '11': 49500 }, // Shanghai
-            '4': { '9': 42000, '10': 40000, '11': 43000 }, // Hamburg  
-            '34': { '9': 40000, '10': 43000, '11': 41000 }, // New York
-            '40': { '9': 39000, '10': 42000, '11': 40000 }, // Houston
-          };
-          
-          const seaFreight = routeEstimates[originId]?.[destId] || 45000;
-          const containerMultiplier = containerType === '40ft' ? 1.3 : containerType === '40ft-hc' ? 1.35 : 1;
-          const adjustedSeaFreight = Math.round(seaFreight * containerMultiplier);
-          
-          const trucking = destId === '10' ? 1000 : destId === '9' ? 1000 : 6000; // Cape Town/Durban vs inland
-          const customsDuty = Math.round(cargoValue * (cargoType === 'textiles' ? 0.45 : cargoType === 'electronics' ? 0.20 : 0.15));
-          const vat = Math.round((cargoValue + customsDuty) * 0.15);
-          const handling = 3500;
-          
-          const total = adjustedSeaFreight + trucking + customsDuty + vat + handling;
-          
-          estimateText = `\n\n💰 **Quick Estimate**: R${total.toLocaleString()} total\n• Sea freight (${containerType}): R${adjustedSeaFreight.toLocaleString()}\n• Trucking: R${trucking.toLocaleString()}\n• Customs & VAT: R${(customsDuty + vat).toLocaleString()}\n• Handling: R${handling.toLocaleString()}`;
-        } else {
-          // Ask for missing information
-          estimateText = `\n\n❓ **To provide an accurate quote, I need:**\n• ${missingInfo.join('\n• ')}\n\nPlease provide this information and I'll calculate your exact shipping cost.`;
-        }
+      if (hasEnoughForCard) {
+        // Encourage the user to keep refining conversationally (the card will show useful numbers right away)
+        estimateText = `\n\nThe live quote card above is updating with the best estimate I can give from what you've told me so far. Just reply with changes like "make it 40ft", "value around 18000", or "to Cape Town" and I'll recalculate instantly.`;
       }
 
       // Add calculator suggestion for relevant shipping queries
@@ -527,8 +517,9 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
         const destId = getDestinationPortId(fullConversation);
         if (destId) {
           extractedData.destinationPort = destId;
+          // Set deliveryAddress from the final destination name for user convenience
           const finalDest = getFinalDestinationName(fullConversation);
-          if (finalDest) extractedData.finalDestination = finalDest;
+          if (finalDest) extractedData.deliveryAddress = finalDest;
         }
         
         const container = getContainerType(fullConversation);
@@ -544,15 +535,28 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
         if (incoterm) extractedData.incoterm = incoterm;
         
         const cargoType = getCargoType(fullConversation);
-        if (cargoType) {
+        if (cargoType && cargoType !== 'General Cargo') {
           extractedData.cargoType = cargoType;
           
           // Add a message to help with HS code selection
           setTimeout(() => {
+            const getExampleProduct = (type: string) => {
+              const examples: Record<string, string> = {
+                'Textiles & Clothing': 'running shoes',
+                'Electronics': 'smartphones',
+                'Machinery': 'industrial motors',
+                'Automotive Parts': 'car engine blocks',
+                'Food Products': 'coffee beans',
+                'Chemicals': 'industrial solvents',
+                'Furniture': 'wooden chairs'
+              };
+              return examples[type] || type.toLowerCase();
+            };
+            
             const hsCodeHelpMessage: ChatMessage = {
               id: (Date.now() + 3).toString(),
               role: 'assistant',
-              content: `📦 **I noticed you're shipping ${cargoType}.** To get the most accurate customs calculation:\n\n• Use the cargo search field to find your specific product's HS code\n• Type keywords like "${cargoType === 'textiles' ? 'running shoes' : cargoType === 'electronics' ? 'smartphones' : cargoType}" to see options\n• The HS code determines your exact duty rate (varies from 0% to 45%)\n\nWould you like me to help you find the right HS code for your specific items?`,
+              content: `📦 **I noticed you're shipping ${cargoType}.** To get the most accurate customs calculation:\n\n• Use the cargo search field to find your specific product's HS code\n• Type keywords like "${getExampleProduct(cargoType)}" to see options\n• The HS code determines your exact duty rate (varies from 0% to 45%)\n\nWould you like me to help you find the right HS code for your specific items?`,
               timestamp: new Date()
             };
             setMessages(prev => [...prev, hsCodeHelpMessage]);
@@ -612,6 +616,59 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     sendMessage(inputMessage);
+  };
+
+  // Handle quick refinements from the live estimate card.
+  // This is the key UX that makes the Shipping Agent feel like it is actively "processing"
+  // the quote with the user using almost zero effort.
+  const handleQuickRefinement = async (refinementText: string) => {
+    if (!liveEstimate || isLoading) return;
+
+    // 1. Optimistic: call the estimator directly for instant card update (feels very responsive)
+    try {
+      const current = liveEstimate.suggestedFormValues || {};
+      // Build a best-effort new request by injecting the user's intent into the loose text path on server
+      // For speed we reconstruct a partial request and call estimate directly
+      const optimisticInput: any = {
+        origin: current.originPort ? (current.originPort === '1' ? 'Shanghai' : current.originPort) : undefined,
+        destination: current.destinationPort ? (current.destinationPort === '9' ? 'Durban' : current.destinationPort === '10' ? 'Cape Town' : 'Johannesburg') : undefined,
+        containerType: current.containerType,
+        cargoType: current.cargoType,
+        value: current.value,
+        weight: current.weight,
+        incoterm: current.incoterm,
+      };
+
+      // Very lightweight intent application for common cases (the server will do the real work on the chat message)
+      const lowerRefine = refinementText.toLowerCase();
+      if (lowerRefine.includes('40ft')) optimisticInput.containerType = '40ft';
+      if (lowerRefine.includes('20ft')) optimisticInput.containerType = '20ft';
+      if (lowerRefine.includes('15000') || lowerRefine.includes('15k') || lowerRefine.includes('$15')) optimisticInput.value = 15000;
+      if (lowerRefine.includes('cape town')) optimisticInput.destination = 'Cape Town';
+      if (lowerRefine.includes('ddp')) optimisticInput.incoterm = 'DDP';
+      if (lowerRefine.includes('export') && lowerRefine.includes('south africa')) optimisticInput.origin = 'Durban';
+
+      const directRes = await fetch('/api/estimate-quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(optimisticInput),
+      });
+      if (directRes.ok) {
+        const directData = await directRes.json();
+        if (directData.estimate) {
+          setLiveEstimate(directData.estimate);
+          if (onExtractedData && directData.estimate.suggestedFormValues) {
+            onExtractedData(directData.estimate.suggestedFormValues);
+          }
+        }
+      }
+    } catch (e) {
+      // Non-fatal — the chat roundtrip below will still correct it
+    }
+
+    // 2. Send the natural language message through the normal chat flow.
+    // This gets a nice conversational reply from the agent + triggers the full estimate wiring again.
+    sendMessage(refinementText);
   };
 
   return (
@@ -748,6 +805,130 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
               {/* Removed auto-scroll reference */}
             </ScrollArea>
 
+            {/* ===================================================== */}
+            {/* LIVE PROVISIONAL QUOTE CARD — the heart of the "instant quote from minimal info + agent processes it" vision */}
+            {/* Appears / updates automatically as soon as the backend estimator has enough data from the conversation */}
+            {/* ===================================================== */}
+            {liveEstimate && (
+              <div className="mb-4 p-4 rounded-xl border-2 border-blue-200 bg-blue-50/60 shadow-inner">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="font-semibold text-blue-900">💰 Live Estimate (Provisional)</div>
+                    <Badge variant={liveEstimate.confidence === "high" ? "default" : "secondary"} className="text-[10px]">
+                      {liveEstimate.confidence.toUpperCase()} CONFIDENCE
+                    </Badge>
+                    {liveEstimate.isExport && <Badge variant="outline" className="text-[10px]">EXPORT</Badge>}
+                  </div>
+                  <div className="text-xs text-blue-700">ZAR • updates as you chat</div>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-2 text-sm mb-3">
+                  <div>
+                    <div className="text-gray-500 text-xs">Sea Freight</div>
+                    <div className="font-semibold">R{liveEstimate.seaFreight?.toLocaleString()}</div>
+                    <div className="text-[10px] text-gray-600 leading-tight">{liveEstimate.explanations?.seaFreight}</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-500 text-xs">Trucking (to final city)</div>
+                    <div className="font-semibold">R{liveEstimate.trucking?.toLocaleString()}</div>
+                    <div className="text-[10px] text-gray-600 leading-tight">{liveEstimate.explanations?.trucking}</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-500 text-xs">Customs Duties (SARS)</div>
+                    <div className="font-semibold">R{liveEstimate.customsDuties?.toLocaleString()}</div>
+                    <div className="text-[10px] text-gray-600 leading-tight">{liveEstimate.explanations?.customsDuties}</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-500 text-xs">VAT (15%)</div>
+                    <div className="font-semibold">R{liveEstimate.vat?.toLocaleString()}</div>
+                    <div className="text-[10px] text-gray-600 leading-tight">{liveEstimate.explanations?.vat}</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-500 text-xs">Handling &amp; Fees</div>
+                    <div className="font-semibold">R{liveEstimate.handlingFees?.toLocaleString()}</div>
+                    <div className="text-[10px] text-gray-600 leading-tight">{liveEstimate.explanations?.handlingFees}</div>
+                  </div>
+                  <div className="border-t md:border-t-0 pt-2 md:pt-0 md:border-l pl-0 md:pl-3 mt-1 md:mt-0">
+                    <div className="text-gray-500 text-xs">TOTAL (all-in)</div>
+                    <div className="text-xl font-bold text-blue-900">R{liveEstimate.totalCost?.toLocaleString()}</div>
+                    <div className="text-[10px] text-gray-600 leading-tight">{liveEstimate.explanations?.total}</div>
+                  </div>
+                </div>
+
+                {/* Assumptions + Education */}
+                {liveEstimate.assumptions?.length > 0 && (
+                  <div className="text-xs bg-white/70 p-2 rounded mb-2 border border-blue-100">
+                    <span className="font-medium text-blue-800">Assumptions we made:</span>{" "}
+                    {liveEstimate.assumptions.slice(0, 2).join(" ")}
+                    {liveEstimate.assumptions.length > 2 && " …"}
+                  </div>
+                )}
+
+                {liveEstimate.whyThisIncoterm && (
+                  <div className="text-xs italic text-blue-800 mb-2">
+                    Incoterm ({liveEstimate.incoterm}): {liveEstimate.whyThisIncoterm}
+                  </div>
+                )}
+
+                {/* Action row */}
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    variant="default"
+                    className="bg-blue-700 hover:bg-blue-800"
+                    onClick={() => {
+                      if (onExtractedData && liveEstimate.suggestedFormValues) {
+                        onExtractedData(liveEstimate.suggestedFormValues);
+                      }
+                    }}
+                  >
+                    Use these details in the calculator
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setLiveEstimate(null)}
+                  >
+                    Hide estimate
+                  </Button>
+                </div>
+
+                {/* Quick refinement chips — this is what makes the agent feel like it's "processing" the quote live with minimal effort */}
+                <div className="mt-3">
+                  <div className="text-[10px] text-blue-700 mb-1.5">Quick tweaks (click to update the live quote instantly):</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      { label: "Try 40ft", msg: "change to 40ft container" },
+                      { label: "Value ~$15k", msg: "cargo value is about 15000 USD" },
+                      { label: "To Cape Town", msg: "actually ship to Cape Town instead" },
+                      { label: "Use DDP", msg: "use DDP incoterm instead" },
+                      { label: "It's an export", msg: "this is an export from South Africa" },
+                    ].map((refine, idx) => (
+                      <Button
+                        key={idx}
+                        size="sm"
+                        variant="outline"
+                        className="h-7 px-2 text-xs border-blue-200 hover:bg-blue-100"
+                        onClick={() => handleQuickRefinement(refine.msg)}
+                      >
+                        {refine.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {liveEstimate.tips?.length > 0 && (
+                  <div className="mt-2 text-[10px] text-blue-700">
+                    💡 {liveEstimate.tips[0]}
+                  </div>
+                )}
+
+                <div className="mt-2 text-[10px] text-gray-500">
+                  This is a fast provisional estimate. For a precise SARS-compliant quote with your exact HS code, live carrier rates, and full options, the calculator below will refine it.
+                </div>
+              </div>
+            )}
+
             {/* Message Input */}
             <form onSubmit={handleSubmit} className="flex gap-2">
               <Input
@@ -769,7 +950,7 @@ export function AIChatInterface({ className, context, onExtractedData, onReset }
 
             <div className="mt-3 text-xs text-gray-500 text-center">
               {context === "homepage" || context === "calculator" 
-                ? "💡 Tip: Tell me your shipping details like 'ship electronics from China to Cape Town' and I'll provide a comprehensive quote and auto-fill the form"
+                ? "💡 Tip: Describe your shipment in plain English. Use the quick tweak buttons on the live quote card or just say things like 'change to 40ft' or 'value is $12k' — I'll update the numbers instantly."
                 : "💡 Tip: Ask specific questions like 'What documents do I need?' or 'Explain FOB pricing'"}
             </div>
           </CardContent>

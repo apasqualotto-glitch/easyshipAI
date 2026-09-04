@@ -7,56 +7,103 @@ import { carrierComparisonService, type ComparisonRequest } from "./carrier-comp
 import { customsDatabase } from "./customs-database";
 import { bookingService, type BookingRequest, type BookingResponse } from "./booking-service";
 import { generateChatResponse } from "./ai-service";
+import { generateAgentResponse } from "./shipping-agent";
+import { authMiddleware, rateLimitMiddleware, logApiUsage, createUserSession } from "./auth";
+import { ExchangeRateService } from "./cache-service";
+import { calculateQuote } from "./quote-service";
+import { estimateQuote, estimateFromLooseText, type EstimateRequest } from "./estimate-service";
 import { z } from "zod";
 import { freightForwarderService } from "./freight-forwarder-api";
 import addressService from "./address-autocomplete";
 
-// Enhanced currency conversion service with multiple API sources
-async function getCurrentExchangeRate(): Promise<{ rate: number; source: string; timestamp: string }> {
-  try {
-    // Try exchangerate-api.com first (reliable and free)
-    const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
-    if (response.ok) {
-      const data = await response.json();
-      if (data.rates?.ZAR) {
-        return {
-          rate: data.rates.ZAR,
-          source: "exchangerate-api.com",
-          timestamp: new Date().toISOString()
-        };
-      }
-    }
-  } catch (error) {
-    console.log('Primary exchange API failed, trying backup');
-  }
-
-  try {
-    // Backup: exchangerate.host (no API key required)
-    const response = await fetch('https://api.exchangerate.host/latest?base=USD&symbols=ZAR');
-    if (response.ok) {
-      const data = await response.json();
-      if (data.rates?.ZAR) {
-        return {
-          rate: data.rates.ZAR,
-          source: "exchangerate.host",
-          timestamp: new Date().toISOString()
-        };
-      }
-    }
-  } catch (error) {
-    console.log('Backup exchange API failed');
-  }
-  
-  // Fallback exchange rate (USD to ZAR) - updated regularly
-  console.warn('All exchange rate APIs unavailable, using fallback rate');
+// Cached currency conversion service with multiple API sources
+async function getCurrentExchangeRate(): Promise<{
+  rate: number;
+  source: string;
+  timestamp: string;
+}> {
+  const result = await ExchangeRateService.getUSDtoZAR();
   return {
-    rate: 18.2, // Current approximate rate as of 2025
-    source: "fallback",
-    timestamp: new Date().toISOString()
+    rate: result.rate,
+    source: result.cached ? `${result.source} (cached)` : result.source,
+    timestamp: result.timestamp,
   };
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // ============================================================
+  // MIDDLEWARE SETUP (Authentication, Rate Limiting, Logging)
+  // ============================================================
+
+  // Apply authentication middleware to all API routes
+  app.use("/api", authMiddleware);
+
+  // Apply rate limiting to all API routes
+  app.use("/api", rateLimitMiddleware);
+
+  // Apply API logging to all API routes
+  app.use("/api", logApiUsage);
+
+  // ============================================================
+  // AUTHENTICATION ENDPOINTS
+  // ============================================================
+
+  /**
+   * POST /api/auth/session
+   * Create a new user session (for demo/anonymous users)
+   * In production, integrate with OAuth2 or SSO provider
+   */
+  app.post("/api/auth/session", async (req, res) => {
+    try {
+      const { email } = req.body;
+
+      const session = createUserSession(email);
+
+      res.json({
+        success: true,
+        user: {
+          id: session.userId,
+          email,
+        },
+        tokens: {
+          accessToken: session.accessToken,
+          refreshToken: session.refreshToken,
+        },
+        message: "Session created. Use accessToken in Authorization header for subsequent requests.",
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        error: "Failed to create session",
+        message: error.message,
+      });
+    }
+  });
+
+  /**
+   * POST /api/auth/logout
+   * Invalidate current session
+   */
+  app.post("/api/auth/logout", async (req, res) => {
+    try {
+      if (req.sessionId) {
+        // In production, invalidate session in database
+        res.json({
+          success: true,
+          message: "Session invalidated",
+        });
+      } else {
+        res.status(400).json({
+          error: "No active session",
+        });
+      }
+    } catch (error: any) {
+      res.status(500).json({
+        error: "Failed to logout",
+        message: error.message,
+      });
+    }
+  });
+
   // Get all ports - CRITICAL for quote calculations
   app.get("/api/ports", async (req, res) => {
     try {
@@ -286,10 +333,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Apply Incoterm-based cost adjustments (will be calculated after exchange rate)
       let seaFreightCost = baseSeaFreightCost; // Default to base cost, will be adjusted below
 
-      // NOTE: Trucking cost will be calculated by DSV API integration
-      // This avoids double-charging - DSV provides the actual trucking quotes
-      // that are displayed in the freight forwarder breakdown
-      let truckingCost = 0; // Will be populated from DSV quotes
+      // NOTE: Trucking cost will be calculated from delivery address
+      // Using distance-based calculation from address coordinates to destination port
+      let truckingCost = 0; // Will be populated from delivery address calculation
+      
+      // Calculate trucking cost from delivery address if import
+      if (originPort.country !== "South Africa" && validatedData.deliveryAddress) {
+        try {
+          const distanceResult = addressService.getDistanceAndCost(
+            addressService.createCustomAddress(validatedData.deliveryAddress),
+            validatedData.destinationPort,
+            validatedData.incoterm || 'FOB',
+            validatedData.containerType
+          );
+          if (distanceResult && !distanceResult.error) {
+            truckingCost = Math.round(distanceResult.cost);
+            console.log(`✅ Trucking cost calculated: R${truckingCost} for ${distanceResult.distance}km`);
+          } else {
+            throw new Error('Distance calculation failed');
+          }
+        } catch (error) {
+          console.warn(`Could not calculate trucking cost from address: ${error}`);
+          // Use fallback average trucking cost
+          truckingCost = 10000; // Average trucking cost estimate
+        }
+      } else if (originPort.country === "South Africa") {
+        // For exports, minimal trucking from business to port
+        truckingCost = 2000;
+      }
 
       // Use the origin port we already found and validated earlier
       const originCountry = originPort.country;
@@ -357,9 +428,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (validatedData.customsTariff) {
         // Use advanced customs calculations with trade agreement rates
         const customsCalculation = customsDatabase.calculateDetailedCustomsCostByCountry(
-          validatedData.customsTariff.hsCode, 
-          fobValueZAR, 
-          originCountry
+          validatedData.customsTariff.hsCode,
+          fobValueZAR,
+          originCountry,
+          isSacuCountry
         );
         
         if (!customsCalculation.error && customsCalculation.calculations && customsCalculation.tradeAgreement) {
@@ -374,13 +446,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             exchangeRate: usdToZarRate,
             dutyRate: customsCalculation.tradeAgreement.dutyRate,
             customsDuty: customsCalculation.calculations.customsDuty,
-            markupApplied: !isSacuCountry,
-            markupAmount: isSacuCountry ? 0 : fobValueZAR * 0.10,
-            atvValue: customsCalculation.calculations.dutiableAmount,
+            markupApplied: customsCalculation.calculations.markupAmount > 0,
+            markupAmount: customsCalculation.calculations.markupAmount,
+            atvValue: customsCalculation.calculations.atvValue,
             vatRate: 0.15,
             vat: customsCalculation.calculations.vat,
-            formula: isSacuCountry 
-              ? "VAT = (FOB Value + Duties) × 15%" 
+            formula: isSacuCountry
+              ? "VAT = (FOB Value + Duties) × 15%"
               : "VAT = (FOB Value + 10% markup + Duties) × 15%"
           };
         } else {
@@ -585,17 +657,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============================================================
+  // INSTANT ESTIMATE ENDPOINT (for the AI Shipping Agent + minimal info flow)
+  // Accepts very loose / partial data and returns usable numbers + explanations.
+  // This is the key piece that lets the agent "process" conversational input into an instant quote.
+  // ============================================================
+  const estimateRequestSchema = z.object({
+    origin: z.string().optional(),
+    destination: z.string().optional(),
+    containerType: z.string().optional(),
+    cargoType: z.string().optional(),
+    value: z.number().optional(),
+    weight: z.number().optional(),
+    incoterm: z.string().optional(),
+    deliveryCity: z.string().optional(),
+  });
+
+  app.post("/api/estimate-quote", async (req, res) => {
+    try {
+      const input = estimateRequestSchema.parse(req.body || {});
+      const estimate = await estimateQuote(input as EstimateRequest);
+
+      res.json({
+        success: true,
+        estimate,
+        message: "Provisional estimate based on available information + sensible defaults. Provide more details for higher accuracy.",
+      });
+    } catch (error: any) {
+      console.error("Estimate error:", error);
+      res.status(400).json({
+        success: false,
+        message: error.message || "Could not generate estimate",
+      });
+    }
+  });
+
   // Enhanced quote calculation with live rates integration
+  // Note: We use absolute URL for internal self-calls because Node fetch requires it (relative URLs don't work server-side).
+  const API_BASE = `http://127.0.0.1:${process.env.PORT || 5000}`;
+
   app.post("/api/calculate-quote-with-live", async (req, res) => {
     try {
       const validatedData = quoteRequestSchema.parse(req.body);
       
-      // Get standard quote calculation
-      const standardQuoteResponse = await fetch("http://localhost:5000/api/calculate-quote", {
+      // Get standard quote calculation via internal call (forward auth if present so middleware passes)
+      const authHeader = req.headers.authorization;
+      const standardHeaders: any = { "Content-Type": "application/json" };
+      if (authHeader) standardHeaders.Authorization = authHeader;
+
+      const standardQuoteResponse = await fetch(`${API_BASE}/api/calculate-quote`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: standardHeaders,
         body: JSON.stringify(validatedData)
       });
 
@@ -758,12 +870,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = quoteRequestSchema.parse(req.body);
       
-      // Get base quote first
-      const baseQuoteResponse = await fetch("http://localhost:5000/api/calculate-quote", {
+      // Get base quote first (use absolute + forward auth)
+      const authHeader = req.headers.authorization;
+      const baseHeaders: any = { "Content-Type": "application/json" };
+      if (authHeader) baseHeaders.Authorization = authHeader;
+
+      const baseQuoteResponse = await fetch(`${API_BASE}/api/calculate-quote`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: baseHeaders,
         body: JSON.stringify(validatedData)
       });
 
@@ -1258,8 +1372,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         context
       );
 
+      // === NEW: Try to attach a real provisional estimate when the user is talking about a shipment ===
+      // This powers the "instant quote from minimal information" experience.
+      let estimate = null;
+      try {
+        const looseEstimate = await estimateFromLooseText(validatedData.message || "");
+        if (looseEstimate) {
+          estimate = looseEstimate;
+        }
+      } catch (e) {
+        // non-fatal — estimates are best-effort
+      }
+
       res.json({
         response,
+        estimate,                       // structured provisional quote + explanations (or null)
         timestamp: new Date().toISOString(),
         context: context.page,
         conversationId: conversationId || `conv_${Date.now()}`
@@ -1282,6 +1409,172 @@ What specific shipping question can I help you with?`;
         response: fallbackResponse,
         timestamp: new Date().toISOString(),
         context: "fallback"
+      });
+    }
+  });
+
+  // ============================================================
+  // SHIPPING AI AGENT ENDPOINTS (Enhanced AI with multiple modes)
+  // ============================================================
+
+  /**
+   * POST /api/shipping-agent
+   * Generates intelligent shipping guidance using specialized agent modes
+   * Modes: 'guide' | 'analyzer' | 'documentor' | 'auto'
+   */
+  app.post("/api/shipping-agent", async (req, res) => {
+    try {
+      const { message, mode = 'auto', shippingDetails = {}, conversationTurns = 0 } = req.body;
+
+      if (!message) {
+        return res.status(400).json({ error: "Message is required" });
+      }
+
+      const agentResponse = await generateAgentResponse(
+        message,
+        mode,
+        shippingDetails,
+        conversationTurns
+      );
+
+      // Also attach a real estimate when the agent has (or can infer) enough shipping details
+      let estimate = null;
+      try {
+        // Prefer the details the agent already extracted
+        if (shippingDetails && (shippingDetails.origin || shippingDetails.destination)) {
+          estimate = await estimateQuote({
+            origin: shippingDetails.origin,
+            destination: shippingDetails.destination,
+            containerType: shippingDetails.containerType,
+            cargoType: shippingDetails.cargoType,
+            value: shippingDetails.value,
+            weight: shippingDetails.weight,
+            incoterm: undefined,
+          });
+        } else {
+          // Fall back to loose text from the message
+          estimate = await estimateFromLooseText(message);
+        }
+      } catch {}
+
+      res.json({
+        ...agentResponse,
+        estimate,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error: any) {
+      console.error("Shipping agent error:", error);
+      res.status(500).json({
+        error: "Failed to generate agent response",
+        message: error.message
+      });
+    }
+  });
+
+  /**
+   * POST /api/shipping-agent/guide
+   * Step-by-step shipping process guide
+   * Walks users through the entire shipping journey
+   */
+  app.post("/api/shipping-agent/guide", async (req, res) => {
+    try {
+      const {
+        message,
+        shippingDetails = {},
+        conversationTurns = 0
+      } = req.body;
+
+      if (!message) {
+        return res.status(400).json({ error: "Message is required" });
+      }
+
+      const agentResponse = await generateAgentResponse(
+        message,
+        'guide',
+        shippingDetails,
+        conversationTurns
+      );
+
+      res.json({
+        ...agentResponse,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error: any) {
+      console.error("Guide agent error:", error);
+      res.status(500).json({
+        error: "Failed to generate guide response",
+        message: error.message
+      });
+    }
+  });
+
+  /**
+   * POST /api/shipping-agent/analyzer
+   * Analyzes shipping needs and provides recommendations
+   * Suggests optimal Incoterms, carriers, and routes
+   */
+  app.post("/api/shipping-agent/analyzer", async (req, res) => {
+    try {
+      const { shippingDetails = {} } = req.body;
+
+      if (!shippingDetails.origin || !shippingDetails.destination || !shippingDetails.containerType) {
+        return res.status(400).json({
+          error: "Missing required shipping details",
+          required: ["origin", "destination", "containerType"]
+        });
+      }
+
+      const agentResponse = await generateAgentResponse(
+        "Analyze my shipment and provide recommendations",
+        'analyzer',
+        shippingDetails,
+        0
+      );
+
+      res.json({
+        ...agentResponse,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error: any) {
+      console.error("Analyzer agent error:", error);
+      res.status(500).json({
+        error: "Failed to generate analysis",
+        message: error.message
+      });
+    }
+  });
+
+  /**
+   * POST /api/shipping-agent/documentor
+   * Provides documentation requirements based on cargo type and route
+   * Lists all required documents with costs and sources
+   */
+  app.post("/api/shipping-agent/documentor", async (req, res) => {
+    try {
+      const { shippingDetails = {} } = req.body;
+
+      if (!shippingDetails.containerType) {
+        return res.status(400).json({
+          error: "Container type is required to determine documentation"
+        });
+      }
+
+      const agentResponse = await generateAgentResponse(
+        "What documents do I need for this shipment?",
+        'documentor',
+        shippingDetails,
+        0
+      );
+
+      res.json({
+        ...agentResponse,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error: any) {
+      console.error("Documentor agent error:", error);
+      res.status(500).json({
+        error: "Failed to generate documentation checklist",
+        message: error.message
       });
     }
   });
